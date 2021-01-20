@@ -34,7 +34,7 @@ class PriceGenerator:
 
         self.inputHeaders = ["date", "time", "open", "high", "low", "close", "volume"]  # headers if .csv-file used
         self.dfHeaders = ["datetime", "open", "high", "low", "close", "volume"]  # dataframe headers
-        self.sep = None  # Separator in csv-file, if None then auto-detecting enable
+        self.sep = ","  # Separator in csv-file
 
         self.horizon = 1000  # Generating candlesticks count, must be >= 1
         self.showCandlesCount = 124  # How many candlestick are shown on forecast chart window, 124 for the best view.
@@ -56,15 +56,24 @@ class PriceGenerator:
         :param fileName: path to csv-file with OHLCV columns.
         :return: Pandas dataframe.
         """
-        uLogger.debug("Loading, parse and preparing input data from [{}]...".format(os.path.abspath(fileName)))
+        uLogger.info("Loading, parse and preparing input data from [{}]...".format(os.path.abspath(fileName)))
         self.prices = pd.read_csv(fileName, names=self.inputHeaders, engine="python", sep=self.sep, parse_dates={"datetime": ["date", "time"]})
 
-        uLogger.debug("It was read {} rows".format(len(self.prices)))
-        uLogger.debug("Showing last 5 rows as pandas dataframe:")
+        uLogger.info("It was read {} rows".format(len(self.prices)))
+        uLogger.info("Showing last 5 rows as pandas dataframe:")
         for line in pd.DataFrame.to_string(self.prices[self.dfHeaders][-5:], max_cols=20).split("\n"):
-            uLogger.debug(line)
+            uLogger.info(line)
 
         return self.prices
+
+    def SaveToFile(self, fileName):
+        """
+        Save Pandas OHLCV model to csv-file.
+        :param fileName: path to csv-file.
+        """
+        uLogger.info("Saving [{}] rows of pandas dataframe without headers...".format(len(self.prices)))
+        self.prices.to_csv(fileName, sep=self.sep, index=False, header=False)
+        uLogger.info("Pandas dataframe saved to .csv-file [{}]".format(os.path.abspath(fileName)))
 
 
 def ParseArgs():
@@ -120,6 +129,13 @@ def Main():
 
         if args.load_from:
             priceModel.LoadFromFile(args.load_from)
+
+        if args.save_to:
+            if priceModel.prices is not None and not priceModel.prices.empty:
+                priceModel.SaveToFile(args.save_to)
+
+            else:
+                raise Exception("Empty price data! Generate or load prices before using --save-to key!")
 
     except Exception as e:
         uLogger.error(e)
