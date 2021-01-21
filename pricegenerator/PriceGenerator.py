@@ -71,9 +71,13 @@ class PriceGenerator:
         Save Pandas OHLCV model to csv-file.
         :param fileName: path to csv-file.
         """
-        uLogger.info("Saving [{}] rows of pandas dataframe without headers...".format(len(self.prices)))
-        self.prices.to_csv(fileName, sep=self.sep, index=False, header=False)
-        uLogger.info("Pandas dataframe saved to .csv-file [{}]".format(os.path.abspath(fileName)))
+        if self.prices is not None and not self.prices.empty:
+            uLogger.info("Saving [{}] rows of pandas dataframe without headers...".format(len(self.prices)))
+            self.prices.to_csv(fileName, sep=self.sep, index=False, header=False)
+            uLogger.info("Pandas dataframe saved to .csv-file [{}]".format(os.path.abspath(fileName)))
+
+        else:
+            raise Exception("Empty price data! Generate or load prices before saving!")
 
 
 def ParseArgs():
@@ -131,11 +135,7 @@ def Main():
             priceModel.LoadFromFile(args.load_from)
 
         if args.save_to:
-            if priceModel.prices is not None and not priceModel.prices.empty:
-                priceModel.SaveToFile(args.save_to)
-
-            else:
-                raise Exception("Empty price data! Generate or load prices before using --save-to key!")
+            priceModel.SaveToFile(args.save_to)
 
     except Exception as e:
         uLogger.error(e)
