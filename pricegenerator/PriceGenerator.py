@@ -358,7 +358,7 @@ class PriceGenerator:
         if self.initClose is None:
             self.initClose = round(random.uniform(a=self.minClose, b=self.maxClose), self.precision)
 
-        uLogger.debug("Generating prices with parameters:")
+        uLogger.info("Generating prices...")
         uLogger.debug("- Ticker name: {}".format(self.ticker))
         uLogger.debug("- Interval or timeframe (time delta between two neighbour candles): {}".format(self.timeframe))
         uLogger.debug("- Horizon length (candlesticks count): {}".format(self.horizon))
