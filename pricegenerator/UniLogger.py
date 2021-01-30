@@ -94,7 +94,7 @@ streamHandler.setFormatter(formatter)  # set formatter for STDOUT UniLogger
 streamHandler.level = logging.INFO  # set up INFO verbosity level by default for STDOUT UniLogger
 UniLogger.addHandler(streamHandler)  # adding STDOUT UniLogger handler to Parent UniLogger
 
-fileLogHandler = EnableLogger(logFile='log.txt', parentHandler=UniLogger, useFormat=formatter)  # add logging to file
+# fileLogHandler = EnableLogger(logFile='log.txt', parentHandler=UniLogger, useFormat=formatter)  # add logging to file
 
 sepWide = '-' * 120  # long-long log separator
 sepLong = '-' * 80  # long log separator

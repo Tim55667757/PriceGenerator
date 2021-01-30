@@ -30,7 +30,7 @@ import traceback as tb
 uLogger = uLog.UniLogger
 uLogger.level = 10  # debug level by default
 uLogger.handlers[0].level = 20  # info level by default for STDOUT
-uLogger.handlers[1].level = 10  # debug level by default for log.txt
+# uLogger.handlers[1].level = 10  # debug level by default for log.txt
 
 
 class PriceGenerator:
@@ -593,7 +593,7 @@ def Main():
     if args.debug_level:
         uLogger.level = 10  # always debug level by default
         uLogger.handlers[0].level = args.debug_level  # level for STDOUT
-        uLogger.handlers[1].level = 10  # always debug level for log.txt
+        # uLogger.handlers[1].level = 10  # always debug level for log.txt
 
     start = datetime.now()
     uLogger.debug(uLog.sepLine)
