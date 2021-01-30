@@ -3,8 +3,8 @@
 
 
 # Module: forex and stocks price generator.
-# Generates chain of candlesticks with predefined statistical parameters, return pandas dataframe or saving as .csv-file with OHLCV-candlestick in every strings.
-# In additional you can view some statistical parameters of generated or loaded prices.
+# Generates chain of candlesticks with predefined statistical parameters, return pandas dataframe, saving as .csv-file or .html-file with OHLCV-candlestick in every strings.
+# In additional you can view some statistical and probability parameters of generated or loaded prices.
 
 
 import os
@@ -585,7 +585,7 @@ def ParseArgs():
 
 def Main():
     """
-    Main function to work from CLI, generate pandas dataframe, show charts and save to file|.
+    Main function to work from CLI, generate pandas dataframe, show charts and save to file.
     """
     args = ParseArgs()  # get and parse command-line parameters
     exitCode = 0
