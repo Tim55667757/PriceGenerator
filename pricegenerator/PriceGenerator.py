@@ -576,8 +576,8 @@ def ParseArgs():
     # commands:
     parser.add_argument("--load-from", type=str, help="Command: Load .cvs-file to Pandas dataframe. You can draw chart in additional with --show-to key.")
     parser.add_argument("--generate", action="store_true", help="Command: Generates chain of candlesticks with predefined statistical parameters and save stock history as pandas dataframe or .csv-file if --save-to key is defined. You can draw chart in additional with --show-to key.")
-    parser.add_argument("--render-bokeh", type=str, help="Command: Show chain of candlesticks as interactive Bokeh chart. Before using this key you must define --load-from or --generate keys.")
     parser.add_argument("--save-to", type=str, help="Command: Save generated or loaded dataframe to .csv-file. You can draw chart in additional with --show-to key.")
+    parser.add_argument("--render-bokeh", type=str, help="Command: Show chain of candlesticks as interactive Bokeh chart. Before using this key you must define --load-from or --generate keys.")
 
     cmdArgs = parser.parse_args()
     return cmdArgs
@@ -618,11 +618,11 @@ def Main():
         if args.generate:
             priceModel.Generate()
 
-        if args.render_bokeh:
-            priceModel.RenderBokeh(fileName=args.render_bokeh, viewInBrowser=True)
-
         if args.save_to:
             priceModel.SaveToFile(fileName=args.save_to)
+
+        if args.render_bokeh:
+            priceModel.RenderBokeh(fileName=args.render_bokeh, viewInBrowser=True)
 
     except Exception as e:
         uLogger.error(e)
