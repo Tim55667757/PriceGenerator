@@ -574,9 +574,9 @@ def ParseArgs():
     parser.add_argument("--debug-level", type=int, default=20, help="Option: showing STDOUT messages of minimal debug level, e.g., 10 = DEBUG, 20 = INFO, 30 = WARNING, 40 = ERROR, 50 = CRITICAL.")
 
     # commands:
-    parser.add_argument("--load-from", type=str, help="Command: Load .cvs-file to Pandas dataframe. You can draw chart in additional with --show-to key.")
-    parser.add_argument("--generate", action="store_true", help="Command: Generates chain of candlesticks with predefined statistical parameters and save stock history as pandas dataframe or .csv-file if --save-to key is defined. You can draw chart in additional with --show-to key.")
-    parser.add_argument("--save-to", type=str, help="Command: Save generated or loaded dataframe to .csv-file. You can draw chart in additional with --show-to key.")
+    parser.add_argument("--load-from", type=str, help="Command: Load .cvs-file to Pandas dataframe. You can draw chart in additional with --render-bokeh key.")
+    parser.add_argument("--generate", action="store_true", help="Command: Generates chain of candlesticks with predefined statistical parameters and save stock history as pandas dataframe or .csv-file if --save-to key is defined. You can draw chart in additional with --render-bokeh key.")
+    parser.add_argument("--save-to", type=str, help="Command: Save generated or loaded dataframe to .csv-file. You can draw chart in additional with --render-bokeh key.")
     parser.add_argument("--render-bokeh", type=str, help="Command: Show chain of candlesticks as interactive Bokeh chart. Before using this key you must define --load-from or --generate keys.")
 
     cmdArgs = parser.parse_args()
@@ -609,7 +609,7 @@ def Main():
 
         # --- do one or more commands:
 
-        if not args.load_from and not args.generate and not args.show and not args.save_to:
+        if not args.load_from and not args.generate and not args.save_to and not args.render_bokeh:
             raise Exception("At least one command must be selected! See: python PriceGenerator.py --help")
 
         if args.load_from:
