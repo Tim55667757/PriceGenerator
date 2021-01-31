@@ -47,7 +47,6 @@ class PriceGenerator:
 
         self._precision = 2  # signs after comma
         self._deg10prec = 10 ** 2  # 10^precision is used for some formulas
-        self.showCandlesCount = 124  # How many candlestick are shown on forecast chart window, 124 for the best view.
 
         self.ticker = "TEST"  # some fake ticker name
         self.timeframe = timedelta(hours=1)  # time delta between two neighbour candles, 1 hour by default
