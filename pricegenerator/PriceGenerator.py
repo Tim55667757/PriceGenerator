@@ -101,12 +101,12 @@ class PriceGenerator:
 
     @precision.setter
     def precision(self, value):
-        if value >= 0:
+        if value > 0:
             self._precision = value
             self._deg10prec = 10 ** value  # 10^precision
 
         else:
-            self._precision = -1  # auto-detect precision next when data-file load
+            self._precision = 1  # auto-detect precision next when data-file load
             self._deg10prec = 1
 
     @staticmethod
