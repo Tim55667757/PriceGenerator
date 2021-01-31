@@ -600,7 +600,7 @@ def Main():
         uLogger.handlers[0].level = args.debug_level  # level for STDOUT
         # uLogger.handlers[1].level = 10  # always debug level for log.txt
 
-    start = datetime.now()
+    start = datetime.now(tzlocal())
     uLogger.debug(uLog.sepLine)
     uLogger.debug("PriceGenerator started: {}".format(start.strftime("%Y-%m-%d %H:%M:%S")))
 
@@ -638,7 +638,7 @@ def Main():
         exitCode = 255
 
     finally:
-        finish = datetime.now()
+        finish = datetime.now(tzlocal())
 
         if exitCode == 0:
             uLogger.debug("All PriceGenerator operations are finished success (summary code is 0).")
