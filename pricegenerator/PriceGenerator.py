@@ -55,8 +55,8 @@ class PriceGenerator:
         self.maxClose = random.uniform(70, 90)  # maximum of close prices must be >= self.minClose
         self.minClose = random.uniform(60, 70)  # minimum of close prices must be <= self.maxClose
         self.initClose = None  # if not None generator started 1st open price of chain from this price
-        self.maxCandleBody = None  # maximum of candle body sizes: abs(open - close), if None then used maxOutlier * 90%
         self.maxOutlier = None  # maximum of outlier size of candle tails, if None then used (maxClose - minClose) / 10
+        self.maxCandleBody = None  # maximum of candle body sizes: abs(open - close), if None then used maxOutlier * 90%
         self.maxVolume = random.randint(0, 100000)  # maximum of trade volumes
         self.upCandlesProb = 0.5  # probability that next candle is up, 50% by default
         self.outliersProb = 0.03  # statistical outliers probability (price "tails"), 3% by default
