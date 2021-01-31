@@ -249,8 +249,8 @@ class PriceGenerator:
         self._stat["trendDev"] = self.trendDeviation
         self._stat["upCount"] = len(self.prices.up[self.prices.up == True])
         self._stat["downCount"] = len(self.prices.up[self.prices.up == False])
-        self._stat["upCountChainMax"] = max(upChainsLengths)
-        self._stat["downCountChainMax"] = max(downChainsLengths)
+        self._stat["upCountChainMax"] = max(upChainsLengths) if upChainsLengths else 1
+        self._stat["downCountChainMax"] = max(downChainsLengths) if downChainsLengths else 1
         self._stat["deltas"]["max"] = pd.DataFrame.max(self.prices.delta)
         self._stat["deltas"]["min"] = pd.DataFrame.min(self.prices.delta)
         self._stat["deltas"]["stDev"] = round(pstdev(self.prices.delta), self._precision)
