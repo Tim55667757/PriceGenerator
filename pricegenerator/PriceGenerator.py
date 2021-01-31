@@ -41,7 +41,7 @@ class PriceGenerator:
     def __init__(self):
         self.prices = None  # copy of generated or loaded prices will be put into this Pandas variable
 
-        self.inputHeaders = ["date", "time", "open", "high", "low", "close", "volume"]  # headers if .csv-file used
+        self.csvHeaders = ["date", "time", "open", "high", "low", "close", "volume"]  # headers if .csv-file used
         self.dfHeaders = ["datetime", "open", "high", "low", "close", "volume"]  # dataframe headers
         self.sep = ","  # Separator in csv-file
 
@@ -145,7 +145,7 @@ class PriceGenerator:
         :return: Pandas dataframe.
         """
         uLogger.info("Loading, parse and preparing input data from [{}]...".format(os.path.abspath(fileName)))
-        self.prices = pd.read_csv(fileName, names=self.inputHeaders, engine="python", sep=self.sep, parse_dates={"datetime": ["date", "time"]})
+        self.prices = pd.read_csv(fileName, names=self.csvHeaders, engine="python", sep=self.sep, parse_dates={"datetime": ["date", "time"]})
 
         self.horizon = len(self.prices)
         self.ticker = os.path.basename(fileName)
@@ -170,8 +170,14 @@ class PriceGenerator:
         :param fileName: path to csv-file.
         """
         if self.prices is not None and not self.prices.empty:
-            uLogger.info("Saving [{}] rows of pandas dataframe without headers...".format(len(self.prices)))
-            self.prices.to_csv(fileName, sep=self.sep, index=False, header=False)
+            uLogger.info("Saving [{}] rows of pandas dataframe with columns: {}...".format(len(self.prices), self.csvHeaders))
+            uLogger.debug("Delimeter: {}".format(self.sep))
+            dataReplacedDateTime = self.prices.copy(deep=True)
+            dataReplacedDateTime["date"] = [d.date() for d in dataReplacedDateTime["datetime"]]
+            dataReplacedDateTime["time"] = [d.time() for d in dataReplacedDateTime["datetime"]]
+            del dataReplacedDateTime["datetime"]
+            dataReplacedDateTime = dataReplacedDateTime[self.csvHeaders]
+            dataReplacedDateTime.to_csv(fileName, sep=self.sep, index=False, header=False)
             uLogger.info("Pandas dataframe saved to .csv-file [{}]".format(os.path.abspath(fileName)))
 
         else:
