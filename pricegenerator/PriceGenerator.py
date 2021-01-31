@@ -154,7 +154,7 @@ class PriceGenerator:
             self.prices.iloc[-1].datetime - self.prices.iloc[-2].datetime,
             self.prices.iloc[-2].datetime - self.prices.iloc[-3].datetime
         )
-        uLogger.debug("Detected time delta: {}".format(self.timeframe))
+        uLogger.debug("Auto-detect timeframe: {}".format(self.timeframe))
 
         uLogger.info("It was read {} rows".format(self.horizon))
         uLogger.info("Showing last 5 rows as pandas dataframe:")
