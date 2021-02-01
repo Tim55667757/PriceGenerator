@@ -60,21 +60,21 @@ class PriceGenerator:
         self._maxVolume = random.randint(0, 100000)  # maximum of trade volumes
         self._upCandlesProb = 0.5  # probability that next candle is up, 50% by default
         self._outliersProb = 0.03  # statistical outliers probability (price "tails"), 3% by default
-        self.trendDeviation = 0.005  # relative deviation for trend detection, 0.005 mean ±0.5% by default. "NO trend" if (1st_close - last_close) / 1st_close <= self.trendDeviation
+        self._trendDeviation = 0.005  # relative deviation for trend detection, 0.005 mean ±0.5% by default. "NO trend" if (1st_close - last_close) / 1st_close <= self.trendDeviation
 
         self._chartTitle = ""  # chart title, auto-generated when loading or creating chain of candlesticks
 
-        # some statistics for calculation:
+        # some default statistics for calculation:
         self._stat = {
             "candles": 0,  # generated candlesticks count
-            "precision": self.precision,  # generated candlesticks count
+            "precision": 2,  # generated candlesticks count
             "closeFirst": 0.,  # first close price
             "closeLast": 0.,  # last close price
             "closeMax": 0.,  # max close price
             "closeMix": 0.,  # min close price
             "diapason": 0.,  # diapason = closeMax - closeMin
             "trend": "NO trend",  # "UP trend" or "DOWN trend" with uses ±self.trendDeviation
-            "trendDev": self.trendDeviation,
+            "trendDev": 0.005,
             "upCount": 0,  # count of up candles
             "downCount": 0,  # count of down candles
             "upCountChainMax": 0,  # max chain count of up candles
@@ -120,6 +120,21 @@ class PriceGenerator:
 
         else:
             self._outliersProb = value
+
+    @property
+    def trendDeviation(self):
+        return self._trendDeviation
+
+    @trendDeviation.setter
+    def trendDeviation(self, value):
+        if value is None or value < 0:
+            self._trendDeviation = 0
+
+        elif value > 1:
+            self._trendDeviation = 1
+
+        else:
+            self._trendDeviation = value
 
     @property
     def maxVolume(self):
