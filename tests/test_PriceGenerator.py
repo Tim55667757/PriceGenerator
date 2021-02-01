@@ -185,3 +185,16 @@ class TestFeatures:
                 bodies = list(abs(self.model.prices.open - self.model.prices.close))
                 maxBody = max(bodies)
                 assert maxBody <= test, "All candles bodies must be less than maxCandleBody = {}, but there are some values more than maxCandleBody!\nList of bodies: {}".format(test, bodies)
+
+    def test_maxVolume(self):
+        testData = [[-1, 0], [None, 0], [0, 0], [1, 1], [10, 10], [100, 100]]
+        for test in testData:
+            self.model.horizon = 10
+            self.model.minClose = 10
+            self.model.maxClose = 110
+            self.model.maxOutlier = 10
+            self.model.initClose = 50
+            self.model.maxCandleBody = 20
+            self.model.maxVolume = test[0]  # set test data as "maxVolume" field in PriceGenerator() class
+            self.model.Generate()
+            assert self.model.prices.volume.max() <= test[1], "All candles volumes must be less than maxVolume = {}, but there are some values more than maxVolume!\nList of volumes: {}".format(test[1], list(self.model.prices.volume))

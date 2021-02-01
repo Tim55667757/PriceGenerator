@@ -57,7 +57,7 @@ class PriceGenerator:
         self.initClose = None  # if not None generator started 1st open price of chain from this price
         self.maxOutlier = None  # maximum of outlier size of candle tails, if None then used (maxClose - minClose) / 10
         self.maxCandleBody = None  # maximum of candle body sizes: abs(open - close), if None then used maxOutlier * 90%
-        self.maxVolume = random.randint(0, 100000)  # maximum of trade volumes
+        self._maxVolume = random.randint(0, 100000)  # maximum of trade volumes
         self.upCandlesProb = 0.5  # probability that next candle is up, 50% by default
         self.outliersProb = 0.03  # statistical outliers probability (price "tails"), 3% by default
         self.trendDeviation = 0.005  # relative deviation for trend detection, 0.005 mean ±0.5% by default. "NO trend" if (1st_close - last_close) / 1st_close <= self.trendDeviation
@@ -92,6 +92,18 @@ class PriceGenerator:
         }
 
     @property
+    def maxVolume(self):
+        return self._maxVolume
+
+    @maxVolume.setter
+    def maxVolume(self, value):
+        if value is None or value < 0:
+            self._maxVolume = 0
+
+        else:
+            self._maxVolume = value
+
+    @property
     def stat(self):
         return self._stat
 
@@ -106,7 +118,7 @@ class PriceGenerator:
             self._deg10prec = 10 ** value  # 10^precision
 
         else:
-            self._precision = 1  # auto-detect precision next when data-file load
+            self._precision = 1
             self._deg10prec = 1
 
     @staticmethod
