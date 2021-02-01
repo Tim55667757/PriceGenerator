@@ -142,3 +142,28 @@ class TestPriceGenerator:
             assert self.model.minClose <= self.model.prices.open[0] <= self.model.maxClose, "minClose <= 1st open price <= maxClose, but 1st open price = {}".format(test)
             if test is not None:
                 assert test == self.model.prices.open[0], "close price of first candle must be equal 'initClose' = {}, but 1st close price = {}".format(test, self.model.prices.close[0])
+
+    def test_maxOutlier(self):
+        testData = [None, 0, 10, 100]
+        for test in testData:
+            self.model.horizon = 10
+            self.model.minClose = 10
+            self.model.maxClose = 110
+            self.model.maxCandleBody = 10
+            self.model.initClose = 50
+            self.model.maxOutlier = test  # set test data as "maxOutlier" field in PriceGenerator() class
+            self.model.Generate()  # if maxOutlier == None then used (maxClose - minClose) / 10
+            if test is None:
+                correctOutliers = (self.model.maxClose - self.model.minClose) / 10
+                assert self.model.maxOutlier == correctOutliers, "if maxOutlier == None then used (maxClose - minClose) / 10 = {} but {} given!".format(correctOutliers, self.model.maxOutlier)
+            else:
+                upperOutliers = []
+                lowerOutliers = []
+                for item in range(self.model.horizon):
+                    upperOutliers.append(self.model.prices.high[item] - max(self.model.prices.open[item], self.model.prices.close[item]))
+                    lowerOutliers.append(min(self.model.prices.open[item], self.model.prices.close[item]) - self.model.prices.low[item])
+                maxHalfBody = max(self.model.prices.high) - max(self.model.prices.low)
+                countHigh = list(filter(lambda x: 0 if x <= maxHalfBody + self.model.maxOutlier else 1, upperOutliers))
+                countLow = list(filter(lambda x: 0 if x <= maxHalfBody + self.model.maxOutlier else 1, lowerOutliers))
+                assert sum(countHigh) == 0, "All candle 'tails' must be less than maxOutlier = {}, but there are some values more than maxOutlier!\nList of upper tails: {}".format(self.model.maxOutlier, upperOutliers)
+                assert sum(countLow) == 0, "All candle 'tails' must be less than maxOutlier = {}, but there are some values more than maxOutlier!\nList of lower tails: {}".format(self.model.maxOutlier, lowerOutliers)
