@@ -11,7 +11,7 @@ import random
 from pricegenerator import PriceGenerator as pg
 
 
-class TestPriceGenerator:
+class TestFeatures:
 
     @pytest.fixture(scope='function', autouse=True)
     def init(self):
@@ -144,7 +144,7 @@ class TestPriceGenerator:
                 assert test == self.model.prices.open[0], "close price of first candle must be equal 'initClose' = {}, but 1st close price = {}".format(test, self.model.prices.close[0])
 
     def test_maxOutlier(self):
-        testData = [None, 0, 10, 100]
+        testData = [None, 0, 1, 10, 100]
         for test in testData:
             self.model.horizon = 10
             self.model.minClose = 10
@@ -162,8 +162,26 @@ class TestPriceGenerator:
                 for item in range(self.model.horizon):
                     upperOutliers.append(self.model.prices.high[item] - max(self.model.prices.open[item], self.model.prices.close[item]))
                     lowerOutliers.append(min(self.model.prices.open[item], self.model.prices.close[item]) - self.model.prices.low[item])
-                maxHalfBody = max(self.model.prices.high) - max(self.model.prices.low)
-                countHigh = list(filter(lambda x: 0 if x <= maxHalfBody + self.model.maxOutlier else 1, upperOutliers))
-                countLow = list(filter(lambda x: 0 if x <= maxHalfBody + self.model.maxOutlier else 1, lowerOutliers))
-                assert sum(countHigh) == 0, "All candle 'tails' must be less than maxOutlier = {}, but there are some values more than maxOutlier!\nList of upper tails: {}".format(self.model.maxOutlier, upperOutliers)
-                assert sum(countLow) == 0, "All candle 'tails' must be less than maxOutlier = {}, but there are some values more than maxOutlier!\nList of lower tails: {}".format(self.model.maxOutlier, lowerOutliers)
+                maxHighOutliers = max(upperOutliers)
+                maxLowOutliers = max(lowerOutliers)
+                maxHalfBodies = max(list(abs(self.model.prices.open - self.model.prices.close) / 2))
+                assert maxHighOutliers <= test + maxHalfBodies, "All candle 'tails' must be less than maxOutlier + maxHalfBodies = {} + {}, but there are some values more than maxOutlier!\nList of upper tails: {}".format(test, maxHalfBodies, upperOutliers)
+                assert maxLowOutliers <= test + maxHalfBodies, "All candle 'tails' must be less than  maxOutlier + maxHalfBodies = {} + {}, but there are some values more than maxOutlier!\nList of lower tails: {}".format(test, maxHalfBodies, lowerOutliers)
+
+    def test_maxCandleBody(self):
+        testData = [None, 0, 1, 10, 100]
+        for test in testData:
+            self.model.horizon = 10
+            self.model.minClose = 10
+            self.model.maxClose = 110
+            self.model.maxOutlier = 10
+            self.model.initClose = 50
+            self.model.maxCandleBody = test  # set test data as "maxCandleBody" field in PriceGenerator() class
+            self.model.Generate()  # if maxOutlier == None then used (maxClose - minClose) / 10
+            if test is None:
+                correctMaxCandleBody = self.model.maxOutlier * 0.9
+                assert self.model.maxCandleBody == correctMaxCandleBody, "if maxCandleBody == None then used maxOutlier * 90% = {} but {} given!".format(correctMaxCandleBody, self.model.maxCandleBody)
+            else:
+                bodies = list(abs(self.model.prices.open - self.model.prices.close))
+                maxBody = max(bodies)
+                assert maxBody <= test, "All candles bodies must be less than maxCandleBody = {}, but there are some values more than maxCandleBody!\nList of bodies: {}".format(test, bodies)
