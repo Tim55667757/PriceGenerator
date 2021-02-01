@@ -58,7 +58,7 @@ class PriceGenerator:
         self.maxOutlier = None  # maximum of outlier size of candle tails, if None then used (maxClose - minClose) / 10
         self.maxCandleBody = None  # maximum of candle body sizes: abs(open - close), if None then used maxOutlier * 90%
         self._maxVolume = random.randint(0, 100000)  # maximum of trade volumes
-        self.upCandlesProb = 0.5  # probability that next candle is up, 50% by default
+        self._upCandlesProb = 0.5  # probability that next candle is up, 50% by default
         self.outliersProb = 0.03  # statistical outliers probability (price "tails"), 3% by default
         self.trendDeviation = 0.005  # relative deviation for trend detection, 0.005 mean ±0.5% by default. "NO trend" if (1st_close - last_close) / 1st_close <= self.trendDeviation
 
@@ -90,6 +90,21 @@ class PriceGenerator:
             },
             "cumSumVolumes": 0  # cumulative sum of volumes
         }
+
+    @property
+    def upCandlesProb(self):
+        return self._upCandlesProb
+
+    @upCandlesProb.setter
+    def upCandlesProb(self, value):
+        if value is None or value < 0:
+            self._upCandlesProb = 0
+
+        elif value > 1:
+            self._upCandlesProb = 1
+
+        else:
+            self._upCandlesProb = value
 
     @property
     def maxVolume(self):
