@@ -7,6 +7,15 @@
 [![pypi](https://img.shields.io/pypi/v/PriceGenerator.svg)](https://pypi.python.org/pypi/PriceGenerator)
 [![license](https://img.shields.io/pypi/l/PriceGenerator.svg)](https://github.com/Tim55667757/PriceGenerator/blob/master/LICENSE)
 
+**Содержание**
+
+1. [Введение](#Введение)
+   - [Метод генерации цен](#Метод-генерации-цен)
+2. [Как установить](#Как-установить)
+3. [Примеры использования](#Примеры-использования)
+   - [Из командной строки](#Из-командной-строки)
+   - [Через импорт модуля](#Через-импорт-модуля)
+
 
 ## Введение
 
