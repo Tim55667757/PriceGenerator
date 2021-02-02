@@ -20,7 +20,6 @@ deploy:
   distributions: sdist bdist_wheel
   on:
     all_branches: true
-  skip_cleanup: true
 
 after_script:
   - echo "Deploy to PyPI finished."
