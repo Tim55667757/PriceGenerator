@@ -85,7 +85,7 @@ pricegenerator --help
 ```
 
 Output:
-```
+```text
 usage: python PriceGenerator.py [some options] [one or more commands]
 
 Forex and stocks price generator. Generates chain of candlesticks with
@@ -126,7 +126,7 @@ pricegenerator --debug-level 10 --generate --save-to test.csv
 ```
 
 You should get the output of logs similar to the following:
-```
+```text
 PriceGenerator.py   L:605  DEBUG   [2021-01-31 17:52:49,954] =--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--=
 PriceGenerator.py   L:606  DEBUG   [2021-01-31 17:52:49,954] PriceGenerator started: 2021-01-31 17:52:49
 PriceGenerator.py   L:367  INFO    [2021-01-31 17:52:49,954] Generating prices...
@@ -170,7 +170,7 @@ pricegenerator --debug-level 20 --generate --save-to test.csv --render-bokeh ind
 ```
 
 If successful, you will receive a log output similar to this:
-```
+```text
 PriceGenerator.py   L:367  INFO    [2021-01-31 18:00:31,711] Generating prices...
 PriceGenerator.py   L:397  INFO    [2021-01-31 18:00:31,714] Showing last 5 rows of Pandas generated dataframe object:
 PriceGenerator.py   L:399  INFO    [2021-01-31 18:00:31,719]                     datetime   open   high    low  close  volume
@@ -238,7 +238,7 @@ As a result of executing the command, you will get a similar graph in `index.htm
 ### Module import
 
 Let's look at an example of generating prices with some predefined parameters, save them to Pandas DataFrame and draw a chart. Just save and run the following script:
-```
+```python
 from pricegenerator.PriceGenerator import PriceGenerator, uLogger
 from datetime import datetime, timedelta
 

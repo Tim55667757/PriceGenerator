@@ -85,7 +85,7 @@ pricegenerator --help
 ```
 
 Вывод:
-```
+```text
 usage: python PriceGenerator.py [some options] [one or more commands]
 
 Forex and stocks price generator. Generates chain of candlesticks with
@@ -126,7 +126,7 @@ pricegenerator --debug-level 10 --generate --save-to test.csv
 ```
 
 Должен получиться вывод логов примерно следующего содержания:
-```
+```text
 PriceGenerator.py   L:605  DEBUG   [2021-01-31 17:52:49,954] =--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--==--=
 PriceGenerator.py   L:606  DEBUG   [2021-01-31 17:52:49,954] PriceGenerator started: 2021-01-31 17:52:49
 PriceGenerator.py   L:367  INFO    [2021-01-31 17:52:49,954] Generating prices...
@@ -170,7 +170,7 @@ pricegenerator --debug-level 20 --generate --save-to test.csv --render-bokeh ind
 ```
 
 В случае успеха вы получите вывод в лог, похожий на этот:
-```
+```text
 PriceGenerator.py   L:367  INFO    [2021-01-31 18:00:31,711] Generating prices...
 PriceGenerator.py   L:397  INFO    [2021-01-31 18:00:31,714] Showing last 5 rows of Pandas generated dataframe object:
 PriceGenerator.py   L:399  INFO    [2021-01-31 18:00:31,719]                     datetime   open   high    low  close  volume
@@ -238,7 +238,7 @@ pricegenerator --debug-level 20 --load-from test.csv --render-bokeh index.html
 ### Через импорт модуля
 
 Давайте рассмотрим пример генерации цен с указанием некоторых параметров, сохраним их в Pandas DataFrame и нарисуем график. Просто сохраните и запустите следующий скрипт:
-```
+```python
 from pricegenerator.PriceGenerator import PriceGenerator, uLogger
 from datetime import datetime, timedelta
 
