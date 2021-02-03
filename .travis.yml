@@ -6,10 +6,12 @@ branches:
   - develop
 
 install:
-  - pip install pytest coverage codacy-coverage pandas requests bokeh
+  - pip install pytest coverage codacy-coverage
+  - pip install requirements.txt
 
 script:
-  - coverage run -m py.test tests
+  - cd tests
+  - coverage run -m py.test .
   - coverage xml
 
 deploy:
