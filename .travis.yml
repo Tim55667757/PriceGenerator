@@ -10,7 +10,7 @@ install:
   - pip install -r requirements.txt
 
 script:
-  - coverage run -m py.test tests
+  - coverage run -m py.test tests -vvv
   - coverage xml
 
 deploy:
