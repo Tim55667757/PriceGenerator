@@ -79,14 +79,16 @@ setup(
     ],
 
     tests_require=[
-        "pytest",
-        "requests",
-        "pandas",
+        "pytest>=5.3.5",
+        "requests>=2.22.0",
+        "pandas>=1.0.1",
+        "bokeh>=1.4.0",
     ],
 
     install_requires=[
-        "requests",
-        "pandas",
+        "requests>=2.22.0",
+        "pandas>=1.0.1",
+        "bokeh>=1.4.0",
     ],
 
     package_data={

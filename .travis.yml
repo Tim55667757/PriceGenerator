@@ -6,7 +6,7 @@ branches:
   - develop
 
 install:
-  - pip install pytest coverage codacy-coverage pandas requests
+  - pip install pytest coverage codacy-coverage pandas requests bokeh
 
 script:
   - coverage run -m py.test tests
