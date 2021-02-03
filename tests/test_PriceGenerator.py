@@ -25,7 +25,7 @@ class TestFeatures:
         assert isinstance(self.model.prices, pd.DataFrame) is True, "Expected Pandas DataFrame when Generate()!"
 
     def test_LoadFromFile(self):
-        self.model.LoadFromFile("AFLT_day.csv")
+        self.model.LoadFromFile(os.path.join("tests", "AFLT_day.csv"))
         assert isinstance(self.model.prices, pd.DataFrame) is True, "Expected Pandas DataFrame when LoadFromFile()!"
         assert self.model.horizon == 2775, "Expected 2775 string in test file 'AFLT_day.csv'! 'Horizon' field also must be equal to 2775!"
         assert self.model.ticker == "AFLT_day.csv", "Expected 'ticker' field is equal to 'AFLT_day.csv' after loading!"
