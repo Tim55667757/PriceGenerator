@@ -7,7 +7,7 @@ branches:
 
 install:
   - pip install pytest coverage codacy-coverage
-  - pip install requirements.txt
+  - pip install -r requirements.txt
 
 script:
   - cd tests
