@@ -1,0 +1,27 @@
+language: python
+python: '3.7'
+branches:
+  only:
+  - master
+  - develop
+
+install:
+  - pip install pytest coverage codacy-coverage
+  - pip install -r requirements.txt
+
+script:
+  - coverage run -m py.test tests -vvv
+  - coverage xml
+
+deploy:
+  provider: pypi
+  username: __token__
+  password:
+    secure: R+BV7e3ClVkhJz5tQcDLewazEC7E1BbVpRXrCPi9ENhvMeU9ZKjlE4gLd7TCYwBXa44SNvZyrX0BlXWzoea+I/MeiG7Q6tP7LnMlJzFukkMGWaIgWjUpp9oBNg+HBbVET4Alnr2m3lvJeVVdziwsL6zNBg+n7a35WFJgYN/x3DDkFKV7wXSh4jw5cyFBqqCSyVl7GXQpBMIk3vHKEL5H9W1YfnGArOkluiiliFprUtmmI9kKd03VdFqOS5NRk+bpDwFikGPeilV8PWZ6KAtvzvpBQsL5395ns0zQIkeRxhW4/yJN/M4eHtWgIxNM+ZfbgEBP1wkh9HdVTqOsMipqwCjOwFoslO9+aArLcmTnExCr92X42uZxuhSNFeZ+u6NlVreOcxindCKH5GtTXnANQ4lTYaSMaVEYDLBYB4vMPC4jmtlwpZKkKST1hKVG2zzUwKSc0braW/gcXgBWYBwfUrqtxKK6bmmHPsbncJRuDZy24jFS86Sqa+SzlxMwiRVXGlfZt2RZX8zxn1MS2hnPuGvKysL4wvb8a/7hybHK8YRTnF52YcOfUenDMDPT4+2TqBCbm/rCl9YJ3XVlqbqlYrXb6Pm+VANiS4rrJ+erifJxalJtSqXKc5v2/oqE7Q2tvGmqzIuC0Fg/Vdka7qUspqbOgFi1MLo3mTbufGOzZPs=
+  distributions: sdist bdist_wheel
+  on:
+    all_branches: true
+  skip_cleanup: true
+
+after_script:
+  - echo "Deploy to PyPI finished."
