@@ -632,6 +632,19 @@ def ParseArgs():
     parser.usage = "python PriceGenerator.py [some options] [one or more commands]"
 
     # options:
+    parser.add_argument("--ticker", type=str, default="TEST", help="Option: some fake ticker name, 'TEST' by default.")
+    parser.add_argument("--timeframe", type=int, default=60, help="Option: time delta between two neighbour candles in minutes, 60 (1 hour) by default.")
+    parser.add_argument("--start", type=str, help="Option: start time of 1st candle as string with format 'year-month-day hour:min', e.g. '2021-01-02 12:00'.")
+    parser.add_argument("--horizon", type=int, default=100, help="Option: generating candlesticks count, must be >= 5, 100 by default.")
+    parser.add_argument("--max-close", type=float, help="Option: maximum of all close prices.")
+    parser.add_argument("--min-close", type=float, help="Option: minimum of all close prices.")
+    parser.add_argument("--init-close", type=float, help="Option: generator started 1st open price of chain from this 'last' close price.")
+    parser.add_argument("--max-outlier", type=float, help="Option: maximum of outlier size of candle tails, by default used (max-close - min-close) / 10.")
+    parser.add_argument("--max-body", type=float, help="Option: maximum of candle body sizes: abs(open - close), by default used max-outlier * 0.9.")
+    parser.add_argument("--max-volume", type=int, help="Option: maximum of trade volumes.")
+    parser.add_argument("--up-candles-prob", type=float, default=0.5, help="Option: float number in [0; 1] is a probability that next candle is up, 0.5 by default.")
+    parser.add_argument("--outliers-prob", type=float, default=0.03, help="Option: float number in [0; 1] is a statistical outliers probability (price 'tails'), 0.03 by default.")
+    parser.add_argument("--trend-deviation", type=float, default=0.005, help="Option: relative deviation for trend detection, 0.005 mean ±0.005 by default. 'NO trend' if (1st_close - last_close) / 1st_close <= trend-deviation.")
     parser.add_argument("--sep", type=str, default=None, help="Option: separator in csv-file, if None then auto-detecting enable.")
     parser.add_argument("--debug-level", type=int, default=20, help="Option: showing STDOUT messages of minimal debug level, e.g., 10 = DEBUG, 20 = INFO, 30 = WARNING, 40 = ERROR, 50 = CRITICAL.")
 
@@ -668,6 +681,45 @@ def Main():
 
         if args.sep:
             priceModel.sep = args.sep  # separator in .csv-file
+
+        if args.ticker:
+            priceModel.ticker = args.ticker  # some fake ticker name, "TEST" by default
+
+        if args.timeframe:
+            priceModel.timeframe = timedelta(minutes=args.timeframe)  # time delta between two neighbour candles in minutes, 60 (1 hour) by default
+
+        if args.start:
+            priceModel.timeStart = pd.to_datetime(args.start, format="%Y-%m-%d %H:%M")
+
+        if args.horizon:
+            priceModel.horizon = args.horizon  # generating candlesticks count, must be >= 5, 100 by default
+
+        if args.max_close:
+            priceModel.maxClose = args.max_close  # maximum of all close prices
+
+        if args.min_close:
+            priceModel.minClose = args.min_close  # minimum of all close prices
+
+        if args.init_close:
+            priceModel.initClose = args.init_close  # generator started 1st open price of chain from this "last" close price
+
+        if args.max_outlier:
+            priceModel.maxOutlier = args.max_outlier  # maximum of outlier size of candle tails, by default used (max-close - min-close) / 10
+
+        if args.max_body:
+            priceModel.maxCandleBody = args.max_body  # maximum of candle body sizes: abs(open - close), by default used max-outlier * 90%
+
+        if args.max_volume:
+            priceModel.maxVolume = args.max_volume  # maximum of trade volumes
+
+        if args.up_candles_prob:
+            priceModel.upCandlesProb = args.up_candles_prob  # float number in [0; 1] is a probability that next candle is up, 0.5 = 50% by default
+
+        if args.outliers_prob:
+            priceModel.outliersProb = args.outliers_prob  # float number in [0; 1] is a statistical outliers probability (price "tails"), 0.03 = 3% by default
+
+        if args.trend_deviation:
+            priceModel.trendDeviation = args.trend_deviation  # relative deviation for trend detection, 0.005 mean ±0.5% by default. "NO trend" if (1st_close - last_close) / 1st_close <= trend-deviation
 
         # --- do one or more commands:
 
