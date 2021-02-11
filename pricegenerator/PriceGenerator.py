@@ -20,6 +20,7 @@ import pandas as pd
 import random
 from bokeh.plotting import figure, show, save, output_file
 from bokeh.models import Legend
+import jinja2
 
 import pricegenerator.UniLogger as uLog
 import traceback as tb
@@ -44,6 +45,8 @@ class PriceGenerator:
         self.csvHeaders = ["date", "time", "open", "high", "low", "close", "volume"]  # headers if .csv-file used
         self.dfHeaders = ["datetime", "open", "high", "low", "close", "volume"]  # dataframe headers
         self.sep = ","  # Separator in csv-file
+        self.j2template = "google_template.j2"  # path to custom jinja2 html template
+        self.j2model = None  # dictionary of variables for jinja2 template, if None then auto-generating for default google_template.j2
 
         self._precision = 2  # signs after comma
         self._deg10prec = 10 ** 2  # 10^precision is used for some formulas
@@ -424,8 +427,8 @@ class PriceGenerator:
         uLogger.debug("- Ticker name: {}".format(self.ticker))
         uLogger.debug("- Interval or timeframe (time delta between two neighbour candles): {}".format(self.timeframe))
         uLogger.debug("- Horizon length (candlesticks count): {}".format(self.horizon))
-        uLogger.debug("- Start time: {}".format(self.timeStart.strftime("%Y-%m-%d--%H-%M-%S")))
-        uLogger.debug("  |-> end time: {}".format((self.timeStart + self.horizon * self.timeframe).strftime("%Y-%m-%d--%H-%M-%S")))
+        uLogger.debug("- Start time: {}".format(self.timeStart.strftime("%Y-%m-%d %H:%M:%S")))
+        uLogger.debug("  |-> end time: {}".format((self.timeStart + self.horizon * self.timeframe).strftime("%Y-%m-%d %H:%M:%S")))
         uLogger.debug("- Maximum of close prices: {}".format(round(self.maxClose, self.precision)))
         uLogger.debug("- Minimum of close prices: {}".format(round(self.minClose, self.precision)))
         uLogger.debug("- Maximum of candle body sizes: {}".format(round(self.maxCandleBody, self.precision)))
@@ -459,8 +462,9 @@ class PriceGenerator:
     def RenderBokeh(self, fileName="index.html", viewInBrowser=False):
         """
         Rendering prices from pandas dataframe to Bokeh chart of candlesticks and save to html-file.
+        See: https://docs.bokeh.org/en/latest/docs/gallery/candlestick.html
         :param fileName: html-file path to save Bokeh chart.
-        :param viewInBrowser: If True, then opens html in browser after rendering.
+        :param viewInBrowser: If True, then immediately opens html in browser after rendering.
         """
         if self.prices is not None and not self.prices.empty:
             uLogger.info("Rendering pandas dataframe as Bokeh chart...")
@@ -607,19 +611,59 @@ class PriceGenerator:
                 line_width=1, line_color="white", line_alpha=1, line_dash=[6, 6], legend_label=legendNameMain,
             )
 
-            # preparing html-file with forecast chart:
+            # preparing html-file with forecast chart and statistics in markdown:
             output_file(fileName, title=self._chartTitle, mode="cdn")
             save(chart)
             with open("{}.md".format(fileName), "w", encoding="UTF-8") as fH:
                 fH.write("\n".join(infoBlock))
 
             if viewInBrowser:
-                show(chart)  # view forecast chart in browser immediately
+                show(chart)  # view forecast chart in default browser immediately
 
             uLogger.info("Pandas dataframe rendered as html-file [{}]".format(os.path.abspath(fileName)))
 
         else:
             raise Exception("Empty price data! Generate or load prices before show as Bokeh chart!")
+
+    def RenderGoogle(self, fileName="index.html", viewInBrowser=False):
+        """
+        Rendering prices from pandas dataframe to not interactive Google Candlestick chart and save to html-file.
+        See: https://developers.google.com/chart/interactive/docs/gallery/candlestickchart
+        :param fileName: html-file path to save Google Candlestick chart.
+        :param viewInBrowser: If True, then immediately opens html in browser after rendering.
+        """
+        if self.prices is not None and not self.prices.empty:
+            uLogger.info("Rendering pandas dataframe as Google Candlestick chart...")
+
+            infoBlock = self.GetStatistics()
+
+            if self.j2model is None or not self.j2model:
+                uLogger.debug("Preparing Google Candlestick chart configuration...")
+                self.j2model = {}
+                self.j2model["info"] = infoBlock
+                self.j2model["title"] = self._chartTitle
+                googleDates = [pd.to_datetime(date).strftime("%Y-%m-%d %H:%M:%S") for date in self.prices.datetime.values]
+                data = zip(*[googleDates, self.prices.low, self.prices.open, self.prices.close, self.prices.high])
+                self.j2model["candlesData"] = [list(x) for x in data]
+
+            else:
+                uLogger.debug("Using custom chart model")
+
+            # --- Rendering and saving chart as html-file and markdown-file with statistics:
+            renderedTemplate = jinja2.Template(open(self.j2template, "r", encoding="UTF-8").read())
+            htmlMain = renderedTemplate.render(self.j2model)
+            with open(fileName, "w", encoding="UTF-8") as fH:
+                fH.write(htmlMain)
+            with open("{}.md".format(fileName), "w", encoding="UTF-8") as fH:
+                fH.write("\n".join(infoBlock))
+
+            if viewInBrowser:
+                os.system(os.path.abspath(fileName))  # view forecast chart in default browser immediately
+
+            uLogger.info("Pandas dataframe rendered as html-file [{}]".format(os.path.abspath(fileName)))
+
+        else:
+            raise Exception("Empty price data! Generate or load prices before show as Google Candlestick chart!")
 
 
 def ParseArgs():
@@ -652,7 +696,8 @@ def ParseArgs():
     parser.add_argument("--load-from", type=str, help="Command: Load .cvs-file to Pandas dataframe. You can draw chart in additional with --render-bokeh key.")
     parser.add_argument("--generate", action="store_true", help="Command: Generates chain of candlesticks with predefined statistical parameters and save stock history as pandas dataframe or .csv-file if --save-to key is defined. You can draw chart in additional with --render-bokeh key.")
     parser.add_argument("--save-to", type=str, help="Command: Save generated or loaded dataframe to .csv-file. You can draw chart in additional with --render-bokeh key.")
-    parser.add_argument("--render-bokeh", type=str, help="Command: Show chain of candlesticks as interactive Bokeh chart. Before using this key you must define --load-from or --generate keys.")
+    parser.add_argument("--render-bokeh", type=str, help="Command: Show chain of candlesticks as interactive Bokeh chart. See: https://docs.bokeh.org/en/latest/docs/gallery/candlestick.html. Before using this key you must define --load-from or --generate keys.")
+    parser.add_argument("--render-google", type=str, help="Command: Show chain of candlesticks as not interactive Google Candlestick chart. See: https://developers.google.com/chart/interactive/docs/gallery/candlestickchart. Before using this key you must define --load-from or --generate keys.")
 
     cmdArgs = parser.parse_args()
     return cmdArgs
@@ -737,6 +782,9 @@ def Main():
 
         if args.render_bokeh:
             priceModel.RenderBokeh(fileName=args.render_bokeh, viewInBrowser=True)
+
+        if args.render_google:
+            priceModel.RenderGoogle(fileName=args.render_google, viewInBrowser=True)
 
     except Exception as e:
         uLogger.error(e)
