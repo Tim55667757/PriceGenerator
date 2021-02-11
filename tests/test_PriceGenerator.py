@@ -51,6 +51,17 @@ class TestFeatures:
         assert os.path.exists(name), "Expected .html-file '{}' after saving but it is not exist!".format(name)
         assert os.path.exists(nameMD), "Expected markdown file '{}' after saving but it is not exist!".format(nameMD)
 
+    def test_RenderGoogle(self):
+        self.model.horizon = 5
+        self.model.Generate()
+        suffix = random.uniform(0, 1000000000)
+        name = "test_render_google{}.html".format(suffix)
+        nameMD = "{}.md".format(name)
+        self.model.j2template = os.path.join("tests", "test_template.j2")
+        self.model.RenderGoogle(fileName=name, viewInBrowser=False)
+        assert os.path.exists(name), "Expected .html-file '{}' after saving but it is not exist!".format(name)
+        assert os.path.exists(nameMD), "Expected markdown file '{}' after saving but it is not exist!".format(nameMD)
+
     def test_PandasDFheaders(self):
         headers = ["datetime", "open", "high", "low", "close", "volume"]
         self.model.Generate()
