@@ -18,6 +18,7 @@ See russian readme here (инструкция на русском здесь): h
      - [Generating prices with default parameters](#Generating-prices-with-default-parameters)
      - [Generating prices, getting statistics and drawing a chart](#Generating-prices-getting-statistics-and-drawing-a-chart)
      - [Statistics and chart from saved prices](#Statistics-and-chart-from-saved-prices)
+     - [Statistics and chart on a simple template](#Statistics-and-chart-on-a-simple-template)
      - [Overriding parameters](#Overriding-parameters)
    - [Module import](#Module-import)
 
@@ -147,8 +148,15 @@ optional arguments:
                         bokeh key.
   --render-bokeh RENDER_BOKEH
                         Command: Show chain of candlesticks as interactive
-                        Bokeh chart. Before using this key you must define
-                        --load-from or --generate keys.
+                        Bokeh chart. See: https://docs.bokeh.org/en/latest/doc
+                        s/gallery/candlestick.html. Before using this key you
+                        must define --load-from or --generate keys.
+  --render-google RENDER_GOOGLE
+                        Command: Show chain of candlesticks as not interactive
+                        Google Candlestick chart. See: https://developers.goog
+                        le.com/chart/interactive/docs/gallery/candlestickchart
+                        . Before using this key you must define --load-from or
+                        --generate keys.
 ```
 
 #### Generating prices with default parameters
@@ -266,6 +274,17 @@ pricegenerator --debug-level 20 --load-from test.csv --render-bokeh index.html
 
 As a result of executing the command, you will get a similar graph in `index.html` and statistics in `index.html.md`.
 
+#### Statistics and chart on a simple template
+
+In the examples above, you can use a simple, non-interactive chart. For this, the Google Candlestick chart library and the simplest jinja2 template are used. Let's load the prices again (key `--load-from csv_file_name`), but render the chart through the Google library (key `--render-google html_file_name`):
+```commandline
+pricegenerator --debug-level 20 --load-from test.csv --render-google index_google.html
+``` 
+
+As a result of executing the command, you will receive a chart [./media/index_google.html](./media/index_google.html)) and statistics in the markdown file. It will look something like this:
+
+![](./media/index_google.html.png)
+
 #### Overriding parameters
 
 Let's change some of the default parameters that affect price generation and draw our own unique chart:
@@ -350,6 +369,12 @@ priceModel.SaveToFile(fileName="test.csv")
 # Saving the price chart to a html-file and immediately opening it in the default browser.
 # The statistics will be automatically saved in a markdown file named fileName + ".md".
 priceModel.RenderBokeh(fileName="index.html", viewInBrowser=True)
+
+# Instead of the Bokeh library, you can use simple, non-interactive chart,
+# via the Google Candlestick chart library. Just uncomment the next lines.
+# Before calling priceModel.RenderGoogle(), you can set your custom template in self.j2template
+# priceModel.j2template = "google_template.j2"  # template by default
+# priceModel.RenderGoogle(fileName="index.html", viewInBrowser=True)
 ```
 
 When you run the script, you will receive a similar output to the logs, three files: `test.csv`,` index.html` and `index.html.md`. As well as the html-file with the price chart will be immediately opened in the browser. You can independently experiment with the parameters of the `PriceGenerator()` class to generate prices suitable for your conditions.
