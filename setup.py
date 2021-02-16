@@ -92,6 +92,7 @@ setup(
     package_data={
         "": [
             "./pricegenerator/*.py",
+            "./pricegenerator/*.j2",
             "./media/*",
             "./tests/*",
 
