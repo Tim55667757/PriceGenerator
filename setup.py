@@ -92,15 +92,13 @@ setup(
     package_data={
         "": [
             "./pricegenerator/*.py",
-            "./pricegenerator/*.j2",
-            "./media/*",
-            "./tests/*",
-
-            "LICENSE",
-            "README.md",
-            "README_RU.md",
+            "",
         ],
     },
+
+    data_files = [
+        ("./pricegenerator", ["./pricegenerator/google_template.j2"]),
+    ],
 
     zip_safe=True,
 )
