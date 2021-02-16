@@ -20,6 +20,7 @@ import pandas as pd
 import random
 from bokeh.plotting import figure, show, save, output_file
 from bokeh.models import Legend
+import jinja2
 
 import pricegenerator.UniLogger as uLog
 import traceback as tb
@@ -44,6 +45,8 @@ class PriceGenerator:
         self.csvHeaders = ["date", "time", "open", "high", "low", "close", "volume"]  # headers if .csv-file used
         self.dfHeaders = ["datetime", "open", "high", "low", "close", "volume"]  # dataframe headers
         self.sep = ","  # Separator in csv-file
+        self.j2template = "google_template.j2"  # path to custom jinja2 html template
+        self.j2model = None  # dictionary of variables for jinja2 template, if None then auto-generating for default google_template.j2
 
         self._precision = 2  # signs after comma
         self._deg10prec = 10 ** 2  # 10^precision is used for some formulas
@@ -424,8 +427,8 @@ class PriceGenerator:
         uLogger.debug("- Ticker name: {}".format(self.ticker))
         uLogger.debug("- Interval or timeframe (time delta between two neighbour candles): {}".format(self.timeframe))
         uLogger.debug("- Horizon length (candlesticks count): {}".format(self.horizon))
-        uLogger.debug("- Start time: {}".format(self.timeStart.strftime("%Y-%m-%d--%H-%M-%S")))
-        uLogger.debug("  |-> end time: {}".format((self.timeStart + self.horizon * self.timeframe).strftime("%Y-%m-%d--%H-%M-%S")))
+        uLogger.debug("- Start time: {}".format(self.timeStart.strftime("%Y-%m-%d %H:%M:%S")))
+        uLogger.debug("  |-> end time: {}".format((self.timeStart + self.horizon * self.timeframe).strftime("%Y-%m-%d %H:%M:%S")))
         uLogger.debug("- Maximum of close prices: {}".format(round(self.maxClose, self.precision)))
         uLogger.debug("- Minimum of close prices: {}".format(round(self.minClose, self.precision)))
         uLogger.debug("- Maximum of candle body sizes: {}".format(round(self.maxCandleBody, self.precision)))
@@ -459,8 +462,9 @@ class PriceGenerator:
     def RenderBokeh(self, fileName="index.html", viewInBrowser=False):
         """
         Rendering prices from pandas dataframe to Bokeh chart of candlesticks and save to html-file.
+        See: https://docs.bokeh.org/en/latest/docs/gallery/candlestick.html
         :param fileName: html-file path to save Bokeh chart.
-        :param viewInBrowser: If True, then opens html in browser after rendering.
+        :param viewInBrowser: If True, then immediately opens html in browser after rendering.
         """
         if self.prices is not None and not self.prices.empty:
             uLogger.info("Rendering pandas dataframe as Bokeh chart...")
@@ -607,19 +611,59 @@ class PriceGenerator:
                 line_width=1, line_color="white", line_alpha=1, line_dash=[6, 6], legend_label=legendNameMain,
             )
 
-            # preparing html-file with forecast chart:
+            # preparing html-file with forecast chart and statistics in markdown:
             output_file(fileName, title=self._chartTitle, mode="cdn")
             save(chart)
             with open("{}.md".format(fileName), "w", encoding="UTF-8") as fH:
                 fH.write("\n".join(infoBlock))
 
             if viewInBrowser:
-                show(chart)  # view forecast chart in browser immediately
+                show(chart)  # view forecast chart in default browser immediately
 
             uLogger.info("Pandas dataframe rendered as html-file [{}]".format(os.path.abspath(fileName)))
 
         else:
             raise Exception("Empty price data! Generate or load prices before show as Bokeh chart!")
+
+    def RenderGoogle(self, fileName="index.html", viewInBrowser=False):
+        """
+        Rendering prices from pandas dataframe to not interactive Google Candlestick chart and save to html-file.
+        See: https://developers.google.com/chart/interactive/docs/gallery/candlestickchart
+        :param fileName: html-file path to save Google Candlestick chart.
+        :param viewInBrowser: If True, then immediately opens html in browser after rendering.
+        """
+        if self.prices is not None and not self.prices.empty:
+            uLogger.info("Rendering pandas dataframe as Google Candlestick chart...")
+
+            infoBlock = self.GetStatistics()
+
+            if self.j2model is None or not self.j2model:
+                uLogger.debug("Preparing Google Candlestick chart configuration...")
+                self.j2model = {}
+                self.j2model["info"] = infoBlock
+                self.j2model["title"] = self._chartTitle
+                googleDates = [pd.to_datetime(date).strftime("%Y-%m-%d %H:%M:%S") for date in self.prices.datetime.values]
+                data = zip(googleDates, self.prices.low, self.prices.open, self.prices.close, self.prices.high)
+                self.j2model["candlesData"] = [list(x) for x in data]
+
+            else:
+                uLogger.debug("Using custom chart model")
+
+            # --- Rendering and saving chart as html-file and markdown-file with statistics:
+            renderedTemplate = jinja2.Template(open(self.j2template, "r", encoding="UTF-8").read())
+            htmlMain = renderedTemplate.render(self.j2model)
+            with open(fileName, "w", encoding="UTF-8") as fH:
+                fH.write(htmlMain)
+            with open("{}.md".format(fileName), "w", encoding="UTF-8") as fH:
+                fH.write("\n".join(infoBlock))
+
+            if viewInBrowser:
+                os.system(os.path.abspath(fileName))  # view forecast chart in default browser immediately
+
+            uLogger.info("Pandas dataframe rendered as html-file [{}]".format(os.path.abspath(fileName)))
+
+        else:
+            raise Exception("Empty price data! Generate or load prices before show as Google Candlestick chart!")
 
 
 def ParseArgs():
@@ -632,6 +676,19 @@ def ParseArgs():
     parser.usage = "python PriceGenerator.py [some options] [one or more commands]"
 
     # options:
+    parser.add_argument("--ticker", type=str, default="TEST", help="Option: some fake ticker name, 'TEST' by default.")
+    parser.add_argument("--timeframe", type=int, default=60, help="Option: time delta between two neighbour candles in minutes, 60 (1 hour) by default.")
+    parser.add_argument("--start", type=str, help="Option: start time of 1st candle as string with format 'year-month-day hour:min', e.g. '2021-01-02 12:00'.")
+    parser.add_argument("--horizon", type=int, default=100, help="Option: generating candlesticks count, must be >= 5, 100 by default.")
+    parser.add_argument("--max-close", type=float, help="Option: maximum of all close prices.")
+    parser.add_argument("--min-close", type=float, help="Option: minimum of all close prices.")
+    parser.add_argument("--init-close", type=float, help="Option: generator started 1st open price of chain from this 'last' close price.")
+    parser.add_argument("--max-outlier", type=float, help="Option: maximum of outlier size of candle tails, by default used (max-close - min-close) / 10.")
+    parser.add_argument("--max-body", type=float, help="Option: maximum of candle body sizes: abs(open - close), by default used max-outlier * 0.9.")
+    parser.add_argument("--max-volume", type=int, help="Option: maximum of trade volumes.")
+    parser.add_argument("--up-candles-prob", type=float, default=0.5, help="Option: float number in [0; 1] is a probability that next candle is up, 0.5 by default.")
+    parser.add_argument("--outliers-prob", type=float, default=0.03, help="Option: float number in [0; 1] is a statistical outliers probability (price 'tails'), 0.03 by default.")
+    parser.add_argument("--trend-deviation", type=float, default=0.005, help="Option: relative deviation for trend detection, 0.005 mean ±0.005 by default. 'NO trend' if (1st_close - last_close) / 1st_close <= trend-deviation.")
     parser.add_argument("--sep", type=str, default=None, help="Option: separator in csv-file, if None then auto-detecting enable.")
     parser.add_argument("--debug-level", type=int, default=20, help="Option: showing STDOUT messages of minimal debug level, e.g., 10 = DEBUG, 20 = INFO, 30 = WARNING, 40 = ERROR, 50 = CRITICAL.")
 
@@ -639,7 +696,8 @@ def ParseArgs():
     parser.add_argument("--load-from", type=str, help="Command: Load .cvs-file to Pandas dataframe. You can draw chart in additional with --render-bokeh key.")
     parser.add_argument("--generate", action="store_true", help="Command: Generates chain of candlesticks with predefined statistical parameters and save stock history as pandas dataframe or .csv-file if --save-to key is defined. You can draw chart in additional with --render-bokeh key.")
     parser.add_argument("--save-to", type=str, help="Command: Save generated or loaded dataframe to .csv-file. You can draw chart in additional with --render-bokeh key.")
-    parser.add_argument("--render-bokeh", type=str, help="Command: Show chain of candlesticks as interactive Bokeh chart. Before using this key you must define --load-from or --generate keys.")
+    parser.add_argument("--render-bokeh", type=str, help="Command: Show chain of candlesticks as interactive Bokeh chart. See: https://docs.bokeh.org/en/latest/docs/gallery/candlestick.html. Before using this key you must define --load-from or --generate keys.")
+    parser.add_argument("--render-google", type=str, help="Command: Show chain of candlesticks as not interactive Google Candlestick chart. See: https://developers.google.com/chart/interactive/docs/gallery/candlestickchart. Before using this key you must define --load-from or --generate keys.")
 
     cmdArgs = parser.parse_args()
     return cmdArgs
@@ -669,6 +727,45 @@ def Main():
         if args.sep:
             priceModel.sep = args.sep  # separator in .csv-file
 
+        if args.ticker:
+            priceModel.ticker = args.ticker  # some fake ticker name, "TEST" by default
+
+        if args.timeframe:
+            priceModel.timeframe = timedelta(minutes=args.timeframe)  # time delta between two neighbour candles in minutes, 60 (1 hour) by default
+
+        if args.start:
+            priceModel.timeStart = pd.to_datetime(args.start, format="%Y-%m-%d %H:%M")
+
+        if args.horizon:
+            priceModel.horizon = args.horizon  # generating candlesticks count, must be >= 5, 100 by default
+
+        if args.max_close:
+            priceModel.maxClose = args.max_close  # maximum of all close prices
+
+        if args.min_close:
+            priceModel.minClose = args.min_close  # minimum of all close prices
+
+        if args.init_close:
+            priceModel.initClose = args.init_close  # generator started 1st open price of chain from this "last" close price
+
+        if args.max_outlier:
+            priceModel.maxOutlier = args.max_outlier  # maximum of outlier size of candle tails, by default used (max-close - min-close) / 10
+
+        if args.max_body:
+            priceModel.maxCandleBody = args.max_body  # maximum of candle body sizes: abs(open - close), by default used max-outlier * 90%
+
+        if args.max_volume:
+            priceModel.maxVolume = args.max_volume  # maximum of trade volumes
+
+        if args.up_candles_prob:
+            priceModel.upCandlesProb = args.up_candles_prob  # float number in [0; 1] is a probability that next candle is up, 0.5 = 50% by default
+
+        if args.outliers_prob:
+            priceModel.outliersProb = args.outliers_prob  # float number in [0; 1] is a statistical outliers probability (price "tails"), 0.03 = 3% by default
+
+        if args.trend_deviation:
+            priceModel.trendDeviation = args.trend_deviation  # relative deviation for trend detection, 0.005 mean ±0.5% by default. "NO trend" if (1st_close - last_close) / 1st_close <= trend-deviation
+
         # --- do one or more commands:
 
         if not args.load_from and not args.generate and not args.save_to and not args.render_bokeh:
@@ -685,6 +782,9 @@ def Main():
 
         if args.render_bokeh:
             priceModel.RenderBokeh(fileName=args.render_bokeh, viewInBrowser=True)
+
+        if args.render_google:
+            priceModel.RenderGoogle(fileName=args.render_google, viewInBrowser=True)
 
     except Exception as e:
         uLogger.error(e)

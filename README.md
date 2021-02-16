@@ -18,6 +18,8 @@ See russian readme here (инструкция на русском здесь): h
      - [Generating prices with default parameters](#Generating-prices-with-default-parameters)
      - [Generating prices, getting statistics and drawing a chart](#Generating-prices-getting-statistics-and-drawing-a-chart)
      - [Statistics and chart from saved prices](#Statistics-and-chart-from-saved-prices)
+     - [Statistics and chart on a simple template](#Statistics-and-chart-on-a-simple-template)
+     - [Overriding parameters](#Overriding-parameters)
    - [Module import](#Module-import)
 
 
@@ -95,6 +97,38 @@ https://tim55667757.github.io/PriceGenerator
 
 optional arguments:
   -h, --help            show this help message and exit
+  --ticker TICKER       Option: some fake ticker name, 'TEST' by default.
+  --timeframe TIMEFRAME
+                        Option: time delta between two neighbour candles in
+                        minutes, 60 (1 hour) by default.
+  --start START         Option: start time of 1st candle as string with format
+                        'year-month-day hour:min', e.g. '2021-01-02 12:00'.
+  --horizon HORIZON     Option: generating candlesticks count, must be >= 5,
+                        100 by default.
+  --max-close MAX_CLOSE
+                        Option: maximum of all close prices.
+  --min-close MIN_CLOSE
+                        Option: minimum of all close prices.
+  --init-close INIT_CLOSE
+                        Option: generator started 1st open price of chain from
+                        this 'last' close price.
+  --max-outlier MAX_OUTLIER
+                        Option: maximum of outlier size of candle tails, by
+                        default used (max-close - min-close) / 10.
+  --max-body MAX_BODY   Option: maximum of candle body sizes: abs(open -
+                        close), by default used max-outlier * 0.9.
+  --max-volume MAX_VOLUME
+                        Option: maximum of trade volumes.
+  --up-candles-prob UP_CANDLES_PROB
+                        Option: float number in [0; 1] is a probability that
+                        next candle is up, 0.5 by default.
+  --outliers-prob OUTLIERS_PROB
+                        Option: float number in [0; 1] is a statistical
+                        outliers probability (price 'tails'), 0.03 by default.
+  --trend-deviation TREND_DEVIATION
+                        Option: relative deviation for trend detection, 0.005
+                        mean ±0.005 by default. 'NO trend' if (1st_close -
+                        last_close) / 1st_close <= trend-deviation.
   --sep SEP             Option: separator in csv-file, if None then auto-
                         detecting enable.
   --debug-level DEBUG_LEVEL
@@ -114,8 +148,15 @@ optional arguments:
                         bokeh key.
   --render-bokeh RENDER_BOKEH
                         Command: Show chain of candlesticks as interactive
-                        Bokeh chart. Before using this key you must define
-                        --load-from or --generate keys.
+                        Bokeh chart. See: https://docs.bokeh.org/en/latest/doc
+                        s/gallery/candlestick.html. Before using this key you
+                        must define --load-from or --generate keys.
+  --render-google RENDER_GOOGLE
+                        Command: Show chain of candlesticks as not interactive
+                        Google Candlestick chart. See: https://developers.goog
+                        le.com/chart/interactive/docs/gallery/candlestickchart
+                        . Before using this key you must define --load-from or
+                        --generate keys.
 ```
 
 #### Generating prices with default parameters
@@ -227,12 +268,53 @@ After running the command above, you will get three files:
 #### Statistics and chart from saved prices 
 
 If you need to get statistics on already generated or real prices, you can simply load the file (key `--load-from csv_file_name`) and draw the chart (key `--render-bokeh html_file_name`):
-
 ```commandline
 pricegenerator --debug-level 20 --load-from test.csv --render-bokeh index.html
 ``` 
 
 As a result of executing the command, you will get a similar graph in `index.html` and statistics in `index.html.md`.
+
+#### Statistics and chart on a simple template
+
+In the examples above, you can use a simple, non-interactive chart. For this, the Google Candlestick chart library and the simplest jinja2 template are used. Let's load the prices again (key `--load-from csv_file_name`), but render the chart through the Google library (key `--render-google html_file_name`):
+```commandline
+pricegenerator --debug-level 20 --load-from test.csv --render-google index_google.html
+``` 
+
+As a result of executing the command, you will receive a chart [./media/index_google.html](./media/index_google.html)) and statistics in the markdown file. It will look something like this:
+
+![](./media/index_google.html.png)
+
+#### Overriding parameters
+
+Let's change some of the default parameters that affect price generation and draw our own unique chart:
+```commandline
+pricegenerator --debug-level 10 --ticker "MY_PRICES" --timeframe 240 --start "2020-01-01 00:00" --horizon 150 --max-close 18000 --min-close 14000 --init-close 15000 --max-outlier 1000 --max-body 500 --max-volume 400000 --up-candles-prob 0.48 --outliers-prob 0.05 --trend-deviation 0.03 --generate --render-bokeh index_custom.html
+``` 
+
+Parameters mean:
+- `--ticker "MY_PRICES"` — set chart title for price as MY_PRICES;
+- `--timeframe 240` — one candlestick should reflect the price change in 4 hours (240 minutes);
+- `--start "2020-01-01 00:00"` — date and time of the first candle is 2020-01-01 00:00;
+- `--horizon 150` — generate 150 candles;
+- `--max-close 18000` — the maximum closing price of any candle should be no more than 18000;
+- `--min-close 14000` — the minimum closing price of any candle should be no more than 14000;
+- `--init-close 15000` — the closing price of the "previous" and, accordingly, the opening price of the first generated candle should be equal to 15000;
+- `--max-outlier 1000` — if the candle has "outliers" and "tails" then they sizes should be no more than 1000;
+- `--max-body 500` — the maximum size of the "body" of the candle should be no more than 500;
+- `--max-volume 400000` — the maximum trading volume for each candle should be no more than 400000;
+- `--up-candles-prob 0.48` — set the probability that the next candlestick will be up, equal to 0.48 (48%);
+- `--outliers-prob 0.05` — set the probability of outliers to 0.05 (5%);
+- `--trend-deviation 0.03` — to determine the trend, the relative change in the closing prices of the first and last candles should differ by ± 0.03 (3%);
+- `--generate` — begin to price generate;
+- `--render-bokeh index_custom.html` — save the generated prices in the index_custom.html file and open it in the default browser.
+
+![](./media/index_custom.html.png)
+
+As a result of executing the command, you will get your own unique chart of random prices with redefined basic generator parameters. We got next artifacts:
+- prices chart [./media/index_custom.html.png](./media/index_custom.html.png);
+- price chart and statistics [./media/index_custom.html](./media/index_custom.html);
+- statistics in markdown [./media/index_custom.html.md](./media/index_custom.html.md).
 
 
 ### Module import
@@ -287,6 +369,12 @@ priceModel.SaveToFile(fileName="test.csv")
 # Saving the price chart to a html-file and immediately opening it in the default browser.
 # The statistics will be automatically saved in a markdown file named fileName + ".md".
 priceModel.RenderBokeh(fileName="index.html", viewInBrowser=True)
+
+# Instead of the Bokeh library, you can use simple, non-interactive chart,
+# via the Google Candlestick chart library. Just uncomment the next lines.
+# Before calling priceModel.RenderGoogle(), you can set your custom template in self.j2template
+# priceModel.j2template = "google_template.j2"  # template by default
+# priceModel.RenderGoogle(fileName="index.html", viewInBrowser=True)
 ```
 
 When you run the script, you will receive a similar output to the logs, three files: `test.csv`,` index.html` and `index.html.md`. As well as the html-file with the price chart will be immediately opened in the browser. You can independently experiment with the parameters of the `PriceGenerator()` class to generate prices suitable for your conditions.

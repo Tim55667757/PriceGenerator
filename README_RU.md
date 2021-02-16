@@ -18,6 +18,8 @@
      - [Генерация цен с параметрами по умолчанию](#Генерация-цен-с-параметрами-по-умолчанию)
      - [Генерация цен, получение статистики и отрисовка графика](#Генерация-цен-получение-статистики-и-отрисовка-графика)
      - [Статистика и график из сохранённых цен](#Статистика-и-график-из-сохранённых-цен)
+     - [Статистика и график на упрощённом шаблоне](#Статистика-и-график-на-упрощённом-шаблоне)
+     - [Переопределение параметров](#Переопределение-параметров)
    - [Через импорт модуля](#Через-импорт-модуля)
 
 
@@ -86,36 +88,75 @@ pricegenerator --help
 
 Вывод:
 ```text
-usage: python PriceGenerator.py [some options] [one or more commands]
+Запуск: python PriceGenerator.py [параметры] [одна или несколько команд]
 
-Forex and stocks price generator. Generates chain of candlesticks with
-predefined statistical parameters, return pandas dataframe or saving as .csv-
-file with OHLCV-candlestick in every strings. See examples:
+Генератор биржевых цен. Генерирует цепочку японских свечей с заранее предопределёнными
+параметрами, возвращает pandas dataframe или сохраняет цены как .csv-файл
+в формате свечей OHLCV в каждой строке. Смотрите примеры здесь:
 https://tim55667757.github.io/PriceGenerator
 
-optional arguments:
-  -h, --help            show this help message and exit
-  --sep SEP             Option: separator in csv-file, if None then auto-
-                        detecting enable.
+Возможные параметры командной строки:
+  -h, --help            Показать эту подсказку и выйти
+  --ticker TICKER       Параметр: название тикера, 'TEST' по умолчанию.
+  --timeframe TIMEFRAME
+                        Параметр: разница между двумя соседними свечами
+                        в минутах, 60 (или 1 час) по умолчанию.
+  --start START         Параметр: дата и время первой свечи в текстовом формате
+                        'год-месяц-день часы:минуты', например '2021-01-02 12:00'.
+  --horizon HORIZON     Параметр: количество генерируемых свечей, должно быть >= 5,
+                        100 по умолчанию.
+  --max-close MAX_CLOSE
+                        Параметр: максимальная цена закрытия среди всех свечей.
+  --min-close MIN_CLOSE
+                        Параметр: минимальная цена закрытия среди всех свечей.
+  --init-close INIT_CLOSE
+                        Параметр: цена открытия первой свечи в цепочке равна
+                        этому значению, как бы 'последней' цене закрытия.
+  --max-outlier MAX_OUTLIER
+                        Параметр: максимальное значение ценовых 'выбросов',
+                        по умолчанию (max-close - min-close) / 10.
+  --max-body MAX_BODY   Параметр: максимальный размер 'тела' свечей:
+                        abs(open - close), по умолчанию max-outlier * 0.9.
+  --max-volume MAX_VOLUME
+                        Параметр: максимальный торговый объём одной свечи.
+  --up-candles-prob UP_CANDLES_PROB
+                        Параметр: число в отрезке [0; 1] означает вероятность того,
+                        что очередная свеча будет вверх, 0.5 по умолчанию.
+  --outliers-prob OUTLIERS_PROB
+                        Параметр: число в отрезке [0; 1] это вероятность
+                        ценовых 'выбросов' или 'хвостов', 0.03 по умолчанию.
+  --trend-deviation TREND_DEVIATION
+                        Параметр: относительное отклонение для определения тренда,
+                        по умолчанию ±0.005. Нет тренда, если (1st_close -
+                        last_close) / 1st_close <= trend-deviation.
+  --sep SEP             Параметр: разделитель для csv-файла, если не указывать,
+                        то будет определяться автоматически.
   --debug-level DEBUG_LEVEL
-                        Option: showing STDOUT messages of minimal debug
-                        level, e.g., 10 = DEBUG, 20 = INFO, 30 = WARNING, 40 =
-                        ERROR, 50 = CRITICAL.
+                        Параметр: уровень логирования для STDOUT,
+                        например, 10 = DEBUG, 20 = INFO, 30 = WARNING,
+                        40 = ERROR, 50 = CRITICAL.
   --load-from LOAD_FROM
-                        Command: Load .cvs-file to Pandas dataframe. You can
-                        draw chart in additional with --render-bokeh key.
-  --generate            Command: Generates chain of candlesticks with
-                        predefined statistical parameters and save stock
-                        history as pandas dataframe or .csv-file if --save-to
-                        key is defined. You can draw chart in additional with
-                        --render-bokeh key.
-  --save-to SAVE_TO     Command: Save generated or loaded dataframe to .csv-
-                        file. You can draw chart in additional with --render-
-                        bokeh key.
+                        Команда: загрузить .cvs-файл в Pandas dataframe. Также вы
+                        можете нарисовать график цен, указав ключ --render-bokeh.
+  --generate            Команда: сгенерировать цепочку свечей с предопределёнными
+                        статистическими параметрами и сохранить историю цен
+                        как pandas dataframe или .csv-файл, если ключ --save-to
+                        будет указан. Также вы можете нарисовать график цен,
+                        указав ключ --render-bokeh.
+  --save-to SAVE_TO     Команда: сохранить сгенерированные или загруженные цены
+                        в .csv-файл. Также вы можете нарисовать график цен,
+                        указав ключ --render-bokeh.
   --render-bokeh RENDER_BOKEH
-                        Command: Show chain of candlesticks as interactive
-                        Bokeh chart. Before using this key you must define
-                        --load-from or --generate keys.
+                        Команда: нарисовать цепочку свечей как интерактивный
+                        график из библиотеки Bokeh. Перед командой вы должны задать 
+                        ключи --load-from или --generate. Подробнее про Bokeh:
+                        https://docs.bokeh.org/en/latest/docs/gallery/candlestick.html.
+  --render-google RENDER_GOOGLE
+                        Команда: нарисовать цепочку свечей на простом не интерактивном
+                        графике из библиотеки Google Candlestick chart. Подробнее:
+                        https://developers.google.com/chart/interactive/docs/gallery/candlestickchart
+                        Перед командой вы должны задать ключи --load-from или
+                        --generate.
 ```
 
 #### Генерация цен с параметрами по умолчанию
@@ -227,17 +268,58 @@ Process finished with exit code 0
 #### Статистика и график из сохранённых цен 
 
 Если вам нужно получить статистику по уже сгенерированным или реальным ценам, вы можете просто загрузить файл (ключ `--load-from имя_csv_файла` ) и отрисовать график (ключ `--render-bokeh имя_html_файла`):
-
 ```commandline
 pricegenerator --debug-level 20 --load-from test.csv --render-bokeh index.html
 ``` 
 
 В результате выполнения команды вы получите аналогичный график в `index.html` и статистику в `index.html.md`.
 
+#### Статистика и график на упрощённом шаблоне
+
+В примерах выше вы можете использовать отображение цен на простом, не интерактивном графике цен. Для этого используется библиотека Google Candlestick chart и простейший jinja2 шаблон. Давайте опять загрузим цены (ключ `--load-from имя_csv_файла` ), но отрисуем график через Google библиотеку (ключ `--render-google имя_html_файла`):
+```commandline
+pricegenerator --debug-level 20 --load-from test.csv --render-google index_google.html
+``` 
+
+В результате выполнения команды вы получите график [./media/index_google.html](./media/index_google.html)) и статистику в markdown файле. Выглядеть он будет примерно так:
+
+![](./media/index_google.html.png)
+
+#### Переопределение параметров
+
+Давайте изменим некоторые параметры по умолчанию, которые влияют на генерацию цен и нарисуем свой уникальный график:
+```commandline
+pricegenerator --debug-level 10 --ticker "MY_PRICES" --timeframe 240 --start "2020-01-01 00:00" --horizon 150 --max-close 18000 --min-close 14000 --init-close 15000 --max-outlier 1000 --max-body 500 --max-volume 400000 --up-candles-prob 0.48 --outliers-prob 0.05 --trend-deviation 0.03 --generate --render-bokeh index_custom.html
+``` 
+
+Параметры означают:
+- `--ticker "MY_PRICES"` — установить название графика для ценовой последовательности как MY_PRICES;
+- `--timeframe 240` — одна свеча должна отражать изменение цен за 4 часа (240 минут);
+- `--start "2020-01-01 00:00"` — дата и время первой свечи 2020-01-01 00:00;
+- `--horizon 150` — сгенерировать 150 свечей;
+- `--max-close 18000` — максимальная цена закрытия у любой свечи должна быть не больше 18000;
+- `--min-close 14000` — минимальная цена закрытия у любой свечи должна быть не больше 14000;
+- `--init-close 15000` — цена закрытия "предыдущей" и, соответственно, цена открытия первой генерируемой свечи должна быть равной 15000;
+- `--max-outlier 1000` — если у свечи есть "выбросы" и "хвосты" то они должны быть не больше чем 1000;
+- `--max-body 500` — максимальный размер "тела" свечи должен быть не более 500;
+- `--max-volume 400000` — максимальный объём торгов для каждой свечи должен быть не более 400000;
+- `--up-candles-prob 0.48` — установить вероятность того, что очередная свеча будет вверх, равной 0.48 (48%);
+- `--outliers-prob 0.05` — установить вероятность появления выбросов равной 0.05 (5%);
+- `--trend-deviation 0.03` — для определения тренда относительное изменение цен закрытия первой и последней свечей должно отличаться на ±0.03 (3%);
+- `--generate` — запустить генерацию цен;
+- `--render-bokeh index_custom.html` — сохранить сгенерированные цены в файл index_custom.html и открыть его в браузере.
+
+![](./media/index_custom.html.png)
+
+В результате выполнения команды у вас получится свой уникальный график случайных цен с переопределёнными базовыми параметрами генератора. У нас получились вот такие артефакты:
+- картинка с изображением цен [./media/index_custom.html.png](./media/index_custom.html.png);
+- график цен и статистика [./media/index_custom.html](./media/index_custom.html);
+- статистика в текстовом виде [./media/index_custom.html.md](./media/index_custom.html.md).
+
 
 ### Через импорт модуля
 
-Давайте рассмотрим пример генерации цен с указанием некоторых параметров, сохраним их в Pandas DataFrame и нарисуем график. Просто сохраните и запустите следующий скрипт:
+Давайте рассмотрим пример генерации цен с некоторыми изменёнными параметрами, сохраним их в Pandas DataFrame и нарисуем график. Просто сохраните и запустите следующий скрипт:
 ```python
 from pricegenerator.PriceGenerator import PriceGenerator, uLogger
 from datetime import datetime, timedelta
@@ -287,6 +369,12 @@ priceModel.SaveToFile(fileName="test.csv")
 # Сохраняем график цен в html-файл и сразу открываем его в браузере.
 # Статистика в текстовом виде будет автоматически сохранена в markdown-файле с именем fileName + ".md".
 priceModel.RenderBokeh(fileName="index.html", viewInBrowser=True)
+
+# Вместо библиотеки Bokeh вы можете отрисовать цены на простом, не интерактивном графике,
+# через библиотеку Google Candlestick chart. Просто раскомментируйте строчки ниже.
+# Перед вызовом priceModel.RenderGoogle(), вы можете задать свой шаблон в переменной self.j2template
+# priceModel.j2template = "google_template.j2"  # шаблон по умолчанию
+# priceModel.RenderGoogle(fileName="index.html", viewInBrowser=True)
 ```
 
 При запуске скрипта вы получите аналогичный вывод в логи, три файла: `test.csv`, `index.html` и `index.html.md`, а также html-файл с графиком цен будет сразу же открыт в браузере. Вы можете самостоятельно поэкспериментировать с параметрами класса `PriceGenerator()` для генерации цен подходящих под ваши условия.
