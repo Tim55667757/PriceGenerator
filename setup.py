@@ -7,7 +7,7 @@
 from setuptools import setup
 import os
 
-__version__ = "1.0"
+__version__ = "1.1"
 
 devStatus = "4 - Beta"
 
@@ -74,10 +74,6 @@ setup(
         "testdata",
     ],
 
-    packages=[
-        "pricegenerator",
-    ],
-
     tests_require=[
         "pytest>=5.3.5",
         "pandas>=1.0.1",
@@ -89,17 +85,16 @@ setup(
         "bokeh>=1.4.0",
     ],
 
-    package_data={
-        "": [
-            "./pricegenerator/*.py",
-            "./media/*",
-            "./tests/*",
+    packages=[
+        "pricegenerator",
+    ],
 
-            "LICENSE",
-            "README.md",
-            "README_RU.md",
+    package_data={
+        "pricegenerator": [
+            "*.j2",
         ],
     },
 
+    include_package_data=True,
     zip_safe=True,
 )

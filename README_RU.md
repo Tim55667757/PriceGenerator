@@ -373,7 +373,7 @@ priceModel.RenderBokeh(fileName="index.html", viewInBrowser=True)
 # Вместо библиотеки Bokeh вы можете отрисовать цены на простом, не интерактивном графике,
 # через библиотеку Google Candlestick chart. Просто раскомментируйте строчки ниже.
 # Перед вызовом priceModel.RenderGoogle(), вы можете задать свой шаблон в переменной self.j2template
-# priceModel.j2template = "google_template.j2"  # шаблон по умолчанию
+# priceModel.j2template = "google_template_example.j2"  # полный путь до шаблона или мультистроковая переменная с jinja2-шаблоном
 # priceModel.RenderGoogle(fileName="index.html", viewInBrowser=True)
 ```
 

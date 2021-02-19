@@ -24,4 +24,4 @@ deploy:
   skip_cleanup: true
 
 after_script:
-  - echo "Deploy to PyPI finished."
+  - echo "All PyPI operations done."

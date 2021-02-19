@@ -373,7 +373,7 @@ priceModel.RenderBokeh(fileName="index.html", viewInBrowser=True)
 # Instead of the Bokeh library, you can use simple, non-interactive chart,
 # via the Google Candlestick chart library. Just uncomment the next lines.
 # Before calling priceModel.RenderGoogle(), you can set your custom template in self.j2template
-# priceModel.j2template = "google_template.j2"  # template by default
+# priceModel.j2template = "google_template_example.j2"  # file or multi-string variable with jinja2-template
 # priceModel.RenderGoogle(fileName="index.html", viewInBrowser=True)
 ```
 
