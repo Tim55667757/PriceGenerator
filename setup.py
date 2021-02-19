@@ -74,10 +74,6 @@ setup(
         "testdata",
     ],
 
-    packages=[
-        "pricegenerator",
-    ],
-
     tests_require=[
         "pytest>=5.3.5",
         "pandas>=1.0.1",
@@ -89,16 +85,16 @@ setup(
         "bokeh>=1.4.0",
     ],
 
+    packages=[
+        "pricegenerator",
+    ],
+
     package_data={
-        "": [
-            "./pricegenerator/*.py",
-            "",
+        "pricegenerator": [
+            "*.j2",
         ],
     },
 
-    data_files = [
-        ("./pricegenerator", ["./pricegenerator/google_template.j2"]),
-    ],
-
+    include_package_data=True,
     zip_safe=True,
 )
