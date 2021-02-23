@@ -77,13 +77,14 @@ setup(
     tests_require=[
         "pytest>=5.3.5",
         "pandas>=1.0.1",
+        "pandas_ta>=0.2.45b0",
         "bokeh>=1.4.0",
     ],
 
     install_requires=[
-        "pandas>=1.0.1",
+        "pandas>=1.2.2",
         "pandas_ta>=0.2.45b0",
-        "bokeh>=1.4.0",
+        "bokeh>=2.2.3",
     ],
 
     packages=[
