@@ -17,6 +17,7 @@ from math import pi
 from statistics import mode, pstdev, StatisticsError
 from itertools import groupby
 import pandas as pd
+import pandas_ta as ta
 import random
 from bokeh.plotting import figure, show, save, output_file
 from bokeh.models import Legend
@@ -188,7 +189,7 @@ class PriceGenerator:
     """
 
     def __init__(self):
-        self.prices = None  # copy of generated or loaded prices will be put into this Pandas variable
+        self.prices = None  # generated or loaded prices will be put into this Pandas variable
 
         self.csvHeaders = ["date", "time", "open", "high", "low", "close", "volume"]  # headers if .csv-file used
         self.dfHeaders = ["datetime", "open", "high", "low", "close", "volume"]  # dataframe headers
@@ -426,6 +427,18 @@ class PriceGenerator:
             self.prices.delta.values
         ))
 
+        uLogger.debug("Calculating some technical analysis values...")
+        self.prices["sma5"] = ta.sma(close=self.prices.close, length=5, offset=None)
+        self.prices["sma20"] = ta.sma(close=self.prices.close, length=20, offset=None)
+        self.prices["sma50"] = ta.sma(close=self.prices.close, length=50, offset=None)
+        self.prices["sma200"] = ta.sma(close=self.prices.close, length=200, offset=None)
+        self.prices["hma5"] = ta.hma(close=self.prices.close, length=5, offset=None)
+        self.prices["hma20"] = ta.hma(close=self.prices.close, length=20, offset=None)
+        self.prices["vwma5"] = ta.vwma(close=self.prices.close, volume=self.prices.volume, length=5, offset=None)
+        self.prices["vwma20"] = ta.vwma(close=self.prices.close, volume=self.prices.volume, length=20, offset=None)
+        bbands = ta.bbands(close=self.prices.close, length=None, std=None, mamode=None, offset=None)
+        bbands.columns = ["bbLower", "bbMid", "bbUpper"]  # pd.DataFrame with lower, mid, upper columns for bbands
+
         self.DetectPrecision(self.prices.close.values)  # auto-detect precision
 
         self._chartTitle = "Instrument: {}, timeframe: {}, horizon length: {} (from {} to {})".format(
@@ -467,6 +480,16 @@ class PriceGenerator:
         self._stat["deltas"]["q80"] = round(max(pd.DataFrame(self.prices.delta).quantile(q=0.80, interpolation='linear')), self._precision)
         self._stat["deltas"]["q50"] = round(max(pd.DataFrame(self.prices.delta).quantile(q=0.50, interpolation='linear')), self._precision)
         self._stat["cumSumVolumes"] = self.prices.volume.sum()
+
+        self._stat["sma5"] = self.prices["sma5"]
+        self._stat["sma20"] = self.prices["sma20"]
+        self._stat["sma50"] = self.prices["sma50"]
+        self._stat["sma200"] = self.prices["sma200"]
+        self._stat["hma5"] = self.prices["hma5"]
+        self._stat["hma20"] = self.prices["hma20"]
+        self._stat["vwma5"] = self.prices["vwma5"]
+        self._stat["vwma20"] = self.prices["vwma20"]
+        self._stat["bbands"] = bbands  # pd.DataFrame with lower, mid, upper columns for bbands
 
         uLogger.debug("self._stat = {}".format(self._stat))
 
@@ -644,10 +667,16 @@ class PriceGenerator:
             chart.toolbar.logo = None  # remove bokeh logo and link to https://bokeh.org/
 
             # Summary section and controls:
-            legendNameMain = "Max_close / Min_close / Trend line / Averages points"
+            legendNameMain = "Max_close / Min_close / Trend line"
+            legendNameAvg = "Averages points [highs - deltas/2]"
+            legendNameSMA = "Simple Moving Averages (SMA: 5, 20)"
+            legendNameSMAlong = "Long Simple Moving Averages (SMA: 50, 200)"
+            legendNameHMA = "Hull Moving Averages (HMA: 5, 20)"
+            legendNameVWMA = "Volume Weighted Moving Averages (VWMA: 5, 20)"
+            legendNameBBANDS = "Bollinger Bands (BBANDS)"
             summaryInfo = Legend(
                 click_policy="hide",
-                items=[(info, []) for info in infoBlock] + [("", []), ("", []), (uLog.sepShort, []), ("Show/hide on chart:", [])],
+                items=[(info, []) for info in infoBlock] + [("", []), (uLog.sepShort, []), ("Click to show/hide on chart:", [])],
                 location="top_right",
                 label_text_font_size="8pt",
                 margin=0,
@@ -705,6 +734,8 @@ class PriceGenerator:
             if self.timeframe <= timedelta(minutes=1):
                 width = 21600  # 12 * 60 * 30   # for 1 minute
 
+            disabledObjects = []  # bokeh objects to hide by default when page is loaded
+
             # --- preparing body of candles:
             candlesData = self.prices
             chart.segment(
@@ -721,19 +752,19 @@ class PriceGenerator:
             )
 
             # preparing candle's average points:
-            chart.circle(
-                self.prices.tail(self.horizon).datetime, self.prices.tail(self.horizon).avg,
-                size=3, color="red", alpha=1, legend_label=legendNameMain,
-            )
-            chart.line(
-                self.prices.tail(self.horizon).datetime, self.prices.tail(self.horizon).avg,
-                line_width=1, line_color="red", line_alpha=1, legend_label=legendNameMain,
-            )
+            disabledObjects.append(chart.circle(
+                self.prices.datetime, self.prices.avg,
+                size=3, color="red", alpha=1, legend_label=legendNameAvg,
+            ))
+            disabledObjects.append(chart.line(
+                self.prices.datetime, self.prices.avg,
+                line_width=1, line_color="red", line_alpha=1, legend_label=legendNameAvg,
+            ))
 
             # preparing for highest close line:
             highestClose = round(max(self.prices.close.values), self._precision)
             chart.line(
-                self.prices.tail(self.horizon + 1).datetime, highestClose,
+                self.prices.datetime, highestClose,
                 line_width=2, line_color="yellow", line_alpha=1, legend_label=legendNameMain,
             )
             chart.text(
@@ -744,7 +775,7 @@ class PriceGenerator:
             # preparing for lowest close line:
             lowestClose = round(min(self.prices.close.values), self._precision)
             chart.line(
-                self.prices.tail(self.horizon + 1).datetime, lowestClose,
+                self.prices.datetime, lowestClose,
                 line_width=2, line_color="yellow", line_alpha=1, legend_label=legendNameMain,
             )
             chart.text(
@@ -758,6 +789,61 @@ class PriceGenerator:
                 [self.prices.close.values[0], self.prices.close.values[-1]],
                 line_width=1, line_color="white", line_alpha=1, line_dash=[6, 6], legend_label=legendNameMain,
             )
+
+            # --- Preparing a lot of TA lines:
+
+            # Simple Moving Averages (SMA) 5, 20
+            disabledObjects.append(chart.line(
+                self.prices.datetime, self.prices.tail(self.horizon).sma5,
+                line_width=2, line_color="yellow", line_alpha=1, legend_label=legendNameSMA,
+            ))
+            disabledObjects.append(chart.line(
+                self.prices.datetime, self.prices.tail(self.horizon).sma20,
+                line_width=3, line_color="red", line_alpha=1, legend_label=legendNameSMA,
+            ))
+
+            # Long Simple Moving Averages (SMA) 50, 200
+            disabledObjects.append(chart.line(
+                self.prices.datetime, self.prices.tail(self.horizon).sma50,
+                line_width=2, line_color="#ffbf00", line_alpha=1, legend_label=legendNameSMAlong,
+            ))
+            disabledObjects.append(chart.line(
+                self.prices.datetime, self.prices.tail(self.horizon).sma200,
+                line_width=3, line_color="#ff0040", line_alpha=1, legend_label=legendNameSMAlong,
+            ))
+
+            # Hull Moving Averages (HMA) 5, 20
+            disabledObjects.append(chart.line(
+                self.prices.datetime, self.prices.tail(self.horizon).hma5,
+                line_width=2, line_color="#00ffff", line_alpha=1, legend_label=legendNameHMA,
+            ))
+            disabledObjects.append(chart.line(
+                self.prices.datetime, self.prices.tail(self.horizon).hma20,
+                line_width=3, line_color="#ff00ff", line_alpha=1, legend_label=legendNameHMA,
+            ))
+
+            # Volume Weighted Moving Averages (VWMA) 5, 20
+            disabledObjects.append(chart.line(
+                self.prices.datetime, self.prices.tail(self.horizon).vwma5,
+                line_width=2, line_color="blue", line_alpha=1, legend_label=legendNameVWMA,
+            ))
+            disabledObjects.append(chart.line(
+                self.prices.datetime, self.prices.tail(self.horizon).vwma20,
+                line_width=3, line_color="#ff8000", line_alpha=1, legend_label=legendNameVWMA,
+            ))
+
+            # Bollinger Bands (BBANDS)
+            disabledObjects.append(chart.line(
+                self.prices.datetime, self.stat["bbands"]["bbLower"],
+                line_width=1, line_color="#66ffff", line_alpha=1, legend_label=legendNameBBANDS,
+            ))
+            disabledObjects.append(chart.line(
+                self.prices.datetime, self.stat["bbands"]["bbUpper"],
+                line_width=1, line_color="#66ffff", line_alpha=1, legend_label=legendNameBBANDS,
+            ))
+
+            for item in disabledObjects:
+                item.visible = False
 
             # preparing html-file with forecast chart and statistics in markdown:
             output_file(fileName, title=self._chartTitle, mode="cdn")
