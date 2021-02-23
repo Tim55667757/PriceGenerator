@@ -437,7 +437,9 @@ class PriceGenerator:
         self.prices["vwma5"] = ta.vwma(close=self.prices.close, volume=self.prices.volume, length=5, offset=None)
         self.prices["vwma20"] = ta.vwma(close=self.prices.close, volume=self.prices.volume, length=20, offset=None)
         bbands = ta.bbands(close=self.prices.close, length=None, std=None, mamode=None, offset=None)
-        bbands.columns = ["bbLower", "bbMid", "bbUpper", "bbBandwidth"]  # pd.DataFrame with lower, mid, upper, bandwidth columns for BBANDS
+        bbands.columns = ["lower", "mid", "upper", "bandwidth"]
+        psar = ta.psar(high=self.prices.high, low=self.prices.low, close=self.prices.close, af=0.02, max_af=0.2, offset=None)
+        psar.columns = ["long", "short", "af", "reversal"]
 
         self.DetectPrecision(self.prices.close.values)  # auto-detect precision
 
@@ -489,9 +491,8 @@ class PriceGenerator:
         self._stat["hma20"] = self.prices["hma20"]
         self._stat["vwma5"] = self.prices["vwma5"]
         self._stat["vwma20"] = self.prices["vwma20"]
-        self._stat["bbands"] = bbands  # pd.DataFrame with lower, mid, upper, bandwidth columns for BBANDS
-
-        uLogger.debug("self._stat = {}".format(self._stat))
+        self._stat["bbands"] = bbands
+        self._stat["psar"] = psar
 
         summary = [
             "## Summary",
@@ -673,10 +674,11 @@ class PriceGenerator:
             legendNameSMAlong = "Long Simple Moving Averages (SMA: 50, 200)"
             legendNameHMA = "Hull Moving Averages (HMA: 5, 20)"
             legendNameVWMA = "Volume Weighted Moving Averages (VWMA: 5, 20)"
-            legendNameBBANDS = "Bollinger Bands (BBANDS)"
+            legendNameBBANDS = "Bollinger Bands (BBands)"
+            legendNamePsar = "Parabolic Stop and Reverse (psar)"
             summaryInfo = Legend(
                 click_policy="hide",
-                items=[(info, []) for info in infoBlock] + [("", []), (uLog.sepShort, []), ("Click to show/hide on chart:", [])],
+                items=[(info, []) for info in infoBlock] + [("", []), ("Click to show/hide on chart:", [])],
                 location="top_right",
                 label_text_font_size="8pt",
                 margin=0,
@@ -832,14 +834,28 @@ class PriceGenerator:
                 line_width=3, line_color="#ff8000", line_alpha=1, legend_label=legendNameVWMA,
             ))
 
-            # Bollinger Bands (BBANDS)
+            # Bollinger Bands (BBands)
             disabledObjects.append(chart.line(
-                self.prices.datetime, self.stat["bbands"]["bbLower"],
+                self.prices.datetime, self.stat["bbands"]["lower"],
                 line_width=1, line_color="#66ffff", line_alpha=1, legend_label=legendNameBBANDS,
             ))
             disabledObjects.append(chart.line(
-                self.prices.datetime, self.stat["bbands"]["bbUpper"],
+                self.prices.datetime, self.stat["bbands"]["mid"],
                 line_width=1, line_color="#66ffff", line_alpha=1, legend_label=legendNameBBANDS,
+            ))
+            disabledObjects.append(chart.line(
+                self.prices.datetime, self.stat["bbands"]["upper"],
+                line_width=1, line_color="#66ffff", line_alpha=1, legend_label=legendNameBBANDS,
+            ))
+
+            # Parabolic Stop and Reverse (psar)
+            disabledObjects.append(chart.circle(
+                self.prices.datetime, self.stat["psar"]["long"],
+                size=3, line_color="#00ffff", line_alpha=1, legend_label=legendNamePsar,
+            ))
+            disabledObjects.append(chart.circle(
+                self.prices.datetime, self.stat["psar"]["short"],
+                size=3, line_color="#ff00ff", line_alpha=1, legend_label=legendNamePsar,
             ))
 
             for item in disabledObjects:
