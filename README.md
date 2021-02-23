@@ -49,6 +49,8 @@ The PriceGenerator library allows you to:
 
     ![](./media/index.html.png)
 
+    In additionally, you can enable on the chart some popular indicators  (moving averages, Bollinger bands, and others).
+
 ### Price generation method
 
 A set of candles of a given length `horizon` is generated according to the following (simplified) algorithm:
