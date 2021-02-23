@@ -437,7 +437,7 @@ class PriceGenerator:
         self.prices["vwma5"] = ta.vwma(close=self.prices.close, volume=self.prices.volume, length=5, offset=None)
         self.prices["vwma20"] = ta.vwma(close=self.prices.close, volume=self.prices.volume, length=20, offset=None)
         bbands = ta.bbands(close=self.prices.close, length=None, std=None, mamode=None, offset=None)
-        bbands.columns = ["bbLower", "bbMid", "bbUpper"]  # pd.DataFrame with lower, mid, upper columns for bbands
+        bbands.columns = ["bbLower", "bbMid", "bbUpper", "bbBandwidth"]  # pd.DataFrame with lower, mid, upper, bandwidth columns for BBANDS
 
         self.DetectPrecision(self.prices.close.values)  # auto-detect precision
 
@@ -489,7 +489,7 @@ class PriceGenerator:
         self._stat["hma20"] = self.prices["hma20"]
         self._stat["vwma5"] = self.prices["vwma5"]
         self._stat["vwma20"] = self.prices["vwma20"]
-        self._stat["bbands"] = bbands  # pd.DataFrame with lower, mid, upper columns for bbands
+        self._stat["bbands"] = bbands  # pd.DataFrame with lower, mid, upper, bandwidth columns for BBANDS
 
         uLogger.debug("self._stat = {}".format(self._stat))
 
