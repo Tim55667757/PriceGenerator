@@ -82,6 +82,7 @@ setup(
 
     install_requires=[
         "pandas>=1.0.1",
+        "pandas_ta>=0.2.45b0",
         "bokeh>=1.4.0",
     ],
 
