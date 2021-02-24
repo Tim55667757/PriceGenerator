@@ -894,9 +894,7 @@ class PriceGenerator:
 
             if self.j2model is None or not self.j2model:
                 uLogger.debug("Preparing Google Candlestick chart configuration...")
-                self.j2model = {}
-                self.j2model["info"] = infoBlock
-                self.j2model["title"] = self._chartTitle
+                self.j2model = {"info": infoBlock, "title": self._chartTitle}
                 googleDates = [pd.to_datetime(date).strftime("%Y-%m-%d %H:%M:%S") for date in self.prices.datetime.values]
                 data = zip(googleDates, self.prices.low, self.prices.open, self.prices.close, self.prices.high)
                 self.j2model["candlesData"] = [list(x) for x in data]
