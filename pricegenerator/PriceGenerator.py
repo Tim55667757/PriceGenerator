@@ -203,7 +203,7 @@ class PriceGenerator:
         self.ticker = "TEST"  # some fake ticker name
         self.timeframe = timedelta(hours=1)  # time delta between two neighbour candles, 1 hour by default
         self.timeStart = datetime.now(tzlocal()).replace(microsecond=0, second=0, minute=0)
-        self.horizon = 100  # Generating candlesticks count, must be >= 5
+        self.horizon = None  # Candlesticks count (generating or in view), must be >= 5 for generator
         self.maxClose = random.uniform(70, 90)  # maximum of close prices must be >= self.minClose
         self.minClose = random.uniform(60, 70)  # minimum of close prices must be <= self.maxClose
         self.initClose = None  # if not None generator started 1st open price of chain from this price
@@ -353,9 +353,15 @@ class PriceGenerator:
         :return: Pandas dataframe.
         """
         uLogger.info("Loading, parse and preparing input data from [{}]...".format(os.path.abspath(fileName)))
-        self.prices = pd.read_csv(fileName, names=self.csvHeaders, engine="python", sep=self.sep, parse_dates={"datetime": ["date", "time"]})
 
-        self.horizon = len(self.prices)
+        self.prices = pd.read_csv(fileName, names=self.csvHeaders, engine="python", sep=self.sep, parse_dates={"datetime": ["date", "time"]})
+        if self.horizon is None or self.horizon < 1 or self.horizon > len(self.prices):
+            self.horizon = len(self.prices)  # use loaded file "as is" with all candles
+
+        else:
+            self.prices = self.prices.tail(self.horizon)  # remove old candles, leave only the "tail" ...
+            self.prices.index = range(self.horizon)  # ... and reindex
+
         self.ticker = os.path.basename(fileName)
 
         # auto-detect time delta between last two neighbour candles:
@@ -795,41 +801,41 @@ class PriceGenerator:
 
             # Simple Moving Averages (SMA) 5, 20
             disabledObjects.append(chart.line(
-                self.prices.datetime, self.prices.tail(self.horizon).sma5,
+                self.prices.datetime, self.prices.sma5,
                 line_width=2, line_color="yellow", line_alpha=1, legend_label=legendNameSMA,
             ))
             disabledObjects.append(chart.line(
-                self.prices.datetime, self.prices.tail(self.horizon).sma20,
+                self.prices.datetime, self.prices.sma20,
                 line_width=3, line_color="red", line_alpha=1, legend_label=legendNameSMA,
             ))
 
             # Long Simple Moving Averages (SMA) 50, 200
             disabledObjects.append(chart.line(
-                self.prices.datetime, self.prices.tail(self.horizon).sma50,
+                self.prices.datetime, self.prices.sma50,
                 line_width=2, line_color="#ffbf00", line_alpha=1, legend_label=legendNameSMAlong,
             ))
             disabledObjects.append(chart.line(
-                self.prices.datetime, self.prices.tail(self.horizon).sma200,
+                self.prices.datetime, self.prices.sma200,
                 line_width=3, line_color="#ff0040", line_alpha=1, legend_label=legendNameSMAlong,
             ))
 
             # Hull Moving Averages (HMA) 5, 20
             disabledObjects.append(chart.line(
-                self.prices.datetime, self.prices.tail(self.horizon).hma5,
+                self.prices.datetime, self.prices.hma5,
                 line_width=2, line_color="#00ffff", line_alpha=1, legend_label=legendNameHMA,
             ))
             disabledObjects.append(chart.line(
-                self.prices.datetime, self.prices.tail(self.horizon).hma20,
+                self.prices.datetime, self.prices.hma20,
                 line_width=3, line_color="#ff00ff", line_alpha=1, legend_label=legendNameHMA,
             ))
 
             # Volume Weighted Moving Averages (VWMA) 5, 20
             disabledObjects.append(chart.line(
-                self.prices.datetime, self.prices.tail(self.horizon).vwma5,
+                self.prices.datetime, self.prices.vwma5,
                 line_width=2, line_color="blue", line_alpha=1, legend_label=legendNameVWMA,
             ))
             disabledObjects.append(chart.line(
-                self.prices.datetime, self.prices.tail(self.horizon).vwma20,
+                self.prices.datetime, self.prices.vwma20,
                 line_width=3, line_color="#ff8000", line_alpha=1, legend_label=legendNameVWMA,
             ))
 
@@ -934,7 +940,7 @@ def ParseArgs():
     parser.add_argument("--ticker", type=str, default="TEST", help="Option: some fake ticker name, 'TEST' by default.")
     parser.add_argument("--timeframe", type=int, default=60, help="Option: time delta between two neighbour candles in minutes, 60 (1 hour) by default.")
     parser.add_argument("--start", type=str, help="Option: start time of 1st candle as string with format 'year-month-day hour:min', e.g. '2021-01-02 12:00'.")
-    parser.add_argument("--horizon", type=int, default=100, help="Option: generating candlesticks count, must be >= 5, 100 by default.")
+    parser.add_argument("--horizon", type=int, help="Option: candlesticks count.")
     parser.add_argument("--max-close", type=float, help="Option: maximum of all close prices.")
     parser.add_argument("--min-close", type=float, help="Option: minimum of all close prices.")
     parser.add_argument("--init-close", type=float, help="Option: generator started 1st open price of chain from this 'last' close price.")
@@ -992,7 +998,7 @@ def Main():
             priceModel.timeStart = pd.to_datetime(args.start, format="%Y-%m-%d %H:%M")
 
         if args.horizon:
-            priceModel.horizon = args.horizon  # generating candlesticks count, must be >= 5, 100 by default
+            priceModel.horizon = args.horizon  # generating candlesticks count
 
         if args.max_close:
             priceModel.maxClose = args.max_close  # maximum of all close prices

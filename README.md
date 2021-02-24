@@ -105,8 +105,7 @@ optional arguments:
                         minutes, 60 (1 hour) by default.
   --start START         Option: start time of 1st candle as string with format
                         'year-month-day hour:min', e.g. '2021-01-02 12:00'.
-  --horizon HORIZON     Option: generating candlesticks count, must be >= 5,
-                        100 by default.
+  --horizon HORIZON     Option: candlesticks count.
   --max-close MAX_CLOSE
                         Option: maximum of all close prices.
   --min-close MIN_CLOSE
