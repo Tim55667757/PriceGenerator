@@ -524,7 +524,6 @@ class PriceGenerator:
             "| - 99 percentile:                             | ≤ {}".format(round(self.stat["deltas"]["q99"], self.precision)),
             "| - 95 percentile:                             | ≤ {}".format(round(self.stat["deltas"]["q95"], self.precision)),
             "| - 80 percentile:                             | ≤ {}".format(round(self.stat["deltas"]["q80"], self.precision)),
-            "| - 50 percentile:                             | ≤ {}".format(round(self.stat["deltas"]["q50"], self.precision)),
             "| Cumulative sum of volumes:                   | {}".format(self.stat["cumSumVolumes"]),
         ]
 
