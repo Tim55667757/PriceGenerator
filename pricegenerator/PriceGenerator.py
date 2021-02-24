@@ -301,7 +301,7 @@ class PriceGenerator:
             self._maxVolume = value
 
     @property
-    def stat(self):
+    def stat(self) -> dict:
         return self._stat
 
     @property
