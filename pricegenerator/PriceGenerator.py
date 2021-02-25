@@ -808,41 +808,41 @@ class PriceGenerator:
 
             # Simple Moving Averages (SMA) 5, 20
             disabledObjects.append(chart.line(
-                self.prices.datetime, self.prices.sma5,
+                self.prices.datetime, self.stat["sma5"],
                 line_width=2, line_color="yellow", line_alpha=1, legend_label=legendNameSMA,
             ))
             disabledObjects.append(chart.line(
-                self.prices.datetime, self.prices.sma20,
+                self.prices.datetime, self.stat["sma20"],
                 line_width=3, line_color="red", line_alpha=1, legend_label=legendNameSMA,
             ))
 
             # Long Simple Moving Averages (SMA) 50, 200
             disabledObjects.append(chart.line(
-                self.prices.datetime, self.prices.sma50,
+                self.prices.datetime, self.stat["sma50"],
                 line_width=2, line_color="#ffbf00", line_alpha=1, legend_label=legendNameSMAlong,
             ))
             disabledObjects.append(chart.line(
-                self.prices.datetime, self.prices.sma200,
+                self.prices.datetime, self.stat["sma200"],
                 line_width=3, line_color="#ff0040", line_alpha=1, legend_label=legendNameSMAlong,
             ))
 
             # Hull Moving Averages (HMA) 5, 20
             disabledObjects.append(chart.line(
-                self.prices.datetime, self.prices.hma5,
+                self.prices.datetime, self.stat["hma5"],
                 line_width=2, line_color="#00ffff", line_alpha=1, legend_label=legendNameHMA,
             ))
             disabledObjects.append(chart.line(
-                self.prices.datetime, self.prices.hma20,
+                self.prices.datetime, self.stat["hma20"],
                 line_width=3, line_color="#ff00ff", line_alpha=1, legend_label=legendNameHMA,
             ))
 
             # Volume Weighted Moving Averages (VWMA) 5, 20
             disabledObjects.append(chart.line(
-                self.prices.datetime, self.prices.vwma5,
+                self.prices.datetime, self.stat["vwma5"],
                 line_width=2, line_color="blue", line_alpha=1, legend_label=legendNameVWMA,
             ))
             disabledObjects.append(chart.line(
-                self.prices.datetime, self.prices.vwma20,
+                self.prices.datetime, self.stat["vwma20"],
                 line_width=3, line_color="#ff8000", line_alpha=1, legend_label=legendNameVWMA,
             ))
 
