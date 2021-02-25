@@ -751,17 +751,16 @@ class PriceGenerator:
             disabledObjects = []  # bokeh objects to hide by default when page is loaded
 
             # --- preparing body of candles:
-            candlesData = self.prices
             chart.segment(
-                candlesData.datetime, candlesData.high, candlesData.datetime, candlesData.low,
+                self.prices.datetime, self.prices.high, self.prices.datetime, self.prices.low,
                 color="#20ff00", line_alpha=1,
             )
             chart.vbar(
-                candlesData.datetime[inc], width, candlesData.open[inc], candlesData.close[inc],
+                self.prices.datetime[inc], width, self.prices.open[inc], self.prices.close[inc],
                 fill_color="black", line_color="#20ff00", line_width=1, fill_alpha=1, line_alpha=1,
             )
             chart.vbar(
-                candlesData.datetime[dec], width, candlesData.open[dec], candlesData.close[dec],
+                self.prices.datetime[dec], width, self.prices.open[dec], self.prices.close[dec],
                 fill_color="white", line_color="#20ff00", line_width=1, fill_alpha=1, line_alpha=1,
             )
 
