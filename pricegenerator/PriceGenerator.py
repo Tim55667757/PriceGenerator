@@ -446,9 +446,9 @@ class PriceGenerator:
         bbands.columns = ["lower", "mid", "upper", "bandwidth"]
         psar = ta.psar(high=self.prices.high, low=self.prices.low, close=self.prices.close, af=0.02, max_af=0.2, offset=None)
         psar.columns = ["long", "short", "af", "reversal"]
-        self.prices["ema13"] = ta.ema(close=self.prices.close, length=13, offset=8)  # alligator Jaw
-        self.prices["ema8"] = ta.ema(close=self.prices.close, length=8, offset=5)  # alligator Teeth
-        self.prices["ema5"] = ta.ema(close=self.prices.close, length=5, offset=3)  # alligator Lips
+        self.prices["hma13"] = ta.hma(close=self.prices.close, length=13, offset=8)  # alligator Jaw
+        self.prices["hma8"] = ta.hma(close=self.prices.close, length=8, offset=5)  # alligator Teeth
+        self.prices["hma5"] = ta.hma(close=self.prices.close, length=5, offset=3)  # alligator Lips
 
         self.DetectPrecision(self.prices.close.values)  # auto-detect precision
 
@@ -502,9 +502,9 @@ class PriceGenerator:
         self._stat["vwma20"] = self.prices["vwma20"]
         self._stat["bbands"] = bbands
         self._stat["psar"] = psar
-        self._stat["ema13"] = self.prices["ema13"]
-        self._stat["ema8"] = self.prices["ema8"]
-        self._stat["ema5"] = self.prices["ema5"]
+        self._stat["hma13"] = self.prices["hma13"]
+        self._stat["hma8"] = self.prices["hma8"]
+        self._stat["hma5"] = self.prices["hma5"]
 
         summary = [
             "## Summary",
@@ -687,7 +687,7 @@ class PriceGenerator:
             legendNameVWMA = "Volume Weighted Moving Averages (VWMA: 5, 20)"
             legendNameBBANDS = "Bollinger Bands (BBands)"
             legendNamePsar = "Parabolic Stop and Reverse (psar)"
-            legendNameAlligator = "Alligator (based on EMA: 13, 8, 5)"
+            legendNameAlligator = "Alligator (based on HMA: 13, 8, 5)"
             summaryInfo = Legend(
                 click_policy="hide",
                 items=[(info, []) for info in infoBlock] + [("", []), ("Click to show/hide on chart:", [])],
@@ -870,18 +870,18 @@ class PriceGenerator:
                 size=3, line_color="#ff00ff", line_alpha=1, legend_label=legendNamePsar,
             ))
 
-            # Exponential Moving Average (EMA) 13, 8, 5 for the Alligator indicator (Jaw, Teeth, and Lips)
+            # Hull Moving Averages (HMA) 13, 8, 5 for the Alligator indicator (Jaw, Teeth, and Lips)
             disabledObjects.append(chart.line(
-                self.prices.datetime, self.stat["ema13"],
-                line_width=3, line_color="#1a1aff", line_alpha=1, legend_label=legendNameAlligator,
+                self.prices.datetime, self.stat["hma13"],
+                line_width=2, line_color="#1a1aff", line_alpha=1, legend_label=legendNameAlligator,
             ))
             disabledObjects.append(chart.line(
-                self.prices.datetime, self.stat["ema8"],
-                line_width=3, line_color="#ff1a1a", line_alpha=1, legend_label=legendNameAlligator,
+                self.prices.datetime, self.stat["hma8"],
+                line_width=2, line_color="#ff1a1a", line_alpha=1, legend_label=legendNameAlligator,
             ))
             disabledObjects.append(chart.line(
-                self.prices.datetime, self.stat["ema5"],
-                line_width=3, line_color="#40ff00", line_alpha=1, legend_label=legendNameAlligator,
+                self.prices.datetime, self.stat["hma5"],
+                line_width=2, line_color="#40ff00", line_alpha=1, legend_label=legendNameAlligator,
             ))
 
             for item in disabledObjects:
