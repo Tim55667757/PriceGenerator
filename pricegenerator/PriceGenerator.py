@@ -19,8 +19,8 @@ from itertools import groupby
 import pandas as pd
 import pandas_ta as ta
 import random
-from bokeh.plotting import figure, show, save, output_file
-from bokeh.models import Legend
+from bokeh.plotting import figure, show, save, output_file, ColumnDataSource
+from bokeh.models import Legend, HoverTool
 import jinja2
 
 import pricegenerator.UniLogger as uLog
@@ -657,14 +657,14 @@ class PriceGenerator:
             uLogger.debug("Preparing Bokeh chart configuration...")
             uLogger.debug("Title: {}".format(self._chartTitle))
 
-            # chart options:
+            # --- Main chart options:
             chart = figure(
                 x_axis_type="datetime",
                 x_axis_label="Date and time",
                 y_axis_label="Price",
                 outline_line_width=3,
                 outline_line_color="white",
-                tools=["pan", "wheel_zoom", "box_zoom", "reset", "save"],
+                tools=["pan", "wheel_zoom", "box_zoom", "hover", "reset", "save"],
                 plot_width=1200,
                 plot_height=600,
                 sizing_mode="scale_width",
@@ -719,48 +719,83 @@ class PriceGenerator:
             # preparing data for candles:
             inc = self.prices.open <= self.prices.close
             dec = self.prices.open > self.prices.close
-            width = 108000  # as for 5 minutes by default
+            candleWidth = 108000  # as for 5 minutes by default
 
             if self.timeframe <= timedelta(days=31):
-                width = 864000000  # 12 * 60 * 60 * 25 * 800  # for 43200 minutes
+                candleWidth = 864000000  # 12 * 60 * 60 * 25 * 800  # for 43200 minutes
 
             if self.timeframe <= timedelta(days=7):
-                width = 216000000  # 12 * 60 * 60 * 25 * 200  # for 10080 minutes
+                candleWidth = 216000000  # 12 * 60 * 60 * 25 * 200  # for 10080 minutes
 
             if self.timeframe <= timedelta(days=1):
-                width = 32400000  # 12 * 60 * 60 * 25 * 30  # for 1440 minutes
+                candleWidth = 32400000  # 12 * 60 * 60 * 25 * 30  # for 1440 minutes
 
             if self.timeframe <= timedelta(hours=4):
-                width = 6480000  # 12 * 60 * 60 * 25 * 6  # for 240 minutes
+                candleWidth = 6480000  # 12 * 60 * 60 * 25 * 6  # for 240 minutes
 
             if self.timeframe <= timedelta(hours=1):
-                width = 1620000  # 12 * 60 * 60 * 25 * 1.5  # for 60 minutes
+                candleWidth = 1620000  # 12 * 60 * 60 * 25 * 1.5  # for 60 minutes
 
             if self.timeframe <= timedelta(minutes=30):
-                width = 648000  # 12 * 60 * 60 * 15  # for 30 minutes
+                candleWidth = 648000  # 12 * 60 * 60 * 15  # for 30 minutes
 
             if self.timeframe <= timedelta(minutes=15):
-                width = 345600  # 12 * 60 * 60 * 8  # for 15 minutes
+                candleWidth = 345600  # 12 * 60 * 60 * 8  # for 15 minutes
 
             if self.timeframe <= timedelta(minutes=5):
-                width = 108000  # 12 * 60 * 60 * 2.5  # for 5 minutes
+                candleWidth = 108000  # 12 * 60 * 60 * 2.5  # for 5 minutes
 
             if self.timeframe <= timedelta(minutes=1):
-                width = 21600  # 12 * 60 * 30   # for 1 minute
+                candleWidth = 21600  # 12 * 60 * 30   # for 1 minute
 
             disabledObjects = []  # bokeh objects to hide by default when page is loaded
 
+            # preparing data for hover tool:
+            source = {
+                "candle": [x + 1 for x in range(-len(self.prices.close), 0, 1)],
+                "datetime": self.prices.datetime,
+                "open": self.prices.open,
+                "high": self.prices.high,
+                "low": self.prices.low,
+                "close": self.prices.close,
+                "volume": self.prices.volume,
+            }
+            hoverData = ColumnDataSource(data=source)
+
+            # preparing hover tooltip:
+            hover = chart.select(dict(type=HoverTool))
+            hover.names = ["candle"]
+            hover.tooltips = [
+                ("Candle", "@candle"),
+                ("Date", "@datetime{%Y-%m-%d}"),
+                ("Time", "@datetime{%H:%M:%S}"),
+                ("Open", "@open{0.0000}"),
+                ("High", "@high{0.0000}"),
+                ("Low", "@low{0.0000}"),
+                ("Close", "@close{0.0000}"),
+                ("Volume", "@volume"),
+            ]
+            hover.formatters = {
+                "@datetime": "datetime",
+                "@open": "numeral",
+                "@high": "numeral",
+                "@low": "numeral",
+                "@close": "numeral",
+            }
+            hover.point_policy = "snap_to_data"
+            hover.line_policy = "nearest"
+
             # --- preparing body of candles:
             chart.segment(
-                self.prices.datetime, self.prices.high, self.prices.datetime, self.prices.low,
-                color="#20ff00", line_alpha=1,
+                x0="datetime", y0="high", x1="datetime", y1="low",
+                color="#20ff00", line_alpha=1, name="candle", source=hoverData,
             )
             chart.vbar(
-                self.prices.datetime[inc], width, self.prices.open[inc], self.prices.close[inc],
+                x=self.prices.datetime[inc], width=candleWidth, bottom=self.prices.open[inc], top=self.prices.close[inc],
                 fill_color="black", line_color="#20ff00", line_width=1, fill_alpha=1, line_alpha=1,
             )
             chart.vbar(
-                self.prices.datetime[dec], width, self.prices.open[dec], self.prices.close[dec],
+                x=self.prices.datetime[dec], width=candleWidth, bottom=self.prices.open[dec], top=self.prices.close[dec],
                 fill_color="white", line_color="#20ff00", line_width=1, fill_alpha=1, line_alpha=1,
             )
 
