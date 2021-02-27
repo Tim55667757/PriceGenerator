@@ -19,8 +19,9 @@ from itertools import groupby
 import pandas as pd
 import pandas_ta as ta
 import random
-from bokeh.plotting import figure, show, save, output_file, ColumnDataSource
-from bokeh.models import Legend, HoverTool
+from bokeh.plotting import figure, save, output_file, ColumnDataSource
+from bokeh.models import Legend, HoverTool, Range1d, NumeralTickFormatter
+from bokeh.layouts import gridplot
 import jinja2
 
 import pricegenerator.UniLogger as uLog
@@ -508,8 +509,7 @@ class PriceGenerator:
         self._stat["hma5"] = self.prices["hma5"]
 
         summary = [
-            "## Summary",
-            "",
+            "# Summary",
             "| Parameter                                    | Value",
             "|----------------------------------------------|---------------",
             "| Candles count:                               | {}".format(self.stat["candles"]),
@@ -523,8 +523,7 @@ class PriceGenerator:
             "| Trend (between close first and close last:   | {}".format(self.stat["trend"]),
             "| - Trend deviation parameter:                 | ±{}%".format(self.stat["trendDev"] * 100),
             "",
-            "## Some statistics",
-            "",
+            "# Some statistics",
             "| Statistic                                    | Value",
             "|----------------------------------------------|---------------",
             "| Up candles count:                            | {} ({}%)".format(self.stat["upCount"], round(100 * self.stat["upCount"] / self.stat["candles"], self.precision)),
@@ -659,26 +658,37 @@ class PriceGenerator:
             uLogger.debug("Preparing Bokeh chart configuration...")
             uLogger.debug("Title: {}".format(self._chartTitle))
 
-            # --- Main chart options:
+            # --- Preparing Main chart:
             chart = figure(
+                title=self._chartTitle,
                 x_axis_type="datetime",
-                x_axis_label="Date and time",
                 y_axis_label="Price",
-                outline_line_width=3,
+                outline_line_width=2,
                 outline_line_color="white",
                 tools=["pan", "wheel_zoom", "box_zoom", "hover", "reset", "save"],
+                toolbar_location="above",
+                active_scroll="wheel_zoom",
                 plot_width=1200,
-                plot_height=600,
+                plot_height=540,
                 sizing_mode="scale_width",
                 background_fill_color="black",
-                title=self._chartTitle,
-                toolbar_location="above",
                 min_border_left=0,
                 min_border_right=0,
                 min_border_top=0,
                 min_border_bottom=0,
             )
             chart.toolbar.logo = None  # remove bokeh logo and link to https://bokeh.org/
+            chart.xaxis.major_label_orientation = pi / 6
+            chart.grid.grid_line_dash = [6, 4]
+            chart.grid.grid_line_alpha = 0.5
+            chart.grid.minor_grid_line_dash = [6, 4]
+            chart.grid.minor_grid_line_alpha = 0.5
+            chart.xgrid.minor_grid_line_dash = [6, 4]
+            chart.xgrid.minor_grid_line_alpha = 0.3
+            chart.xgrid.minor_grid_line_color = "white"
+            chart.ygrid.minor_grid_line_dash = [6, 4]
+            chart.ygrid.minor_grid_line_alpha = 0.3
+            chart.ygrid.minor_grid_line_color = "white"
 
             # Summary section and controls:
             legendNameMain = "Max_close / Min_close / Trend line"
@@ -701,22 +711,6 @@ class PriceGenerator:
                 label_text_font="Lucida Console",
             )
             chart.add_layout(summaryInfo, 'right')
-
-            # preparing grid:
-            chart.xaxis.major_label_orientation = pi / 4
-            minY = pd.DataFrame.min(self.prices.low)
-            maxY = pd.DataFrame.max(self.prices.high)
-            chart.yaxis.bounds = (minY - (maxY - minY) / 2, maxY + (maxY - minY) / 2)
-            chart.grid.grid_line_dash = [6, 4]
-            chart.grid.grid_line_alpha = 0.5
-            chart.grid.minor_grid_line_dash = [6, 4]
-            chart.grid.minor_grid_line_alpha = 0.5
-            chart.xgrid.minor_grid_line_dash = [6, 4]
-            chart.xgrid.minor_grid_line_alpha = 0.3
-            chart.xgrid.minor_grid_line_color = "white"
-            chart.ygrid.minor_grid_line_dash = [6, 4]
-            chart.ygrid.minor_grid_line_alpha = 0.3
-            chart.ygrid.minor_grid_line_color = "white"
 
             # preparing data for candles:
             inc = self.prices.open <= self.prices.close
@@ -752,7 +746,7 @@ class PriceGenerator:
 
             disabledObjects = []  # bokeh objects to hide by default when page is loaded
 
-            # preparing data for hover tool:
+            # preparing data for hover tooltips:
             source = {
                 "candle": [x + 1 for x in range(-len(self.prices.close), 0, 1)],
                 "datetime": self.prices.datetime,
@@ -763,8 +757,6 @@ class PriceGenerator:
                 "volume": self.prices.volume,
             }
             hoverData = ColumnDataSource(data=source)
-
-            # preparing hover tooltip:
             hover = chart.select(dict(type=HoverTool))
             hover.names = ["candle"]
             hover.tooltips = [
@@ -786,6 +778,7 @@ class PriceGenerator:
             }
             hover.point_policy = "snap_to_data"
             hover.line_policy = "nearest"
+            hover.mode = "vline"
 
             # --- preparing body of candles:
             chart.segment(
@@ -923,14 +916,87 @@ class PriceGenerator:
             for item in disabledObjects:
                 item.visible = False
 
+            # --- Volume chart options:
+            volumeChart = figure(
+                x_axis_type="datetime",
+                y_axis_label="Volume",
+                outline_line_width=0,
+                outline_line_color="white",
+                plot_width=1200,
+                plot_height=90,
+                sizing_mode="scale_width",
+                background_fill_color="black",
+                tools=["pan", "wheel_zoom", "hover"],
+                toolbar_location=None,
+                active_scroll="wheel_zoom",
+                min_border_left=0,
+                min_border_right=0,
+                min_border_top=0,
+                min_border_bottom=0,
+                x_range=chart.x_range,
+                y_range=Range1d(0, max(self.prices.volume), bounds=(0, max(self.prices.volume))),
+            )
+            volumeChart.toolbar.logo = None  # remove bokeh logo and link to https://bokeh.org/
+            volumeChart.xaxis.major_label_orientation = pi / 6
+            volumeChart.xaxis.visible = False
+            volumeChart.yaxis.formatter=NumeralTickFormatter(format="0a")
+            volumeChart.grid.grid_line_dash = [6, 4]
+            volumeChart.grid.grid_line_alpha = 0.5
+            volumeChart.grid.minor_grid_line_dash = [6, 4]
+            volumeChart.grid.minor_grid_line_alpha = 0.5
+            volumeChart.xgrid.minor_grid_line_dash = [6, 4]
+            volumeChart.xgrid.minor_grid_line_alpha = 0.3
+            volumeChart.xgrid.minor_grid_line_color = "white"
+
+            # preparing data for hover tooltips:
+            volSource = {
+                "candle": [x + 1 for x in range(-len(self.prices.close), 0, 1)],
+                "datetime": self.prices.datetime,
+                "volume": self.prices.volume,
+                "zero": [0] * len(self.prices.volume),
+            }
+            volHoverData = ColumnDataSource(data=volSource)
+            volHover = volumeChart.select(dict(type=HoverTool))
+            volHover.names = ["volumes"]
+            volHover.tooltips = [
+                ("Candle", "@candle"),
+                ("Date", "@datetime{%Y-%m-%d}"),
+                ("Time", "@datetime{%H:%M:%S}"),
+                ("Volume", "@volume"),
+            ]
+            volHover.formatters = {
+                "@datetime": "datetime",
+            }
+            volHover.point_policy = "snap_to_data"
+            volHover.line_policy = "nearest"
+            volHover.mode = "vline"
+
+            # preparing volume chart:
+            volumeChart.segment(
+                x0="datetime", y0="volume", x1="datetime", y1="zero",
+                color="black", line_alpha=0, name="volumes", source=volHoverData,
+            )
+            volumeChart.vbar(
+                x=self.prices.datetime[inc], width=candleWidth, bottom=0, top=self.prices.volume[inc],
+                fill_color="black", line_color="#20ff00", line_width=1, fill_alpha=1, line_alpha=1,
+            )
+            volumeChart.vbar(
+                x=self.prices.datetime[dec], width=candleWidth, bottom=0, top=self.prices.volume[dec],
+                fill_color="white", line_color="#20ff00", line_width=1, fill_alpha=1, line_alpha=1,
+            )
+
             # preparing html-file with forecast chart and statistics in markdown:
             output_file(fileName, title=self._chartTitle, mode="cdn")
-            save(chart)
+            save(gridplot(
+                    children=[[chart], [volumeChart]],
+                    sizing_mode="stretch_both",
+                    merge_tools=False,
+            ))
             with open("{}.md".format(fileName), "w", encoding="UTF-8") as fH:
                 fH.write("\n".join(infoBlock))
 
             if viewInBrowser:
-                show(chart)  # view forecast chart in default browser immediately
+                os.system(os.path.abspath(fileName))  # view forecast chart in default browser immediately
 
             uLogger.info("Pandas dataframe rendered as html-file [{}]".format(os.path.abspath(fileName)))
 
