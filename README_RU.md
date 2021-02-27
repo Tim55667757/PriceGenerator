@@ -100,6 +100,8 @@ https://tim55667757.github.io/PriceGenerator
 Возможные параметры командной строки:
   -h, --help            Показать эту подсказку и выйти
   --ticker TICKER       Параметр: название тикера, 'TEST' по умолчанию.
+  --precision PRECISION
+                        Параметр: кол-во знаков после запятой, 2 по умолчанию.
   --timeframe TIMEFRAME
                         Параметр: разница между двумя соседними свечами
                         в минутах, 60 (или 1 час) по умолчанию.
@@ -290,11 +292,12 @@ pricegenerator --debug-level 20 --load-from test.csv --render-google index_googl
 
 Давайте изменим некоторые параметры по умолчанию, которые влияют на генерацию цен и нарисуем свой уникальный график:
 ```commandline
-pricegenerator --debug-level 10 --ticker "MY_PRICES" --timeframe 240 --start "2020-01-01 00:00" --horizon 150 --max-close 18000 --min-close 14000 --init-close 15000 --max-outlier 1000 --max-body 500 --max-volume 400000 --up-candles-prob 0.48 --outliers-prob 0.05 --trend-deviation 0.03 --generate --render-bokeh index_custom.html
+pricegenerator --debug-level 10 --ticker "MY_PRICES" --precision 2 --timeframe 240 --start "2020-01-01 00:00" --horizon 150 --max-close 18000 --min-close 14000 --init-close 15000 --max-outlier 1000 --max-body 500 --max-volume 400000 --up-candles-prob 0.48 --outliers-prob 0.05 --trend-deviation 0.03 --generate --render-bokeh index_custom.html
 ``` 
 
 Параметры означают:
 - `--ticker "MY_PRICES"` — установить название графика для ценовой последовательности как MY_PRICES;
+- `--precision 2` — установить точность, то есть количество знаков после запятой;
 - `--timeframe 240` — одна свеча должна отражать изменение цен за 4 часа (240 минут);
 - `--start "2020-01-01 00:00"` — дата и время первой свечи 2020-01-01 00:00;
 - `--horizon 150` — сгенерировать 150 свечей;

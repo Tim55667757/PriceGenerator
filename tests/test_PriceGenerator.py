@@ -98,12 +98,13 @@ class TestFeatures:
             assert self.model.precision == test[1], "Expected precision = {} for chain:\n{}".format(test[1], test[0])
 
     def test_precision(self):
-        testData = [1, 2, 3, 4]
+        testData = [[0, 0], [1, 1], [2, 2], [3, 3], [4, 4], [-1, 2], [-2, 2], ["xxx", 2]]
         for test in testData:
-            self.model.precision = test  # set test data as "precision" field in PriceGenerator() class
+            self.model.precision = test[0]  # set test[0] data as "precision" field in PriceGenerator() class
+            assert test[1] == self.model.precision, "Expected precision = {} for test = {}".format(test[1], test[0])
             self.model.Generate()
             self.model.DetectPrecision(self.model.prices.close.values)  # re-calc and update "precision" field
-            assert test == self.model.precision, "Expected precision = {} for chain:\n{}".format(test, self.model.prices.close.values)
+            assert test[1] == self.model.precision, "Expected precision = {} for test = {} and chain:\n{}".format(test[1], test[0], self.model.prices.close.values)
 
     def test_timeframe(self):
         testData = [

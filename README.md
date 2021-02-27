@@ -100,6 +100,9 @@ https://tim55667757.github.io/PriceGenerator
 optional arguments:
   -h, --help            show this help message and exit
   --ticker TICKER       Option: some fake ticker name, 'TEST' by default.
+  --precision PRECISION
+                        Option: precision is count of digits after comma, 2 by
+                        default.
   --timeframe TIMEFRAME
                         Option: time delta between two neighbour candles in
                         minutes, 60 (1 hour) by default.
@@ -290,11 +293,12 @@ As a result of executing the command, you will receive a chart [./media/index_go
 
 Let's change some of the default parameters that affect price generation and draw our own unique chart:
 ```commandline
-pricegenerator --debug-level 10 --ticker "MY_PRICES" --timeframe 240 --start "2020-01-01 00:00" --horizon 150 --max-close 18000 --min-close 14000 --init-close 15000 --max-outlier 1000 --max-body 500 --max-volume 400000 --up-candles-prob 0.48 --outliers-prob 0.05 --trend-deviation 0.03 --generate --render-bokeh index_custom.html
+pricegenerator --debug-level 10 --ticker "MY_PRICES" --precision 2 --timeframe 240 --start "2020-01-01 00:00" --horizon 150 --max-close 18000 --min-close 14000 --init-close 15000 --max-outlier 1000 --max-body 500 --max-volume 400000 --up-candles-prob 0.48 --outliers-prob 0.05 --trend-deviation 0.03 --generate --render-bokeh index_custom.html
 ``` 
 
 Parameters mean:
 - `--ticker "MY_PRICES"` — set chart title for price as MY_PRICES;
+- `--precision 2` — set precision, that means count of digits after comma;
 - `--timeframe 240` — one candlestick should reflect the price change in 4 hours (240 minutes);
 - `--start "2020-01-01 00:00"` — date and time of the first candle is 2020-01-01 00:00;
 - `--horizon 150` — generate 150 candles;

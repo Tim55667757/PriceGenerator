@@ -310,13 +310,13 @@ class PriceGenerator:
 
     @precision.setter
     def precision(self, value):
-        if value > 0:
-            self._precision = value
-            self._deg10prec = 10 ** value  # 10^precision
+        self._precision = 2  # default
+        self._deg10prec = 100  # default
 
-        else:
-            self._precision = 1
-            self._deg10prec = 1
+        if isinstance(value, int):
+            if value >= 0:
+                self._precision = value
+                self._deg10prec = 10 ** value  # 10^precision
 
     @staticmethod
     def FormattedDelta(tDelta, fmt):
@@ -337,7 +337,8 @@ class PriceGenerator:
         """
         uLogger.debug("Detecting precision of data values...")
         try:
-            self.precision = mode(list(map(lambda x: len(str(x).split('.')[-1]) if len(str(x).split('.')) > 1 else 0, examples)))
+            if self.precision != 0:
+                self.precision = mode(list(map(lambda x: len(str(x).split('.')[-1]) if len(str(x).split('.')) > 1 else 0, examples)))
 
         except StatisticsError as e:
             uLogger.warning("Unable to unambiguously determine Mode() of the value of precision! Precision is set to 2 (default). StatisticsError: '{}'".format(e))
@@ -608,6 +609,7 @@ class PriceGenerator:
 
         uLogger.info("Generating prices...")
         uLogger.debug("- Ticker name: {}".format(self.ticker))
+        uLogger.debug("- Precision: {}".format(self.precision))
         uLogger.debug("- Interval or timeframe (time delta between two neighbour candles): {}".format(self.timeframe))
         uLogger.debug("- Horizon length (candlesticks count): {}".format(self.horizon))
         uLogger.debug("- Start time: {}".format(self.timeStart.strftime("%Y-%m-%d %H:%M:%S")))
@@ -991,6 +993,7 @@ def ParseArgs():
 
     # options:
     parser.add_argument("--ticker", type=str, default="TEST", help="Option: some fake ticker name, 'TEST' by default.")
+    parser.add_argument("--precision", type=int, default=2, help="Option: precision is count of digits after comma, 2 by default.")
     parser.add_argument("--timeframe", type=int, default=60, help="Option: time delta between two neighbour candles in minutes, 60 (1 hour) by default.")
     parser.add_argument("--start", type=str, help="Option: start time of 1st candle as string with format 'year-month-day hour:min', e.g. '2021-01-02 12:00'.")
     parser.add_argument("--horizon", type=int, help="Option: candlesticks count.")
@@ -1043,6 +1046,9 @@ def Main():
 
         if args.ticker:
             priceModel.ticker = args.ticker  # some fake ticker name, "TEST" by default
+
+        if int(args.precision) >= 0:
+            priceModel.precision = args.precision  # precision is count of digits after comma, 2 by default
 
         if args.timeframe:
             priceModel.timeframe = timedelta(minutes=args.timeframe)  # time delta between two neighbour candles in minutes, 60 (1 hour) by default
