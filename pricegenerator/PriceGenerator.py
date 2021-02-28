@@ -17,9 +17,11 @@ from math import pi
 from statistics import mode, pstdev, StatisticsError
 from itertools import groupby
 import pandas as pd
+import pandas_ta as ta
 import random
-from bokeh.plotting import figure, show, save, output_file
-from bokeh.models import Legend
+from bokeh.plotting import figure, save, output_file, ColumnDataSource
+from bokeh.models import Legend, HoverTool, Range1d, NumeralTickFormatter
+from bokeh.layouts import gridplot
 import jinja2
 
 import pricegenerator.UniLogger as uLog
@@ -188,7 +190,7 @@ class PriceGenerator:
     """
 
     def __init__(self):
-        self.prices = None  # copy of generated or loaded prices will be put into this Pandas variable
+        self.prices = None  # generated or loaded prices will be put into this Pandas variable
 
         self.csvHeaders = ["date", "time", "open", "high", "low", "close", "volume"]  # headers if .csv-file used
         self.dfHeaders = ["datetime", "open", "high", "low", "close", "volume"]  # dataframe headers
@@ -202,7 +204,7 @@ class PriceGenerator:
         self.ticker = "TEST"  # some fake ticker name
         self.timeframe = timedelta(hours=1)  # time delta between two neighbour candles, 1 hour by default
         self.timeStart = datetime.now(tzlocal()).replace(microsecond=0, second=0, minute=0)
-        self.horizon = 100  # Generating candlesticks count, must be >= 5
+        self.horizon = None  # Candlesticks count (generating or in view), must be >= 5 for generator
         self.maxClose = random.uniform(70, 90)  # maximum of close prices must be >= self.minClose
         self.minClose = random.uniform(60, 70)  # minimum of close prices must be <= self.maxClose
         self.initClose = None  # if not None generator started 1st open price of chain from this price
@@ -214,6 +216,8 @@ class PriceGenerator:
         self._trendDeviation = 0.005  # relative deviation for trend detection, 0.005 mean ±0.5% by default. "NO trend" if (1st_close - last_close) / 1st_close <= self.trendDeviation
 
         self._chartTitle = ""  # chart title, auto-generated when loading or creating chain of candlesticks
+
+        self._zigZagDeviation = 0.03  # relative deviation to detection points of Zig-Zag indicator, 0.03 mean 3% by default
 
         # some default statistics for calculation:
         self._stat = {
@@ -300,7 +304,7 @@ class PriceGenerator:
             self._maxVolume = value
 
     @property
-    def stat(self):
+    def stat(self) -> dict:
         return self._stat
 
     @property
@@ -309,13 +313,28 @@ class PriceGenerator:
 
     @precision.setter
     def precision(self, value):
-        if value > 0:
-            self._precision = value
-            self._deg10prec = 10 ** value  # 10^precision
+        self._precision = 2  # default
+        self._deg10prec = 100  # default
+
+        if isinstance(value, int):
+            if value >= 0:
+                self._precision = value
+                self._deg10prec = 10 ** value  # 10^precision
+
+    @property
+    def zigZagDeviation(self):
+        return self._zigZagDeviation
+
+    @zigZagDeviation.setter
+    def zigZagDeviation(self, value):
+        if value is None or value < 0:
+            self._zigZagDeviation = 0.03  # by default
+
+        elif value > 1:
+            self._zigZagDeviation = 1
 
         else:
-            self._precision = 1
-            self._deg10prec = 1
+            self._zigZagDeviation = value
 
     @staticmethod
     def FormattedDelta(tDelta, fmt):
@@ -336,7 +355,8 @@ class PriceGenerator:
         """
         uLogger.debug("Detecting precision of data values...")
         try:
-            self.precision = mode(list(map(lambda x: len(str(x).split('.')[-1]) if len(str(x).split('.')) > 1 else 0, examples)))
+            if self.precision != 0:
+                self.precision = mode(list(map(lambda x: len(str(x).split('.')[-1]) if len(str(x).split('.')) > 1 else 0, examples)))
 
         except StatisticsError as e:
             uLogger.warning("Unable to unambiguously determine Mode() of the value of precision! Precision is set to 2 (default). StatisticsError: '{}'".format(e))
@@ -352,9 +372,15 @@ class PriceGenerator:
         :return: Pandas dataframe.
         """
         uLogger.info("Loading, parse and preparing input data from [{}]...".format(os.path.abspath(fileName)))
-        self.prices = pd.read_csv(fileName, names=self.csvHeaders, engine="python", sep=self.sep, parse_dates={"datetime": ["date", "time"]})
 
-        self.horizon = len(self.prices)
+        self.prices = pd.read_csv(fileName, names=self.csvHeaders, engine="python", sep=self.sep, parse_dates={"datetime": ["date", "time"]})
+        if self.horizon is None or self.horizon < 1 or self.horizon > len(self.prices):
+            self.horizon = len(self.prices)  # use loaded file "as is" with all candles
+
+        else:
+            self.prices = self.prices.tail(self.horizon)  # remove old candles, leave only the "tail" ...
+            self.prices.index = range(self.horizon)  # ... and reindex
+
         self.ticker = os.path.basename(fileName)
 
         # auto-detect time delta between last two neighbour candles:
@@ -407,6 +433,29 @@ class PriceGenerator:
 
         return trend
 
+    @staticmethod
+    def ZigZagFilter(datetimes: pd.Series, values: pd.Series, deviation: float) -> dict:
+        """
+        This method filter input data as ZigZag indicator: when input value of candlestick price (e.g. close price)
+        is difference with next values with define percent then this point is a point of ZigZag indicator.
+        :param datetimes: input pandas Series with datetime values.
+        :param values: input pandas Series or list, e.g. list of closes values of candlesticks.
+        :param deviation: [0, 1] float number is a relative difference between i and i+1 values to set as ZigZag point.
+        :return: dict with pandas Series filtered data: {"datetimes": filtered_datetimes, "filtered": filtered_values}
+        """
+        filteredPoints = [True]
+        prev = values[0]
+        for i in range(1, len(values)):
+            difference = abs(values[i] - prev) / prev
+            if difference >= deviation:
+                filteredPoints.append(True)
+                prev = values[i]
+
+            else:
+                filteredPoints.append(False)
+
+        return {"datetimes": datetimes[filteredPoints], "filtered": values[filteredPoints]}
+
     def GetStatistics(self):
         """
         Calculates statistics of candles chain.
@@ -425,6 +474,24 @@ class PriceGenerator:
             self.prices.high.values,
             self.prices.delta.values
         ))
+
+        uLogger.debug("Calculating some technical analysis indicators...")
+        self.prices["sma5"] = ta.sma(close=self.prices.close, length=5, offset=None)
+        self.prices["sma20"] = ta.sma(close=self.prices.close, length=20, offset=None)
+        self.prices["sma50"] = ta.sma(close=self.prices.close, length=50, offset=None)
+        self.prices["sma200"] = ta.sma(close=self.prices.close, length=200, offset=None)
+        self.prices["hma5"] = ta.hma(close=self.prices.close, length=5, offset=None)
+        self.prices["hma20"] = ta.hma(close=self.prices.close, length=20, offset=None)
+        self.prices["vwma5"] = ta.vwma(close=self.prices.close, volume=self.prices.volume, length=5, offset=None)
+        self.prices["vwma20"] = ta.vwma(close=self.prices.close, volume=self.prices.volume, length=20, offset=None)
+        bbands = ta.bbands(close=self.prices.close, length=None, std=None, mamode=None, offset=None)
+        bbands.columns = ["lower", "mid", "upper", "bandwidth"]
+        psar = ta.psar(high=self.prices.high, low=self.prices.low, close=self.prices.close, af=0.02, max_af=0.2, offset=None)
+        psar.columns = ["long", "short", "af", "reversal"]
+        self.prices["hma13"] = ta.hma(close=self.prices.close, length=13, offset=8)  # alligator Jaw
+        self.prices["hma8"] = ta.hma(close=self.prices.close, length=8, offset=5)  # alligator Teeth
+        self.prices["hma5"] = ta.hma(close=self.prices.close, length=5, offset=3)  # alligator Lips
+        zigzag = self.ZigZagFilter(datetimes=self.prices.datetime, values=self.prices.close, deviation=self.zigZagDeviation)  # ZigZag indicator
 
         self.DetectPrecision(self.prices.close.values)  # auto-detect precision
 
@@ -468,11 +535,23 @@ class PriceGenerator:
         self._stat["deltas"]["q50"] = round(max(pd.DataFrame(self.prices.delta).quantile(q=0.50, interpolation='linear')), self._precision)
         self._stat["cumSumVolumes"] = self.prices.volume.sum()
 
-        uLogger.debug("self._stat = {}".format(self._stat))
+        self._stat["sma5"] = self.prices["sma5"]
+        self._stat["sma20"] = self.prices["sma20"]
+        self._stat["sma50"] = self.prices["sma50"]
+        self._stat["sma200"] = self.prices["sma200"]
+        self._stat["hma5"] = self.prices["hma5"]
+        self._stat["hma20"] = self.prices["hma20"]
+        self._stat["vwma5"] = self.prices["vwma5"]
+        self._stat["vwma20"] = self.prices["vwma20"]
+        self._stat["bbands"] = bbands
+        self._stat["psar"] = psar
+        self._stat["hma13"] = self.prices["hma13"]
+        self._stat["hma8"] = self.prices["hma8"]
+        self._stat["hma5"] = self.prices["hma5"]
+        self._stat["zigzag3"] = zigzag
 
         summary = [
-            "## Summary",
-            "",
+            "# Summary",
             "| Parameter                                    | Value",
             "|----------------------------------------------|---------------",
             "| Candles count:                               | {}".format(self.stat["candles"]),
@@ -484,23 +563,19 @@ class PriceGenerator:
             "| Close min:                                   | {}".format(round(self.stat["closeMin"], self.precision)),
             "| Diapason (between max and min close prices): | {}".format(round(self.stat["diapason"], self.precision)),
             "| Trend (between close first and close last:   | {}".format(self.stat["trend"]),
-            "| - Trend deviation parameter:                 | ±{}%".format(self.stat["trendDev"] * 100),
             "",
-            "## Some statistics",
-            "",
+            "# Some statistics",
             "| Statistic                                    | Value",
             "|----------------------------------------------|---------------",
             "| Up candles count:                            | {} ({}%)".format(self.stat["upCount"], round(100 * self.stat["upCount"] / self.stat["candles"], self.precision)),
             "| Down candles count:                          | {} ({}%)".format(self.stat["downCount"], round(100 * self.stat["downCount"] / self.stat["candles"], self.precision)),
-            "| Max of up candles chain:                     | {}".format(self.stat["upCountChainMax"]),
-            "| Max of down candles chain:                   | {}".format(self.stat["downCountChainMax"]),
+            "| Max of up / down candle chains:              | {} / {}".format(self.stat["upCountChainMax"], self.stat["downCountChainMax"]),
             "| Max delta (between High and Low prices):     | {}".format(round(self.stat["deltas"]["max"], self.precision)),
             "| Min delta (between High and Low prices):     | {}".format(round(self.stat["deltas"]["min"], self.precision)),
             "| Delta's std. dev.:                           | {}".format(round(self.stat["deltas"]["stDev"], self.precision)),
             "| - 99 percentile:                             | ≤ {}".format(round(self.stat["deltas"]["q99"], self.precision)),
             "| - 95 percentile:                             | ≤ {}".format(round(self.stat["deltas"]["q95"], self.precision)),
             "| - 80 percentile:                             | ≤ {}".format(round(self.stat["deltas"]["q80"], self.precision)),
-            "| - 50 percentile:                             | ≤ {}".format(round(self.stat["deltas"]["q50"], self.precision)),
             "| Cumulative sum of volumes:                   | {}".format(self.stat["cumSumVolumes"]),
         ]
 
@@ -573,6 +648,7 @@ class PriceGenerator:
 
         uLogger.info("Generating prices...")
         uLogger.debug("- Ticker name: {}".format(self.ticker))
+        uLogger.debug("- Precision: {}".format(self.precision))
         uLogger.debug("- Interval or timeframe (time delta between two neighbour candles): {}".format(self.timeframe))
         uLogger.debug("- Horizon length (candlesticks count): {}".format(self.horizon))
         uLogger.debug("- Start time: {}".format(self.timeStart.strftime("%Y-%m-%d %H:%M:%S")))
@@ -622,46 +698,27 @@ class PriceGenerator:
             uLogger.debug("Preparing Bokeh chart configuration...")
             uLogger.debug("Title: {}".format(self._chartTitle))
 
-            # chart options:
+            # --- Preparing Main chart:
             chart = figure(
+                title=self._chartTitle,
                 x_axis_type="datetime",
-                x_axis_label="Date and time",
                 y_axis_label="Price",
-                outline_line_width=3,
+                outline_line_width=2,
                 outline_line_color="white",
-                tools=["pan", "wheel_zoom", "box_zoom", "reset", "save"],
+                tools=["pan", "wheel_zoom", "box_zoom", "hover", "reset", "save"],
+                toolbar_location="above",
+                active_scroll="wheel_zoom",
                 plot_width=1200,
-                plot_height=600,
+                plot_height=540,
                 sizing_mode="scale_width",
                 background_fill_color="black",
-                title=self._chartTitle,
-                toolbar_location="above",
                 min_border_left=0,
                 min_border_right=0,
                 min_border_top=0,
                 min_border_bottom=0,
             )
             chart.toolbar.logo = None  # remove bokeh logo and link to https://bokeh.org/
-
-            # Summary section and controls:
-            legendNameMain = "Max_close / Min_close / Trend line / Averages points"
-            summaryInfo = Legend(
-                click_policy="hide",
-                items=[(info, []) for info in infoBlock] + [("", []), ("", []), (uLog.sepShort, []), ("Show/hide on chart:", [])],
-                location="top_right",
-                label_text_font_size="8pt",
-                margin=0,
-                padding=0,
-                spacing=0,
-                label_text_font="Lucida Console",
-            )
-            chart.add_layout(summaryInfo, 'right')
-
-            # preparing grid:
-            chart.xaxis.major_label_orientation = pi / 4
-            minY = pd.DataFrame.min(self.prices.low)
-            maxY = pd.DataFrame.max(self.prices.high)
-            chart.yaxis.bounds = (minY - (maxY - minY) / 2, maxY + (maxY - minY) / 2)
+            chart.xaxis.major_label_orientation = pi / 6
             chart.grid.grid_line_dash = [6, 4]
             chart.grid.grid_line_alpha = 0.5
             chart.grid.minor_grid_line_dash = [6, 4]
@@ -673,67 +730,125 @@ class PriceGenerator:
             chart.ygrid.minor_grid_line_alpha = 0.3
             chart.ygrid.minor_grid_line_color = "white"
 
+            # Summary section and controls:
+            legendNameMain = "Max close / Min close / Trend line"
+            legendNameAvg = "Averages points (highs - deltas/2)"
+            legendNameSMA = "Simple Moving Averages (SMA: 5, 20)"
+            legendNameSMAlong = "Long Simple Moving Averages (SMA: 50, 200)"
+            legendNameHMA = "Hull Moving Averages (HMA: 5, 20)"
+            legendNameVWMA = "Volume Weighted Moving Averages (VWMA: 5, 20)"
+            legendNameBBANDS = "Bollinger Bands (BBands)"
+            legendNamePsar = "Parabolic Stop and Reverse (psar)"
+            legendNameAlligator = "Alligator (based on HMA: 13, 8, 5)"
+            legendNameZigZag = "Zig-Zag indicator (with {}% of difference)".format(self.zigZagDeviation * 100)
+            summaryInfo = Legend(
+                click_policy="hide",
+                items=[(info, []) for info in infoBlock] + [("", []), ("Click to show/hide on chart:", [])],
+                location="top_right",
+                label_text_font_size="8pt",
+                margin=0,
+                padding=0,
+                spacing=0,
+                label_text_font="Lucida Console",
+            )
+            chart.add_layout(summaryInfo, 'right')
+
             # preparing data for candles:
             inc = self.prices.open <= self.prices.close
             dec = self.prices.open > self.prices.close
-            width = 108000  # as for 5 minutes by default
+            candleWidth = 108000  # as for 5 minutes by default
 
             if self.timeframe <= timedelta(days=31):
-                width = 864000000  # 12 * 60 * 60 * 25 * 800  # for 43200 minutes
+                candleWidth = 864000000  # 12 * 60 * 60 * 25 * 800  # for 43200 minutes
 
             if self.timeframe <= timedelta(days=7):
-                width = 216000000  # 12 * 60 * 60 * 25 * 200  # for 10080 minutes
+                candleWidth = 216000000  # 12 * 60 * 60 * 25 * 200  # for 10080 minutes
 
             if self.timeframe <= timedelta(days=1):
-                width = 32400000  # 12 * 60 * 60 * 25 * 30  # for 1440 minutes
+                candleWidth = 32400000  # 12 * 60 * 60 * 25 * 30  # for 1440 minutes
 
             if self.timeframe <= timedelta(hours=4):
-                width = 6480000  # 12 * 60 * 60 * 25 * 6  # for 240 minutes
+                candleWidth = 6480000  # 12 * 60 * 60 * 25 * 6  # for 240 minutes
 
             if self.timeframe <= timedelta(hours=1):
-                width = 1620000  # 12 * 60 * 60 * 25 * 1.5  # for 60 minutes
+                candleWidth = 1620000  # 12 * 60 * 60 * 25 * 1.5  # for 60 minutes
 
             if self.timeframe <= timedelta(minutes=30):
-                width = 648000  # 12 * 60 * 60 * 15  # for 30 minutes
+                candleWidth = 648000  # 12 * 60 * 60 * 15  # for 30 minutes
 
             if self.timeframe <= timedelta(minutes=15):
-                width = 345600  # 12 * 60 * 60 * 8  # for 15 minutes
+                candleWidth = 345600  # 12 * 60 * 60 * 8  # for 15 minutes
 
             if self.timeframe <= timedelta(minutes=5):
-                width = 108000  # 12 * 60 * 60 * 2.5  # for 5 minutes
+                candleWidth = 108000  # 12 * 60 * 60 * 2.5  # for 5 minutes
 
             if self.timeframe <= timedelta(minutes=1):
-                width = 21600  # 12 * 60 * 30   # for 1 minute
+                candleWidth = 21600  # 12 * 60 * 30   # for 1 minute
+
+            disabledObjects = []  # bokeh objects to hide by default when page is loaded
+
+            # preparing data for hover tooltips:
+            source = {
+                "candle": [x + 1 for x in range(-len(self.prices.close), 0, 1)],
+                "datetime": self.prices.datetime,
+                "open": self.prices.open,
+                "high": self.prices.high,
+                "low": self.prices.low,
+                "close": self.prices.close,
+                "volume": self.prices.volume,
+            }
+            hoverData = ColumnDataSource(data=source)
+            hover = chart.select(dict(type=HoverTool))
+            hover.names = ["candle"]
+            hover.tooltips = [
+                ("Candle", "@candle"),
+                ("Date", "@datetime{%Y-%m-%d}"),
+                ("Time", "@datetime{%H:%M:%S}"),
+                ("Open", "@open{0.0000}"),
+                ("High", "@high{0.0000}"),
+                ("Low", "@low{0.0000}"),
+                ("Close", "@close{0.0000}"),
+                ("Volume", "@volume"),
+            ]
+            hover.formatters = {
+                "@datetime": "datetime",
+                "@open": "numeral",
+                "@high": "numeral",
+                "@low": "numeral",
+                "@close": "numeral",
+            }
+            hover.point_policy = "snap_to_data"
+            hover.line_policy = "nearest"
+            hover.mode = "vline"
 
             # --- preparing body of candles:
-            candlesData = self.prices
             chart.segment(
-                candlesData.datetime, candlesData.high, candlesData.datetime, candlesData.low,
-                color="#20ff00", line_alpha=1,
+                x0="datetime", y0="high", x1="datetime", y1="low",
+                color="#20ff00", line_alpha=1, name="candle", source=hoverData,
             )
             chart.vbar(
-                candlesData.datetime[inc], width, candlesData.open[inc], candlesData.close[inc],
+                x=self.prices.datetime[inc], width=candleWidth, bottom=self.prices.open[inc], top=self.prices.close[inc],
                 fill_color="black", line_color="#20ff00", line_width=1, fill_alpha=1, line_alpha=1,
             )
             chart.vbar(
-                candlesData.datetime[dec], width, candlesData.open[dec], candlesData.close[dec],
+                x=self.prices.datetime[dec], width=candleWidth, bottom=self.prices.open[dec], top=self.prices.close[dec],
                 fill_color="white", line_color="#20ff00", line_width=1, fill_alpha=1, line_alpha=1,
             )
 
             # preparing candle's average points:
-            chart.circle(
-                self.prices.tail(self.horizon).datetime, self.prices.tail(self.horizon).avg,
-                size=3, color="red", alpha=1, legend_label=legendNameMain,
-            )
-            chart.line(
-                self.prices.tail(self.horizon).datetime, self.prices.tail(self.horizon).avg,
-                line_width=1, line_color="red", line_alpha=1, legend_label=legendNameMain,
-            )
+            disabledObjects.append(chart.circle(
+                self.prices.datetime, self.prices.avg,
+                size=3, color="red", alpha=1, legend_label=legendNameAvg,
+            ))
+            disabledObjects.append(chart.line(
+                self.prices.datetime, self.prices.avg,
+                line_width=1, line_color="red", line_alpha=1, legend_label=legendNameAvg,
+            ))
 
             # preparing for highest close line:
             highestClose = round(max(self.prices.close.values), self._precision)
             chart.line(
-                self.prices.tail(self.horizon + 1).datetime, highestClose,
+                self.prices.datetime, highestClose,
                 line_width=2, line_color="yellow", line_alpha=1, legend_label=legendNameMain,
             )
             chart.text(
@@ -744,7 +859,7 @@ class PriceGenerator:
             # preparing for lowest close line:
             lowestClose = round(min(self.prices.close.values), self._precision)
             chart.line(
-                self.prices.tail(self.horizon + 1).datetime, lowestClose,
+                self.prices.datetime, lowestClose,
                 line_width=2, line_color="yellow", line_alpha=1, legend_label=legendNameMain,
             )
             chart.text(
@@ -759,14 +874,176 @@ class PriceGenerator:
                 line_width=1, line_color="white", line_alpha=1, line_dash=[6, 6], legend_label=legendNameMain,
             )
 
+            # --- Preparing a lot of TA lines:
+
+            # Simple Moving Averages (SMA) 5, 20
+            disabledObjects.append(chart.line(
+                self.prices.datetime, self.stat["sma5"],
+                line_width=2, line_color="yellow", line_alpha=1, legend_label=legendNameSMA,
+            ))
+            disabledObjects.append(chart.line(
+                self.prices.datetime, self.stat["sma20"],
+                line_width=3, line_color="red", line_alpha=1, legend_label=legendNameSMA,
+            ))
+
+            # Long Simple Moving Averages (SMA) 50, 200
+            disabledObjects.append(chart.line(
+                self.prices.datetime, self.stat["sma50"],
+                line_width=2, line_color="#ffbf00", line_alpha=1, legend_label=legendNameSMAlong,
+            ))
+            disabledObjects.append(chart.line(
+                self.prices.datetime, self.stat["sma200"],
+                line_width=3, line_color="#ff0040", line_alpha=1, legend_label=legendNameSMAlong,
+            ))
+
+            # Hull Moving Averages (HMA) 5, 20
+            disabledObjects.append(chart.line(
+                self.prices.datetime, self.stat["hma5"],
+                line_width=2, line_color="#00ffff", line_alpha=1, legend_label=legendNameHMA,
+            ))
+            disabledObjects.append(chart.line(
+                self.prices.datetime, self.stat["hma20"],
+                line_width=3, line_color="#ff00ff", line_alpha=1, legend_label=legendNameHMA,
+            ))
+
+            # Volume Weighted Moving Averages (VWMA) 5, 20
+            disabledObjects.append(chart.line(
+                self.prices.datetime, self.stat["vwma5"],
+                line_width=2, line_color="blue", line_alpha=1, legend_label=legendNameVWMA,
+            ))
+            disabledObjects.append(chart.line(
+                self.prices.datetime, self.stat["vwma20"],
+                line_width=3, line_color="#ff8000", line_alpha=1, legend_label=legendNameVWMA,
+            ))
+
+            # Bollinger Bands (BBands)
+            disabledObjects.append(chart.line(
+                self.prices.datetime, self.stat["bbands"]["lower"],
+                line_width=1, line_color="#66ffff", line_alpha=1, legend_label=legendNameBBANDS,
+            ))
+            disabledObjects.append(chart.line(
+                self.prices.datetime, self.stat["bbands"]["mid"],
+                line_width=1, line_color="#66ffff", line_alpha=1, legend_label=legendNameBBANDS,
+            ))
+            disabledObjects.append(chart.line(
+                self.prices.datetime, self.stat["bbands"]["upper"],
+                line_width=1, line_color="#66ffff", line_alpha=1, legend_label=legendNameBBANDS,
+            ))
+
+            # Parabolic Stop and Reverse (psar)
+            disabledObjects.append(chart.circle(
+                self.prices.datetime, self.stat["psar"]["long"],
+                size=3, line_color="#00ffff", line_alpha=1, legend_label=legendNamePsar,
+            ))
+            disabledObjects.append(chart.circle(
+                self.prices.datetime, self.stat["psar"]["short"],
+                size=3, line_color="#ff00ff", line_alpha=1, legend_label=legendNamePsar,
+            ))
+
+            # Hull Moving Averages (HMA) 13, 8, 5 for the Alligator indicator (Jaw, Teeth, and Lips)
+            disabledObjects.append(chart.line(
+                self.prices.datetime, self.stat["hma13"],
+                line_width=2, line_color="#1a1aff", line_alpha=1, legend_label=legendNameAlligator,
+            ))
+            disabledObjects.append(chart.line(
+                self.prices.datetime, self.stat["hma8"],
+                line_width=2, line_color="#ff1a1a", line_alpha=1, legend_label=legendNameAlligator,
+            ))
+            disabledObjects.append(chart.line(
+                self.prices.datetime, self.stat["hma5"],
+                line_width=2, line_color="#40ff00", line_alpha=1, legend_label=legendNameAlligator,
+            ))
+
+            # Zig-Zag indicator with self.zigZagDeviation of difference parameter
+            disabledObjects.append(chart.line(
+                self.stat["zigzag3"]["datetimes"], self.stat["zigzag3"]["filtered"],
+                line_width=3, line_color="cyan", line_alpha=1, legend_label=legendNameZigZag,
+            ))
+
+            for item in disabledObjects:
+                item.visible = False
+
+            # --- Volume chart options:
+            volumeChart = figure(
+                x_axis_type="datetime",
+                y_axis_label="Volume",
+                outline_line_width=0,
+                outline_line_color="white",
+                plot_width=1200,
+                plot_height=90,
+                sizing_mode="scale_width",
+                background_fill_color="black",
+                tools=["pan", "wheel_zoom", "hover"],
+                toolbar_location=None,
+                active_scroll="wheel_zoom",
+                min_border_left=0,
+                min_border_right=0,
+                min_border_top=0,
+                min_border_bottom=0,
+                x_range=chart.x_range,
+                y_range=Range1d(0, max(self.prices.volume), bounds=(0, max(self.prices.volume))),
+            )
+            volumeChart.toolbar.logo = None  # remove bokeh logo and link to https://bokeh.org/
+            volumeChart.xaxis.major_label_orientation = pi / 6
+            volumeChart.xaxis.visible = False
+            volumeChart.yaxis.formatter = NumeralTickFormatter(format="0a")
+            volumeChart.grid.grid_line_dash = [6, 4]
+            volumeChart.grid.grid_line_alpha = 0.5
+            volumeChart.grid.minor_grid_line_dash = [6, 4]
+            volumeChart.grid.minor_grid_line_alpha = 0.5
+            volumeChart.xgrid.minor_grid_line_dash = [6, 4]
+            volumeChart.xgrid.minor_grid_line_alpha = 0.3
+            volumeChart.xgrid.minor_grid_line_color = "white"
+
+            # preparing data for hover tooltips:
+            volSource = {
+                "candle": [x + 1 for x in range(-len(self.prices.close), 0, 1)],
+                "datetime": self.prices.datetime,
+                "volume": self.prices.volume,
+                "zero": [0] * len(self.prices.volume),
+            }
+            volHoverData = ColumnDataSource(data=volSource)
+            volHover = volumeChart.select(dict(type=HoverTool))
+            volHover.names = ["volumes"]
+            volHover.tooltips = [
+                ("Candle", "@candle"),
+                ("Date", "@datetime{%Y-%m-%d}"),
+                ("Time", "@datetime{%H:%M:%S}"),
+                ("Volume", "@volume"),
+            ]
+            volHover.formatters = {
+                "@datetime": "datetime",
+            }
+            volHover.point_policy = "snap_to_data"
+            volHover.line_policy = "nearest"
+            volHover.mode = "vline"
+
+            # preparing volume chart:
+            volumeChart.segment(
+                x0="datetime", y0="volume", x1="datetime", y1="zero",
+                color="black", line_alpha=0, name="volumes", source=volHoverData,
+            )
+            volumeChart.vbar(
+                x=self.prices.datetime[inc], width=candleWidth, bottom=0, top=self.prices.volume[inc],
+                fill_color="black", line_color="#20ff00", line_width=1, fill_alpha=1, line_alpha=1,
+            )
+            volumeChart.vbar(
+                x=self.prices.datetime[dec], width=candleWidth, bottom=0, top=self.prices.volume[dec],
+                fill_color="white", line_color="#20ff00", line_width=1, fill_alpha=1, line_alpha=1,
+            )
+
             # preparing html-file with forecast chart and statistics in markdown:
             output_file(fileName, title=self._chartTitle, mode="cdn")
-            save(chart)
+            save(gridplot(
+                    children=[[chart], [volumeChart]],
+                    sizing_mode="stretch_both",
+                    merge_tools=False,
+            ))
             with open("{}.md".format(fileName), "w", encoding="UTF-8") as fH:
                 fH.write("\n".join(infoBlock))
 
             if viewInBrowser:
-                show(chart)  # view forecast chart in default browser immediately
+                os.system(os.path.abspath(fileName))  # view forecast chart in default browser immediately
 
             uLogger.info("Pandas dataframe rendered as html-file [{}]".format(os.path.abspath(fileName)))
 
@@ -787,9 +1064,7 @@ class PriceGenerator:
 
             if self.j2model is None or not self.j2model:
                 uLogger.debug("Preparing Google Candlestick chart configuration...")
-                self.j2model = {}
-                self.j2model["info"] = infoBlock
-                self.j2model["title"] = self._chartTitle
+                self.j2model = {"info": infoBlock, "title": self._chartTitle}
                 googleDates = [pd.to_datetime(date).strftime("%Y-%m-%d %H:%M:%S") for date in self.prices.datetime.values]
                 data = zip(googleDates, self.prices.low, self.prices.open, self.prices.close, self.prices.high)
                 self.j2model["candlesData"] = [list(x) for x in data]
@@ -831,9 +1106,10 @@ def ParseArgs():
 
     # options:
     parser.add_argument("--ticker", type=str, default="TEST", help="Option: some fake ticker name, 'TEST' by default.")
+    parser.add_argument("--precision", type=int, default=2, help="Option: precision is count of digits after comma, 2 by default.")
     parser.add_argument("--timeframe", type=int, default=60, help="Option: time delta between two neighbour candles in minutes, 60 (1 hour) by default.")
     parser.add_argument("--start", type=str, help="Option: start time of 1st candle as string with format 'year-month-day hour:min', e.g. '2021-01-02 12:00'.")
-    parser.add_argument("--horizon", type=int, default=100, help="Option: generating candlesticks count, must be >= 5, 100 by default.")
+    parser.add_argument("--horizon", type=int, help="Option: candlesticks count.")
     parser.add_argument("--max-close", type=float, help="Option: maximum of all close prices.")
     parser.add_argument("--min-close", type=float, help="Option: minimum of all close prices.")
     parser.add_argument("--init-close", type=float, help="Option: generator started 1st open price of chain from this 'last' close price.")
@@ -843,6 +1119,7 @@ def ParseArgs():
     parser.add_argument("--up-candles-prob", type=float, default=0.5, help="Option: float number in [0; 1] is a probability that next candle is up, 0.5 by default.")
     parser.add_argument("--outliers-prob", type=float, default=0.03, help="Option: float number in [0; 1] is a statistical outliers probability (price 'tails'), 0.03 by default.")
     parser.add_argument("--trend-deviation", type=float, default=0.005, help="Option: relative deviation for trend detection, 0.005 mean ±0.005 by default. 'NO trend' if (1st_close - last_close) / 1st_close <= trend-deviation.")
+    parser.add_argument("--zigzag", type=float, default=0.03, help="Option: relative deviation to detection points of ZigZag indicator, 0.03 by default.")
     parser.add_argument("--sep", type=str, default=None, help="Option: separator in csv-file, if None then auto-detecting enable.")
     parser.add_argument("--debug-level", type=int, default=20, help="Option: showing STDOUT messages of minimal debug level, e.g., 10 = DEBUG, 20 = INFO, 30 = WARNING, 40 = ERROR, 50 = CRITICAL.")
 
@@ -884,6 +1161,9 @@ def Main():
         if args.ticker:
             priceModel.ticker = args.ticker  # some fake ticker name, "TEST" by default
 
+        if int(args.precision) >= 0:
+            priceModel.precision = args.precision  # precision is count of digits after comma, 2 by default
+
         if args.timeframe:
             priceModel.timeframe = timedelta(minutes=args.timeframe)  # time delta between two neighbour candles in minutes, 60 (1 hour) by default
 
@@ -891,7 +1171,7 @@ def Main():
             priceModel.timeStart = pd.to_datetime(args.start, format="%Y-%m-%d %H:%M")
 
         if args.horizon:
-            priceModel.horizon = args.horizon  # generating candlesticks count, must be >= 5, 100 by default
+            priceModel.horizon = args.horizon  # generating candlesticks count
 
         if args.max_close:
             priceModel.maxClose = args.max_close  # maximum of all close prices
@@ -919,6 +1199,9 @@ def Main():
 
         if args.trend_deviation:
             priceModel.trendDeviation = args.trend_deviation  # relative deviation for trend detection, 0.005 mean ±0.5% by default. "NO trend" if (1st_close - last_close) / 1st_close <= trend-deviation
+
+        if args.zigzag:
+            priceModel.zigZagDeviation = args.zigzag  # relative deviation to detection points of ZigZag indicator, 0.03 by default
 
         # --- do one or more commands:
 

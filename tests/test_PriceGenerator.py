@@ -8,17 +8,17 @@ from datetime import datetime, timedelta
 from dateutil.tz import tzlocal
 import random
 
-from pricegenerator import PriceGenerator as pg
+from pricegenerator import PriceGenerator as Gen
 
 
 class TestFeatures:
 
     @pytest.fixture(scope='function', autouse=True)
     def init(self):
-        pg.uLogger.level = 50  # Disable debug logging while test, logger CRITICAL = 50
-        pg.uLogger.handlers[0].level = 50  # Disable debug logging for STDOUT
+        Gen.uLogger.level = 50  # Disable debug logging while test, logger CRITICAL = 50
+        Gen.uLogger.handlers[0].level = 50  # Disable debug logging for STDOUT
 
-        self.model = pg.PriceGenerator()  # init generator for the next tests
+        self.model = Gen.PriceGenerator()  # init generator for the next tests
 
     def test_Generate(self):
         self.model.Generate()
@@ -98,12 +98,62 @@ class TestFeatures:
             assert self.model.precision == test[1], "Expected precision = {} for chain:\n{}".format(test[1], test[0])
 
     def test_precision(self):
-        testData = [1, 2, 3, 4]
+        testData = [[0, 0], [1, 1], [2, 2], [3, 3], [4, 4], [-1, 2], [-2, 2], ["xxx", 2]]
         for test in testData:
-            self.model.precision = test  # set test data as "precision" field in PriceGenerator() class
-            self.model.Generate()
-            self.model.DetectPrecision(self.model.prices.close.values)  # re-calc and update "precision" field
-            assert test == self.model.precision, "Expected precision = {} for chain:\n{}".format(test, self.model.prices.close.values)
+            self.model.precision = test[0]  # set test[0] data as "precision" field in PriceGenerator() class
+            assert test[1] == self.model.precision, "Expected precision = {} for test = {}".format(test[1], test[0])
+
+    def test_zigZagDeviation(self):
+        testData = [[0, 0], [1, 1], [0.5, 0.5], [-1, 0.03], [2, 1], [0.12345, 0.12345]]
+        for test in testData:
+            self.model.zigZagDeviation = test[0]  # set test[0] data as "zigZagDeviation" field in PriceGenerator() class
+            assert test[1] == self.model.zigZagDeviation, "Expected zigZagDeviation = {} for test = {}".format(test[1], test[0])
+
+    def test_ZigZagFilter(self):
+        testData = [
+            {
+                "deviation": 0.03,
+                "dates": pd.Series(data=[datetime(year=2021, month=2, day=28, hour=12), datetime(year=2021, month=2, day=28, hour=13)]),
+                "closes": pd.Series(data=[100, 103]),
+                "expected": pd.Series(data=[100, 103]),
+            },
+            {
+                "deviation": 0.03,
+                "dates": pd.Series(data=[datetime(year=2021, month=2, day=28, hour=12), datetime(year=2021, month=2, day=28, hour=13)]),
+                "closes": pd.Series(data=[100, 105]),
+                "expected": pd.Series(data=[100, 105]),
+            },
+            {
+                "deviation": 0.03,
+                "dates": pd.Series(data=[datetime(year=2021, month=2, day=28, hour=12), datetime(year=2021, month=2, day=28, hour=13)]),
+                "closes": pd.Series(data=[100, 102]),
+                "expected": pd.Series(data=[100]),
+            },
+            {
+                "deviation": 0.03,
+                "dates": pd.Series(data=[datetime(year=2021, month=2, day=28, hour=12), datetime(year=2021, month=2, day=28, hour=13), datetime(year=2021, month=2, day=28, hour=14)]),
+                "closes": pd.Series(data=[100, 102, 103]),
+                "expected": pd.Series(data=[100, 103]),
+            },
+            {
+                "deviation": 0.05,
+                "dates": pd.Series(data=[datetime(year=2021, month=2, day=28, hour=12), datetime(year=2021, month=2, day=28, hour=13), datetime(year=2021, month=2, day=28, hour=14)]),
+                "closes": pd.Series(data=[100, 102, 103]),
+                "expected": pd.Series(data=[100]),
+            },
+            {
+                "deviation": 0.05,
+                "dates": pd.Series(data=[datetime(year=2021, month=2, day=28, hour=12), datetime(year=2021, month=2, day=28, hour=13), datetime(year=2021, month=2, day=28, hour=14)]),
+                "closes": pd.Series(data=[100, 103, 200]),
+                "expected": pd.Series(data=[100, 200]),
+            },
+        ]
+        for test in testData:
+            actual = self.model.ZigZagFilter(datetimes=test["dates"], values=test["closes"], deviation=test["deviation"])
+            assert isinstance(actual, dict), "Expected dictionary result!"
+            assert "datetimes" in actual.keys(), "Expected 'datetimes' key in ZigZagFilter() is present in result!"
+            assert "filtered" in actual.keys(), "Expected 'filtered' key in ZigZagFilter() is present in result!"
+            assert list(test["expected"]) == list(actual["filtered"]), "Expected filtered data: {}\nInput parameters:\n- deviation: {}\n- dates: {}\n- closes: {}".format(test["expected"], test["deviation"], test["dates"], test["closes"])
 
     def test_timeframe(self):
         testData = [

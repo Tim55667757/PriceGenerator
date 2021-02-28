@@ -7,7 +7,7 @@
 from setuptools import setup
 import os
 
-__version__ = "1.1"
+__version__ = "1.2"
 
 devStatus = "4 - Beta"
 
@@ -75,14 +75,26 @@ setup(
     ],
 
     tests_require=[
-        "pytest>=5.3.5",
-        "pandas>=1.0.1",
-        "bokeh>=1.4.0",
+        "pytest>=6.2.2",
+        "pandas>=1.2.2",
+        "pandas_ta>=0.2.45b0",
+        "bokeh>=2.3.0",
+        "bkcharts>=0.2",
+        "numpy>=1.20.1",
+        "matplotlib>=3.3.4",
+        "python-dateutil>=2.8.1",
+        "jinja2>=2.11.3",
     ],
 
     install_requires=[
-        "pandas>=1.0.1",
-        "bokeh>=1.4.0",
+        "pandas>=1.2.2",
+        "pandas_ta>=0.2.45b0",
+        "bokeh>=2.3.0",
+        "bkcharts>=0.2",
+        "numpy>=1.20.1",
+        "matplotlib>=3.3.4",
+        "python-dateutil>=2.8.1",
+        "jinja2>=2.11.3",
     ],
 
     packages=[
