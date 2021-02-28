@@ -217,6 +217,8 @@ class PriceGenerator:
 
         self._chartTitle = ""  # chart title, auto-generated when loading or creating chain of candlesticks
 
+        self._zigZagDeviation = 0.03  # relative deviation to detection points of Zig-Zag indicator, 0.03 mean 3% by default
+
         # some default statistics for calculation:
         self._stat = {
             "candles": 0,  # generated candlesticks count
@@ -319,6 +321,21 @@ class PriceGenerator:
                 self._precision = value
                 self._deg10prec = 10 ** value  # 10^precision
 
+    @property
+    def zigZagDeviation(self):
+        return self._zigZagDeviation
+
+    @zigZagDeviation.setter
+    def zigZagDeviation(self, value):
+        if value is None or value < 0:
+            self._zigZagDeviation = 0.03  # by default
+
+        elif value > 1:
+            self._zigZagDeviation = 1
+
+        else:
+            self._zigZagDeviation = value
+
     @staticmethod
     def FormattedDelta(tDelta, fmt):
         """
@@ -416,6 +433,29 @@ class PriceGenerator:
 
         return trend
 
+    @staticmethod
+    def ZigZagFilter(datetimes: pd.Series, values: pd.Series, deviation: float) -> dict:
+        """
+        This method filter input data as ZigZag indicator: when input value of candlestick price (e.g. close price)
+        is difference with next values with define percent then this point is a point of ZigZag indicator.
+        :param datetimes: input pandas Series with datetime values.
+        :param values: input pandas Series or list, e.g. list of closes values of candlesticks.
+        :param deviation: [0, 1] float number is a relative difference between i and i+1 values to set as ZigZag point.
+        :return: dict with pandas Series filtered data: {"datetimes": filtered_datetimes, "filtered": filtered_values}
+        """
+        filteredPoints = [True]
+        prev = values[0]
+        for i in range(1, len(values)):
+            difference = abs(values[i] - prev) / prev
+            if difference >= deviation:
+                filteredPoints.append(True)
+                prev = values[i]
+
+            else:
+                filteredPoints.append(False)
+
+        return {"datetimes": datetimes[filteredPoints], "filtered": values[filteredPoints]}
+
     def GetStatistics(self):
         """
         Calculates statistics of candles chain.
@@ -435,7 +475,7 @@ class PriceGenerator:
             self.prices.delta.values
         ))
 
-        uLogger.debug("Calculating some technical analysis values...")
+        uLogger.debug("Calculating some technical analysis indicators...")
         self.prices["sma5"] = ta.sma(close=self.prices.close, length=5, offset=None)
         self.prices["sma20"] = ta.sma(close=self.prices.close, length=20, offset=None)
         self.prices["sma50"] = ta.sma(close=self.prices.close, length=50, offset=None)
@@ -451,6 +491,7 @@ class PriceGenerator:
         self.prices["hma13"] = ta.hma(close=self.prices.close, length=13, offset=8)  # alligator Jaw
         self.prices["hma8"] = ta.hma(close=self.prices.close, length=8, offset=5)  # alligator Teeth
         self.prices["hma5"] = ta.hma(close=self.prices.close, length=5, offset=3)  # alligator Lips
+        zigzag = self.ZigZagFilter(datetimes=self.prices.datetime, values=self.prices.close, deviation=self.zigZagDeviation)  # ZigZag indicator
 
         self.DetectPrecision(self.prices.close.values)  # auto-detect precision
 
@@ -507,6 +548,7 @@ class PriceGenerator:
         self._stat["hma13"] = self.prices["hma13"]
         self._stat["hma8"] = self.prices["hma8"]
         self._stat["hma5"] = self.prices["hma5"]
+        self._stat["zigzag3"] = zigzag
 
         summary = [
             "# Summary",
@@ -521,15 +563,13 @@ class PriceGenerator:
             "| Close min:                                   | {}".format(round(self.stat["closeMin"], self.precision)),
             "| Diapason (between max and min close prices): | {}".format(round(self.stat["diapason"], self.precision)),
             "| Trend (between close first and close last:   | {}".format(self.stat["trend"]),
-            "| - Trend deviation parameter:                 | ±{}%".format(self.stat["trendDev"] * 100),
             "",
             "# Some statistics",
             "| Statistic                                    | Value",
             "|----------------------------------------------|---------------",
             "| Up candles count:                            | {} ({}%)".format(self.stat["upCount"], round(100 * self.stat["upCount"] / self.stat["candles"], self.precision)),
             "| Down candles count:                          | {} ({}%)".format(self.stat["downCount"], round(100 * self.stat["downCount"] / self.stat["candles"], self.precision)),
-            "| Max of up candles chain:                     | {}".format(self.stat["upCountChainMax"]),
-            "| Max of down candles chain:                   | {}".format(self.stat["downCountChainMax"]),
+            "| Max of up / down candle chains:              | {} / {}".format(self.stat["upCountChainMax"], self.stat["downCountChainMax"]),
             "| Max delta (between High and Low prices):     | {}".format(round(self.stat["deltas"]["max"], self.precision)),
             "| Min delta (between High and Low prices):     | {}".format(round(self.stat["deltas"]["min"], self.precision)),
             "| Delta's std. dev.:                           | {}".format(round(self.stat["deltas"]["stDev"], self.precision)),
@@ -691,8 +731,8 @@ class PriceGenerator:
             chart.ygrid.minor_grid_line_color = "white"
 
             # Summary section and controls:
-            legendNameMain = "Max_close / Min_close / Trend line"
-            legendNameAvg = "Averages points [highs - deltas/2]"
+            legendNameMain = "Max close / Min close / Trend line"
+            legendNameAvg = "Averages points (highs - deltas/2)"
             legendNameSMA = "Simple Moving Averages (SMA: 5, 20)"
             legendNameSMAlong = "Long Simple Moving Averages (SMA: 50, 200)"
             legendNameHMA = "Hull Moving Averages (HMA: 5, 20)"
@@ -700,6 +740,7 @@ class PriceGenerator:
             legendNameBBANDS = "Bollinger Bands (BBands)"
             legendNamePsar = "Parabolic Stop and Reverse (psar)"
             legendNameAlligator = "Alligator (based on HMA: 13, 8, 5)"
+            legendNameZigZag = "Zig-Zag indicator (with {}% of difference)".format(self.zigZagDeviation * 100)
             summaryInfo = Legend(
                 click_policy="hide",
                 items=[(info, []) for info in infoBlock] + [("", []), ("Click to show/hide on chart:", [])],
@@ -913,6 +954,12 @@ class PriceGenerator:
                 line_width=2, line_color="#40ff00", line_alpha=1, legend_label=legendNameAlligator,
             ))
 
+            # Zig-Zag indicator with self.zigZagDeviation of difference parameter
+            disabledObjects.append(chart.line(
+                self.stat["zigzag3"]["datetimes"], self.stat["zigzag3"]["filtered"],
+                line_width=3, line_color="cyan", line_alpha=1, legend_label=legendNameZigZag,
+            ))
+
             for item in disabledObjects:
                 item.visible = False
 
@@ -939,7 +986,7 @@ class PriceGenerator:
             volumeChart.toolbar.logo = None  # remove bokeh logo and link to https://bokeh.org/
             volumeChart.xaxis.major_label_orientation = pi / 6
             volumeChart.xaxis.visible = False
-            volumeChart.yaxis.formatter=NumeralTickFormatter(format="0a")
+            volumeChart.yaxis.formatter = NumeralTickFormatter(format="0a")
             volumeChart.grid.grid_line_dash = [6, 4]
             volumeChart.grid.grid_line_alpha = 0.5
             volumeChart.grid.minor_grid_line_dash = [6, 4]
@@ -1072,6 +1119,7 @@ def ParseArgs():
     parser.add_argument("--up-candles-prob", type=float, default=0.5, help="Option: float number in [0; 1] is a probability that next candle is up, 0.5 by default.")
     parser.add_argument("--outliers-prob", type=float, default=0.03, help="Option: float number in [0; 1] is a statistical outliers probability (price 'tails'), 0.03 by default.")
     parser.add_argument("--trend-deviation", type=float, default=0.005, help="Option: relative deviation for trend detection, 0.005 mean ±0.005 by default. 'NO trend' if (1st_close - last_close) / 1st_close <= trend-deviation.")
+    parser.add_argument("--zigzag", type=float, default=0.03, help="Option: relative deviation to detection points of ZigZag indicator, 0.03 by default.")
     parser.add_argument("--sep", type=str, default=None, help="Option: separator in csv-file, if None then auto-detecting enable.")
     parser.add_argument("--debug-level", type=int, default=20, help="Option: showing STDOUT messages of minimal debug level, e.g., 10 = DEBUG, 20 = INFO, 30 = WARNING, 40 = ERROR, 50 = CRITICAL.")
 
@@ -1151,6 +1199,9 @@ def Main():
 
         if args.trend_deviation:
             priceModel.trendDeviation = args.trend_deviation  # relative deviation for trend detection, 0.005 mean ±0.5% by default. "NO trend" if (1st_close - last_close) / 1st_close <= trend-deviation
+
+        if args.zigzag:
+            priceModel.zigZagDeviation = args.zigzag  # relative deviation to detection points of ZigZag indicator, 0.03 by default
 
         # --- do one or more commands:
 
