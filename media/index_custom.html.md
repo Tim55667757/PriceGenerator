@@ -1,5 +1,4 @@
-## Summary
-
+# Summary
 | Parameter                                    | Value
 |----------------------------------------------|---------------
 | Candles count:                               | 150
@@ -11,21 +10,17 @@
 | Close min:                                   | 14404.07
 | Diapason (between max and min close prices): | 3323.84
 | Trend (between close first and close last:   | NO trend
-| - Trend deviation parameter:                 | ±3.0%
 
-## Some statistics
-
+# Some statistics
 | Statistic                                    | Value
 |----------------------------------------------|---------------
 | Up candles count:                            | 77 (51.33%)
 | Down candles count:                          | 73 (48.67%)
-| Max of up candles chain:                     | 5
-| Max of down candles chain:                   | 4
+| Max of up / down candle chains:              | 5 / 4
 | Max delta (between High and Low prices):     | 1522.06
 | Min delta (between High and Low prices):     | 3.76
 | Delta's std. dev.:                           | 274.2
 | - 99 percentile:                             | ≤ 1260.38
 | - 95 percentile:                             | ≤ 834.1
 | - 80 percentile:                             | ≤ 667.77
-| - 50 percentile:                             | ≤ 448.34
 | Cumulative sum of volumes:                   | 31475461

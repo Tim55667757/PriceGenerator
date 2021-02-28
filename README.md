@@ -49,7 +49,7 @@ The PriceGenerator library allows you to:
 
     ![](./media/index.html.png)
 
-    In additionally, you can enable on the chart some popular indicators  (moving averages, Bollinger bands, and others).
+    In additionally, you can enable on the chart some popular indicators (moving averages, Bollinger bands, ZigZag and others).
 
 ### Price generation method
 
@@ -133,6 +133,8 @@ optional arguments:
                         Option: relative deviation for trend detection, 0.005
                         mean ±0.005 by default. 'NO trend' if (1st_close -
                         last_close) / 1st_close <= trend-deviation.
+  --zigzag ZIGZAG       Option: relative deviation to detection points of
+                        ZigZag indicator, 0.03 by default.
   --sep SEP             Option: separator in csv-file, if None then auto-
                         detecting enable.
   --debug-level DEBUG_LEVEL
@@ -293,7 +295,7 @@ As a result of executing the command, you will receive a chart [./media/index_go
 
 Let's change some of the default parameters that affect price generation and draw our own unique chart:
 ```commandline
-pricegenerator --debug-level 10 --ticker "MY_PRICES" --precision 2 --timeframe 240 --start "2020-01-01 00:00" --horizon 150 --max-close 18000 --min-close 14000 --init-close 15000 --max-outlier 1000 --max-body 500 --max-volume 400000 --up-candles-prob 0.48 --outliers-prob 0.05 --trend-deviation 0.03 --generate --render-bokeh index_custom.html
+pricegenerator --debug-level 10 --ticker "MY_PRICES" --precision 2 --timeframe 240 --start "2020-01-01 00:00" --horizon 150 --max-close 18000 --min-close 14000 --init-close 15000 --max-outlier 1000 --max-body 500 --max-volume 400000 --up-candles-prob 0.48 --outliers-prob 0.05 --trend-deviation 0.03 --zigzag 0.03 --generate --render-bokeh index_custom.html
 ``` 
 
 Parameters mean:
@@ -311,6 +313,7 @@ Parameters mean:
 - `--up-candles-prob 0.48` — set the probability that the next candlestick will be up, equal to 0.48 (48%);
 - `--outliers-prob 0.05` — set the probability of outliers to 0.05 (5%);
 - `--trend-deviation 0.03` — to determine the trend, the relative change in the closing prices of the first and last candles should differ by ± 0.03 (3%);
+- `--zigzag 0.03` — relative difference between two points of ZigZag indicator;
 - `--generate` — begin to price generate;
 - `--render-bokeh index_custom.html` — save the generated prices in the index_custom.html file and open it in the default browser.
 
@@ -353,6 +356,7 @@ priceModel.maxVolume = 400000  # the maximum trading volume for one candle, by d
 priceModel.upCandlesProb = 0.46  # probability that the next generated candlestick will be up, 50% by default
 priceModel.outliersProb = 0.11  # the probability that the next generated candlestick will have a price "outlier", 3% by default
 priceModel.trendDeviation = 0.005  # price fluctuations between close prices of the first and last candlesticks defining the trend. “NO trend” if the difference is less than this value, by default ± 0.005 or ± 0.5%
+priceModel.zigzag = 0.05  # relative difference between two points of ZigZag indicator, default is 0.03
 priceModel._chartTitle = ""  # chart title, usually generated automatically
 
 # Prices have not yet been generated and not loaded, let's check this:
