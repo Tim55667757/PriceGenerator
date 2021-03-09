@@ -3,7 +3,7 @@
 
 Инструкция на английском здесь (see english readme here): https://github.com/Tim55667757/PriceGenerator/blob/master/README.md
 
-[![build](https://travis-ci.org/Tim55667757/PriceGenerator.svg)](https://travis-ci.org/Tim55667757/PriceGenerator)
+[![Build Status](https://travis-ci.com/Tim55667757/PriceGenerator.svg?branch=master)](https://travis-ci.com/Tim55667757/PriceGenerator)
 [![pypi](https://img.shields.io/pypi/v/PriceGenerator.svg)](https://pypi.python.org/pypi/PriceGenerator)
 [![license](https://img.shields.io/pypi/l/PriceGenerator.svg)](https://github.com/Tim55667757/PriceGenerator/blob/master/LICENSE)
 
