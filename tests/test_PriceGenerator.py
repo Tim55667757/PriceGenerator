@@ -97,6 +97,27 @@ class TestFeatures:
             self.model.DetectPrecision(test[0])
             assert self.model.precision == test[1], "Expected precision = {} for chain:\n{}".format(test[1], test[0])
 
+    def test_DetectTimeframe(self):
+        testData = [
+            timedelta(minutes=1),
+            timedelta(minutes=5),
+            timedelta(minutes=15),
+            timedelta(minutes=30),
+            timedelta(hours=1),
+            timedelta(hours=4),
+            timedelta(days=1),
+            timedelta(days=5),
+            timedelta(days=7),
+            timedelta(days=30),
+            timedelta(days=31),
+        ]
+        for test in testData:
+            self.model.horizon = 5
+            self.model.timeframe = test  # set test data as "timeframe" field
+            self.model.Generate()
+            self.model.DetectTimeframe()  # detect real generated timeframe and save to self.timeframe
+            assert self.model.timeframe == test, "Expected timeframe = {}".format(test)
+
     def test_precision(self):
         testData = [[0, 0], [1, 1], [2, 2], [3, 3], [4, 4], [-1, 2], [-2, 2], ["xxx", 2]]
         for test in testData:
