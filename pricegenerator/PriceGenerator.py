@@ -365,6 +365,19 @@ class PriceGenerator:
         finally:
             uLogger.debug("Auto-detected precision: {}".format(self._precision))
 
+    def DetectTimeframe(self) -> timedelta:
+        """
+        Auto-detect time delta between last two neighbour candles.
+        :return: timedelta object to self.timeframe
+        """
+        self.timeframe = min(
+            self.prices.iloc[-1].datetime - self.prices.iloc[-2].datetime,
+            self.prices.iloc[-2].datetime - self.prices.iloc[-3].datetime
+        )
+        uLogger.debug("Auto-detected timeframe: {}".format(self.timeframe))
+
+        return self.timeframe
+
     def LoadFromFile(self, fileName):
         """
         Load Pandas OHLCV model from csv-file.
@@ -383,12 +396,7 @@ class PriceGenerator:
 
         self.ticker = os.path.basename(fileName)
 
-        # auto-detect time delta between last two neighbour candles:
-        self.timeframe = min(
-            self.prices.iloc[-1].datetime - self.prices.iloc[-2].datetime,
-            self.prices.iloc[-2].datetime - self.prices.iloc[-3].datetime
-        )
-        uLogger.debug("Auto-detect timeframe: {}".format(self.timeframe))
+        self.DetectTimeframe()  # auto-detect time delta between last two neighbour candles
 
         uLogger.info("It was read {} rows".format(self.horizon))
         uLogger.info("Showing last 5 rows as pandas dataframe:")
@@ -757,6 +765,7 @@ class PriceGenerator:
             inc = self.prices.open <= self.prices.close
             dec = self.prices.open > self.prices.close
             candleWidth = 108000  # as for 5 minutes by default
+            self.DetectTimeframe()  # auto-detect time delta between last two neighbour candles
 
             if self.timeframe <= timedelta(days=31):
                 candleWidth = 864000000  # 12 * 60 * 60 * 25 * 800  # for 43200 minutes
