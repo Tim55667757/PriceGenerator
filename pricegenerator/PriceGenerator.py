@@ -1069,7 +1069,8 @@ class PriceGenerator:
         if self.prices is not None and not self.prices.empty:
             uLogger.info("Rendering pandas dataframe as Google Candlestick chart...")
 
-            infoBlock = self.GetStatistics()
+            self.DetectTimeframe()  # auto-detect time delta between last two neighbour candles
+            infoBlock = self.GetStatistics()  # calculating some indicators
 
             if self.j2model is None or not self.j2model:
                 uLogger.debug("Preparing Google Candlestick chart configuration...")
