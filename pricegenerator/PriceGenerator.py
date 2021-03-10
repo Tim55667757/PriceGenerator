@@ -701,7 +701,8 @@ class PriceGenerator:
         if self.prices is not None and not self.prices.empty:
             uLogger.info("Rendering pandas dataframe as Bokeh chart...")
 
-            infoBlock = self.GetStatistics()
+            self.DetectTimeframe()  # auto-detect time delta between last two neighbour candles
+            infoBlock = self.GetStatistics()  # calculating some indicators
 
             uLogger.debug("Preparing Bokeh chart configuration...")
             uLogger.debug("Title: {}".format(self._chartTitle))
@@ -765,7 +766,6 @@ class PriceGenerator:
             inc = self.prices.open <= self.prices.close
             dec = self.prices.open > self.prices.close
             candleWidth = 108000  # as for 5 minutes by default
-            self.DetectTimeframe()  # auto-detect time delta between last two neighbour candles
 
             if self.timeframe <= timedelta(days=31):
                 candleWidth = 864000000  # 12 * 60 * 60 * 25 * 800  # for 43200 minutes
