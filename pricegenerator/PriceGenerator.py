@@ -495,7 +495,7 @@ class PriceGenerator:
         self.prices["vwma5"] = ta.vwma(close=self.prices.close, volume=self.prices.volume, length=5, offset=None)
         self.prices["vwma20"] = ta.vwma(close=self.prices.close, volume=self.prices.volume, length=20, offset=None)
         bbands = ta.bbands(close=self.prices.close, length=None, std=None, mamode=None, offset=None)
-        bbands.columns = ["lower", "mid", "upper", "bandwidth"]
+        bbands.columns = ["lower", "mid", "upper", "bandwidth", "percent"]
         psar = ta.psar(high=self.prices.high, low=self.prices.low, close=self.prices.close, af=0.02, max_af=0.2, offset=None)
         psar.columns = ["long", "short", "af", "reversal"]
         self.prices["hma13"] = ta.hma(close=self.prices.close, length=13, offset=8)  # alligator Jaw
