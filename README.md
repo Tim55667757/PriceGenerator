@@ -109,6 +109,17 @@ optional arguments:
   --start START         Option: start time of 1st candle as string with format
                         'year-month-day hour:min', e.g. '2021-01-02 12:00'.
   --horizon HORIZON     Option: candlesticks count.
+  --split-trend SPLIT_TREND
+                        Option: set difference periods, e.g. --split-trend=/\-
+                        means that generated candles has up trend at first
+                        part, next down trend and then no trend. Used with
+                        --split-count key.
+  --split-count SPLIT_COUNT [SPLIT_COUNT ...]
+                        Option: set count of candles of difference periods,
+                        e.g. --split-count 5 10 15 means that generated
+                        candles has 3 trends with 5, 10 and 15 candles in
+                        chain, with sum equal to --horizon. Used with --split-
+                        count and --horizon keys.
   --max-close MAX_CLOSE
                         Option: maximum of all close prices.
   --min-close MIN_CLOSE
