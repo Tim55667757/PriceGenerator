@@ -644,18 +644,19 @@ class PriceGenerator:
             self.horizon = 5
             uLogger.warning("Horizon length less than 5! It is set to 5 by default.")
 
-        if len(self.trendSplit) > self.horizon:
-            uLogger.warning("Trend parts count ({}) must be less than horizon ({})! New trend: {}".format(len(self.trendSplit), self.horizon, self.trendSplit[0]))
-            self.trendSplit = self.trendSplit[0]
+        if self.trendSplit is not None and self.splitCount is not None:
+            if len(self.trendSplit) > self.horizon:
+                uLogger.warning("Trend parts count ({}) must be less than horizon ({})! New trend: {}".format(len(self.trendSplit), self.horizon, self.trendSplit[0]))
+                self.trendSplit = self.trendSplit[0]
 
-        if sum(self.splitCount) != self.horizon or len(self.trendSplit) == 1:
-            self.splitCount = [self.horizon]
-            uLogger.warning("Set only one trend with length equal to horizon: {}".format(self.splitCount))
+            if sum(self.splitCount) != self.horizon or len(self.trendSplit) == 1:
+                self.splitCount = [self.horizon]
+                uLogger.warning("Set only one trend with length equal to horizon: {}".format(self.splitCount))
 
-        if len(self.splitCount) != len(self.trendSplit):
-            self.trendSplit = None
-            self.splitCount = None
-            uLogger.warning("See help to work with --split-trend and --split-count keys.")
+            if len(self.splitCount) != len(self.trendSplit):
+                self.trendSplit = None
+                self.splitCount = None
+                uLogger.warning("See help to work with --split-trend and --split-count keys.")
 
         # maximum of candle sizes: (high - low), if None then used (maxClose - minClose) / 10
         if self.maxOutlier is None:
