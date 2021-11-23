@@ -29,6 +29,8 @@ class TestFeatures:
         self.model.trendSplit = r"/\-"
         self.model.trendSplit = [5, 10, 15]
         self.model.Generate()
+        self.model.trendSplit = ""
+        self.model.trendSplit = []
         assert isinstance(self.model.prices, pd.DataFrame) is True, "Expected Pandas DataFrame when Generate()!"
 
     def test_LoadFromFile(self):
@@ -67,6 +69,8 @@ class TestFeatures:
         name = "test_render_bokeh_with_some_trends{}.html".format(suffix)
         nameMD = "{}.md".format(name)
         self.model.RenderBokeh(fileName=name, viewInBrowser=False)
+        self.model.trendSplit = ""
+        self.model.trendSplit = []
         assert os.path.exists(name), "Expected .html-file '{}' after saving but it is not exist!".format(name)
         assert os.path.exists(nameMD), "Expected markdown file '{}' after saving but it is not exist!".format(nameMD)
 
@@ -89,6 +93,8 @@ class TestFeatures:
         name = "test_render_google{}.html".format(suffix)
         nameMD = "{}.md".format(name)
         self.model.RenderGoogle(fileName=name, viewInBrowser=False)
+        self.model.trendSplit = ""
+        self.model.trendSplit = []
         assert os.path.exists(name), "Expected .html-file '{}' after saving but it is not exist!".format(name)
         assert os.path.exists(nameMD), "Expected markdown file '{}' after saving but it is not exist!".format(nameMD)
 
