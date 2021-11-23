@@ -205,6 +205,8 @@ class PriceGenerator:
         self.timeframe = timedelta(hours=1)  # time delta between two neighbour candles, 1 hour by default
         self.timeStart = datetime.now(tzlocal()).replace(microsecond=0, second=0, minute=0)
         self.horizon = None  # Candlesticks count (generating or in view), must be >= 5 for generator
+        self.trendSplit = ""  # set difference periods, e.g. split="/\-" means that generated candles has up trend at first part, next down trend and then no trend
+        self.splitCount = []  # set count of candles of difference periods, e.g. splitCount=[5, 10, 15] means that generated candles has 3 trends with 5, 10 and 15 candles in chain, with sum equal to horizon
         self.maxClose = random.uniform(70, 90)  # maximum of close prices must be >= self.minClose
         self.minClose = random.uniform(60, 70)  # minimum of close prices must be <= self.maxClose
         self.initClose = None  # if not None generator started 1st open price of chain from this price
@@ -642,6 +644,19 @@ class PriceGenerator:
             self.horizon = 5
             uLogger.warning("Horizon length less than 5! It is set to 5 by default.")
 
+        if len(self.trendSplit) > self.horizon:
+            uLogger.warning("Trend parts count ({}) must be less than horizon ({})! New trend: {}".format(len(self.trendSplit), self.horizon, self.trendSplit[0]))
+            self.trendSplit = self.trendSplit[0]
+
+        if sum(self.splitCount) != self.horizon or len(self.trendSplit) == 1:
+            self.splitCount = [self.horizon]
+            uLogger.warning("Set only one trend with length equal to horizon: {}".format(self.splitCount))
+
+        if len(self.splitCount) != len(self.trendSplit):
+            self.trendSplit = None
+            self.splitCount = None
+            uLogger.warning("See help to work with --split-trend and --split-count keys.")
+
         # maximum of candle sizes: (high - low), if None then used (maxClose - minClose) / 10
         if self.maxOutlier is None:
             self.maxOutlier = (self.maxClose - self.minClose) / 10
@@ -659,6 +674,10 @@ class PriceGenerator:
         uLogger.debug("- Precision: {}".format(self.precision))
         uLogger.debug("- Interval or timeframe (time delta between two neighbour candles): {}".format(self.timeframe))
         uLogger.debug("- Horizon length (candlesticks count): {}".format(self.horizon))
+        if self.trendSplit is not None and self.trendSplit and self.splitCount is not None and self.splitCount:
+            uLogger.debug("- Trend type: {}".format(self.trendSplit))
+            uLogger.debug("- Candlesticks count in every mini-trend: {}".format(self.splitCount))
+
         uLogger.debug("- Start time: {}".format(self.timeStart.strftime("%Y-%m-%d %H:%M:%S")))
         uLogger.debug("  |-> end time: {}".format((self.timeStart + self.horizon * self.timeframe).strftime("%Y-%m-%d %H:%M:%S")))
         uLogger.debug("- Maximum of close prices: {}".format(round(self.maxClose, self.precision)))
@@ -876,7 +895,19 @@ class PriceGenerator:
                 text=[str(lowestClose)], angle=0, text_color="yellow", text_font_size="8pt", legend_label=legendNameMain,
             )
 
-            # preparing for direction line:
+            # preparing lines for all trends:
+            if self.trendSplit is not None and self.trendSplit and self.splitCount is not None and self.splitCount:
+                left = 0
+                for trendNum in range(0, len(self.splitCount), 1):
+                    right = left + self.splitCount[trendNum] - 1
+                    chart.line(
+                        [self.prices.datetime.values[left], self.prices.datetime.values[right]],
+                        [self.prices.close.values[left], self.prices.close.values[right]],
+                        line_width=1, line_color="white", line_alpha=0.9, line_dash=[3, 3], legend_label=legendNameMain,
+                    )
+                    left += self.splitCount[trendNum]
+
+            # preparing for main direction line:
             chart.line(
                 [self.prices.datetime.values[0], self.prices.datetime.values[-1]],
                 [self.prices.close.values[0], self.prices.close.values[-1]],
@@ -1120,6 +1151,8 @@ def ParseArgs():
     parser.add_argument("--timeframe", type=int, default=60, help="Option: time delta between two neighbour candles in minutes, 60 (1 hour) by default.")
     parser.add_argument("--start", type=str, help="Option: start time of 1st candle as string with format 'year-month-day hour:min', e.g. '2021-01-02 12:00'.")
     parser.add_argument("--horizon", type=int, help="Option: candlesticks count.")
+    parser.add_argument("--split-trend", type=str, default="", help=r"Option: set difference periods, e.g. --split-trend=/\- means that generated candles has up trend at first part, next down trend and then no trend. Used with --split-count key.")
+    parser.add_argument("--split-count", type=int, nargs="+", help="Option: set count of candles of difference periods, e.g. --split-count 5 10 15 means that generated candles has 3 trends with 5, 10 and 15 candles in chain, with sum equal to --horizon. Used with --split-count and --horizon keys.")
     parser.add_argument("--max-close", type=float, help="Option: maximum of all close prices.")
     parser.add_argument("--min-close", type=float, help="Option: minimum of all close prices.")
     parser.add_argument("--init-close", type=float, help="Option: generator started 1st open price of chain from this 'last' close price.")
@@ -1183,8 +1216,11 @@ def Main():
         if args.horizon:
             priceModel.horizon = args.horizon  # generating candlesticks count
 
-        if args.max_close:
-            priceModel.maxClose = args.max_close  # maximum of all close prices
+        if args.split_trend:
+            priceModel.trendSplit = args.split_trend  # difference periods
+
+        if args.split_count:
+            priceModel.splitCount = args.split_count  # candles in every periods
 
         if args.min_close:
             priceModel.minClose = args.min_close  # minimum of all close prices
