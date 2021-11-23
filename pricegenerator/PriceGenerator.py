@@ -690,9 +690,59 @@ class PriceGenerator:
         uLogger.debug("- Statistical outliers probability: {}%".format(self.outliersProb * 100))
 
         # prepare candles chain:
-        candles = [self._GenNextCandle(round(self.initClose, self.precision))]
-        for i in range(1, self.horizon):
-            candles.append(self._GenNextCandle(candles[i - 1]["close"]))
+        if self.trendSplit is not None and self.trendSplit and self.splitCount is not None and self.splitCount:
+            userProb = self.upCandlesProb
+            userHorizon = self.horizon
+            userInitC = self.initClose
+            candles = []
+
+            for trendNum in range(len(self.splitCount)):
+                self.horizon = self.splitCount[trendNum]
+                self.initClose = candles[-1]["close"] if trendNum > 0 else self.initClose
+
+                # change probability of candles direction in next trend:
+                if self.trendSplit[trendNum] == "/":
+                    self.upCandlesProb = 0.51 if userProb <= 0.5 else userProb
+
+                elif self.trendSplit[trendNum] == "\\":
+                    self.upCandlesProb = 0.49 if userProb >= 0.5 else userProb
+
+                else:
+                    self.upCandlesProb = 0.5
+
+                firstCandle = self._GenNextCandle(round(self.initClose, self.precision))  # first candle in next trend
+                candles.append(firstCandle)
+
+                for _ in range(1, self.horizon):
+                    candles.append(self._GenNextCandle(candles[-1]["close"]))
+
+                # change last candle in every trend:
+                if self.trendSplit[trendNum] == "/":
+                    if firstCandle["close"] > candles[-1]["close"]:
+                        candles[-1]["close"] = round(random.uniform(a=firstCandle["close"], b=self.maxClose), self.precision)
+
+                elif self.trendSplit[trendNum] == "\\":
+                    if firstCandle["close"] < candles[-1]["close"]:
+                        candles[-1]["close"] = round(random.uniform(a=self.minClose, b=firstCandle["close"]), self.precision)
+
+                else:
+                    if abs(firstCandle["close"] - candles[-1]["close"]) / firstCandle["close"] > self.trendDeviation:
+                        candles[-1]["close"] = round(
+                            random.uniform(
+                                a=firstCandle["close"] - firstCandle["close"] * self.trendDeviation / 2,
+                                b=firstCandle["close"] + firstCandle["close"] * self.trendDeviation / 2,
+                            ),
+                            self.precision,
+                        )
+
+            self.upCandlesProb = userProb
+            self.horizon = userHorizon
+            self.initClose = userInitC
+
+        else:
+            candles = [self._GenNextCandle(round(self.initClose, self.precision))]  # first candle in chain
+            for _ in range(1, self.horizon):
+                candles.append(self._GenNextCandle(candles[-1]["close"]))
 
         # prepare Dataframe from generated prices:
         indx = pd.date_range(
@@ -898,7 +948,7 @@ class PriceGenerator:
             # preparing lines for all trends:
             if self.trendSplit is not None and self.trendSplit and self.splitCount is not None and self.splitCount:
                 left = 0
-                for trendNum in range(0, len(self.splitCount), 1):
+                for trendNum in range(len(self.splitCount)):
                     right = left + self.splitCount[trendNum] - 1
                     chart.line(
                         [self.prices.datetime.values[left], self.prices.datetime.values[right]],
