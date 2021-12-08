@@ -1,6 +1,6 @@
 pytest>=6.2.2
 pandas>=1.2.2
-pandas_ta>=0.2.45b0
+pandas_ta>=0.3.14b0
 bokeh>=2.3.0
 bkcharts>=0.2
 numpy>=1.20.1

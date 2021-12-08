@@ -24,6 +24,15 @@ class TestFeatures:
         self.model.Generate()
         assert isinstance(self.model.prices, pd.DataFrame) is True, "Expected Pandas DataFrame when Generate()!"
 
+    def test_GenerateWithSomeTrends(self):
+        self.model.horizon = 30
+        self.model.trendSplit = r"/\-"
+        self.model.splitCount = [5, 10, 15]
+        self.model.Generate()
+        self.model.trendSplit = ""
+        self.model.splitCount = []
+        assert isinstance(self.model.prices, pd.DataFrame) is True, "Expected Pandas DataFrame when Generate()!"
+
     def test_LoadFromFile(self):
         self.model.LoadFromFile(os.path.join("tests", "AFLT_day.csv"))
         assert isinstance(self.model.prices, pd.DataFrame) is True, "Expected Pandas DataFrame when LoadFromFile()!"
@@ -42,7 +51,7 @@ class TestFeatures:
             assert horizon == 5, "Expected 5 lines in file '{}' but there is {}!".format(name, horizon)
 
     def test_RenderBokeh(self):
-        self.model.horizon = 5
+        self.model.horizon = 30
         self.model.Generate()
         suffix = random.uniform(0, 1000000000)
         name = "test_render_bokeh{}.html".format(suffix)
@@ -51,8 +60,22 @@ class TestFeatures:
         assert os.path.exists(name), "Expected .html-file '{}' after saving but it is not exist!".format(name)
         assert os.path.exists(nameMD), "Expected markdown file '{}' after saving but it is not exist!".format(nameMD)
 
+    def test_RenderBokehWithSomeTrends(self):
+        self.model.horizon = 30
+        self.model.trendSplit = r"\-/"
+        self.model.splitCount = [5, 10, 15]
+        self.model.Generate()
+        suffix = random.uniform(0, 1000000000)
+        name = "test_render_bokeh__{}.html".format(suffix)
+        nameMD = "{}.md".format(name)
+        self.model.RenderBokeh(fileName=name, viewInBrowser=False)
+        self.model.trendSplit = ""
+        self.model.splitCount = []
+        assert os.path.exists(name), "Expected .html-file '{}' after saving but it is not exist!".format(name)
+        assert os.path.exists(nameMD), "Expected markdown file '{}' after saving but it is not exist!".format(nameMD)
+
     def test_RenderGoogleDefault(self):
-        self.model.horizon = 5
+        self.model.horizon = 30
         self.model.Generate()
         suffix = random.uniform(0, 1000000000)
         name = "test_render_google{}.html".format(suffix)
@@ -61,8 +84,22 @@ class TestFeatures:
         assert os.path.exists(name), "Expected .html-file '{}' after saving but it is not exist!".format(name)
         assert os.path.exists(nameMD), "Expected markdown file '{}' after saving but it is not exist!".format(nameMD)
 
+    def test_RenderGoogleDefaultWithSomeTrends(self):
+        self.model.horizon = 30
+        self.model.trendSplit = "/-\\"
+        self.model.splitCount = [5, 10, 15]
+        self.model.Generate()
+        suffix = random.uniform(0, 1000000000)
+        name = "test_render_google__{}.html".format(suffix)
+        nameMD = "{}.md".format(name)
+        self.model.RenderGoogle(fileName=name, viewInBrowser=False)
+        self.model.trendSplit = ""
+        self.model.splitCount = []
+        assert os.path.exists(name), "Expected .html-file '{}' after saving but it is not exist!".format(name)
+        assert os.path.exists(nameMD), "Expected markdown file '{}' after saving but it is not exist!".format(nameMD)
+
     def test_RenderGoogleFromFileTemplate(self):
-        self.model.horizon = 5
+        self.model.horizon = 30
         self.model.Generate()
         suffix = random.uniform(0, 1000000000)
         name = "test_render_google{}.html".format(suffix)
