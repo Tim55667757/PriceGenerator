@@ -20,6 +20,7 @@ See russian readme here (инструкция на русском здесь): h
      - [Statistics and chart from saved prices](#Statistics-and-chart-from-saved-prices)
      - [Statistics and chart on a simple template](#Statistics-and-chart-on-a-simple-template)
      - [Overriding parameters](#Overriding-parameters)
+     - [Split data by some trends](#Split-data-by-some-trends)
    - [Module import](#Module-import)
 
 
@@ -334,6 +335,29 @@ As a result of executing the command, you will get your own unique chart of rand
 - prices chart [./media/index_custom.html.png](./media/index_custom.html.png);
 - price chart and statistics [./media/index_custom.html](./media/index_custom.html);
 - statistics in markdown [./media/index_custom.html.md](./media/index_custom.html.md).
+
+#### Split data by some trends
+
+This feature is in the newest dev-version than `pricegenerator>=1.2.dev53` or than `pricegenerator>=1.2.56`.  
+
+It was implemented two additional keys: `--split-trend` and `--split-count`. These keys affect the appearance of the trend and the number of candles in each trend.
+
+The `--split-trend` key shows trends movements, e.g. `--split-trend=/\-` means that generated candles has up trend at first part, next down trend and then no trend.
+
+The `--split-count` key set count of candles of difference periods, e.g. `--split-count 5 10 15` means that generated candles has 3 trends with 5, 10 and 15 candles in chain.
+
+To understand how it works, try one of these examples:
+
+```commandline
+pricegenerator --horizon 300 --render-bokeh index.html --split-trend=/\- --split-count 50 100 150 --generate
+pricegenerator --horizon 300 --render-bokeh index.html --split-trend=\/\ --split-count 50 100 150 --generate
+pricegenerator --horizon 300 --render-bokeh index.html --split-trend=\-/ --split-count 50 100 150 --generate
+pricegenerator --horizon 100 --render-bokeh index.html --split-trend=/\/\ --split-count 20 30 30 20 --generate
+```
+
+For the last example, you can get a picture like this:
+
+![index_with_trends html](./media/index_with_trends.html.png)
 
 
 ### Module import

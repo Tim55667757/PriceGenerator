@@ -20,6 +20,7 @@
      - [Статистика и график из сохранённых цен](#Статистика-и-график-из-сохранённых-цен)
      - [Статистика и график на упрощённом шаблоне](#Статистика-и-график-на-упрощённом-шаблоне)
      - [Переопределение параметров](#Переопределение-параметров)
+     - [Разделение данных по трендам](#Разделение-данных-по-трендам)
    - [Через импорт модуля](#Через-импорт-модуля)
 
 
@@ -334,6 +335,29 @@ pricegenerator --debug-level 10 --ticker "MY_PRICES" --precision 2 --timeframe 2
 - картинка с изображением цен [./media/index_custom.html.png](./media/index_custom.html.png);
 - график цен и статистика [./media/index_custom.html](./media/index_custom.html);
 - статистика в текстовом виде [./media/index_custom.html.md](./media/index_custom.html.md).
+
+#### Разделение данных по трендам
+
+Эта фича появилась начиная с дев-версии `pricegenerator>=1.2.dev53` и в релизных версиях, старше чем `pricegenerator>=1.2.56`.  
+
+Появились два новых консольных ключа: `--split-trend` и `--split-count`. Эти ключи указывают на внешний вид цепочки мини-трендов и количество свечей в каждом тренде.
+
+Ключ `--split-trend` показывает вид движения, например `--split-trend=/\-` означает, что будет сгенерирована такая цепочка свечей, что сначала тренд будет возрастающий в её первой части, затем тренд сменится на нисходящий, и в последней цепочке свечей тренда не будет.
+
+Ключ `--split-count` устанавливает количество свечей в каждом мини-тренде, например `--split-count 5 10 15` означает, что в сгенерированной цепочке свечей будет три мини-тренда с 5, 10 и 15 свечами в каждом из них.
+
+Чтобы понять, как это работает, попробуйте один из следующих примеров:
+
+```commandline
+pricegenerator --horizon 300 --render-bokeh index.html --split-trend=/\- --split-count 50 100 150 --generate
+pricegenerator --horizon 300 --render-bokeh index.html --split-trend=\/\ --split-count 50 100 150 --generate
+pricegenerator --horizon 300 --render-bokeh index.html --split-trend=\-/ --split-count 50 100 150 --generate
+pricegenerator --horizon 100 --render-bokeh index.html --split-trend=/\/\ --split-count 20 30 30 20 --generate
+```
+
+Для последнего примера вы можете получить картинку движения цены, похожую на эту:
+
+![index_with_trends html](./media/index_with_trends.html.png)
 
 
 ### Через импорт модуля
