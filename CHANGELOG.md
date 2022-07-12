@@ -12,7 +12,7 @@
 ##### New features
 
 * [#8](https://github.com/Tim55667757/PriceGenerator/issues/8) Added ability to separate candlesticks by some trends. It was implemented two additional keys: `--split-trend` and `--split-count`. These keys affect the appearance of the trend and the number of candles in each trend.
-  * The `--split-trend` key shows trends movements, e.g. `--split-trend=/\-` means that generated candles has up trend at first part, next down trend and then no trend.
+  * The `--split-trend` key shows trends movements, e.g. `--split-trend=/\-` means that generated candles has uptrend at first part, next downtrend and then no trend.
   * The `--split-count` key set count of candles of difference periods, e.g. `--split-count 5 10 15` means that generated candles has 3 trends with 5, 10 and 15 candles in chain.
 
 
@@ -41,7 +41,7 @@
 
 ##### Bug fixes
 
-* Bug fix with not detected timeframe when rendering from Pandas DataFrame without loading from file.
+* Not-detected timeframe when rendering from Pandas DataFrame without loading from file was fixed.
 
 
 ### [1.1.30 (2021-02-20)](https://github.com/Tim55667757/PriceGenerator/releases/tag/1.1.30)
@@ -49,7 +49,7 @@
 ##### New features
 
 * A lot of keys were added for CLI: `--ticker`, `--timeframe`, `--start`, `--horizon`, `--max-close`, `--min-close`, `--init-close`, `--max-outlier`, `--max-body`, `--max-volume`, `--up-candles-prob`, `--outliers-prob`, `--trend-deviation`. That keys are overriding default parameters.
-* Implements new method `RenderGoogle()` and a `--render-google` key that can be draw not interactive [Google Candlestick Chart](https://developers.google.com/chart/interactive/docs/gallery/candlestickchart).
+* Implements new method `RenderGoogle()` and a `--render-google` key that can draw not interactive [Google Candlestick Chart](https://developers.google.com/chart/interactive/docs/gallery/candlestickchart).
 
 ##### Improvements
 
@@ -63,7 +63,7 @@
 The first version of PriceGenerator library allows you to:
 * save generated prices in csv-format (example: `./media/test.csv`);
 * save the generated prices to a Pandas DataFrame variable for further use in automation scripts;
-* automatically calculate some statistical and probabilistic characteristics of the generated prices and save them in markdown format (example: `./media/index.html.md`);
+* automatically calculate some statistical and probabilistic characteristics of the generated prices and save them in Markdown format (example: `./media/index.html.md`);
 * load the prices of real instruments according to the OHLCV-candlesticks model from the csv-file and carry out their statistical analysis;
   * draw a chart of generated or loaded real prices and save it in html-format (example: `./media/index.html`);
   * generate prices, a chart and some data on price behavior can be saved as a regular png-image (example: `./media/index.html.png`).
