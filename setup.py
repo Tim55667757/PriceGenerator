@@ -34,7 +34,7 @@ setup(
 
     version=__version__,
 
-    description="Forex and stocks price generator. Generates chain of candlesticks with predefined statistical parameters, return pandas dataframe or saving as .csv-file with OHLCV-candlestick in every strings.",
+    description="A simple price generator similar to real stock prices, but you can control the statistics of their distribution. Generates chain of candlesticks with predefined statistical parameters, return pandas dataframe or saving as .csv-file with OHLCV-candlestick in every strings.",
 
     long_description="GitHub Pages: https://tim55667757.github.io/PriceGenerator",
 
