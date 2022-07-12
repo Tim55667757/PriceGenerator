@@ -1,11 +1,15 @@
 # PriceGenerator
 
-
-Инструкция на английском здесь (see english readme here): https://github.com/Tim55667757/PriceGenerator/blob/master/README.md
+Простой генератор цен, похожих на настоящие биржевые цены, но вы можете контролировать статистику их распределения. Используйте его для генерации синтетических данных для тестирования вашей торговой стратегии.
 
 [![Build Status](https://travis-ci.com/Tim55667757/PriceGenerator.svg?branch=master)](https://travis-ci.com/Tim55667757/PriceGenerator)
 [![pypi](https://img.shields.io/pypi/v/PriceGenerator.svg)](https://pypi.python.org/pypi/PriceGenerator)
 [![license](https://img.shields.io/pypi/l/PriceGenerator.svg)](https://github.com/Tim55667757/PriceGenerator/blob/master/LICENSE)
+[![gift](https://badgen.net/badge/gift/donate/green)](https://yoomoney.ru/quickpay/shop-widget?writer=seller&targets=%D0%94%D0%BE%D0%BD%D0%B0%D1%82%20(%D0%BF%D0%BE%D0%B4%D0%B0%D1%80%D0%BE%D0%BA)%20%D0%B4%D0%BB%D1%8F%20%D0%B0%D0%B2%D1%82%D0%BE%D1%80%D0%BE%D0%B2%20%D0%BF%D1%80%D0%BE%D0%B5%D0%BA%D1%82%D0%B0%20PriceGenerator&default-sum=999&button-text=13&payment-type-choice=on&successURL=https%3A%2F%2Ftim55667757.github.io%2FPriceGenerator%2F&quickpay=shop&account=410015019068268)
+
+* 🇺🇸 [See current documentation in english here (актуальная документация на английском)](https://tim55667757.github.io/PriceGenerator/)
+* 📚 [Релиз-ноты](https://github.com/Tim55667757/PriceGenerator/blob/master/CHANGELOG_RU.md)
+* 🎁 Поддержать проект донатом на ЮМани-кошелёк: [410015019068268](https://yoomoney.ru/quickpay/shop-widget?writer=seller&targets=%D0%94%D0%BE%D0%BD%D0%B0%D1%82%20(%D0%BF%D0%BE%D0%B4%D0%B0%D1%80%D0%BE%D0%BA)%20%D0%B4%D0%BB%D1%8F%20%D0%B0%D0%B2%D1%82%D0%BE%D1%80%D0%BE%D0%B2%20%D0%BF%D1%80%D0%BE%D0%B5%D0%BA%D1%82%D0%B0%20PriceGenerator&default-sum=999&button-text=13&payment-type-choice=on&successURL=https%3A%2F%2Ftim55667757.github.io%2FPriceGenerator%2F&quickpay=shop&account=410015019068268)
 
 **Содержание**
 
@@ -43,7 +47,7 @@
 Библиотека PriceGenerator позволяет:
 - сохранить сгенерированные цены в .csv-формате (пример: [./media/test.csv](./media/test.csv));
 - сохранить сгенерированные цены в переменную формата Pandas DataFrame для дальнейшего использования в скриптах автоматизации;
-- автоматически рассчитать некоторые статистические и вероятностные характеристики сгенерированных цен и сохранить их в markdown-формате (пример: [./media/index.html.md](./media/index.html.md));
+- автоматически рассчитать некоторые статистические и вероятностные характеристики сгенерированных цен и сохранить их в Markdown-формате (пример: [./media/index.html.md](./media/index.html.md));
 - загрузить цены реальных инструментов по модели OHLCV-candlesticks из .csv-файла и провести их статистический анализ;
 - нарисовать график сгенерированных или загруженных реальных цен и сохранить его в html-формате (пример: [./media/index.html](./media/index.html));
   - сгенерированные цены, график и некоторые данные о поведении цен можно сохранить в виде обычной png-картинки (пример: [./media/index.html.png](./media/index.html.png)):
@@ -299,7 +303,7 @@ pricegenerator --debug-level 20 --load-from test.csv --render-bokeh index.html
 pricegenerator --debug-level 20 --load-from test.csv --render-google index_google.html
 ``` 
 
-В результате выполнения команды вы получите график [./media/index_google.html](./media/index_google.html)) и статистику в markdown файле. Выглядеть он будет примерно так:
+В результате выполнения команды вы получите график [./media/index_google.html](./media/index_google.html)) и статистику в Markdown файле. Выглядеть он будет примерно так:
 
 ![](./media/index_google.html.png)
 
@@ -411,7 +415,7 @@ print("Dict with statistics:\n{}".format(priceModel.stat))
 priceModel.SaveToFile(fileName="test.csv")
 
 # Сохраняем график цен в html-файл и сразу открываем его в браузере.
-# Статистика в текстовом виде будет автоматически сохранена в markdown-файле с именем fileName + ".md".
+# Статистика в текстовом виде будет автоматически сохранена в Markdown-файле с именем fileName + ".md".
 priceModel.RenderBokeh(fileName="index.html", viewInBrowser=True)
 
 # Вместо библиотеки Bokeh вы можете отрисовать цены на простом, не интерактивном графике,
@@ -425,3 +429,5 @@ priceModel.RenderBokeh(fileName="index.html", viewInBrowser=True)
 
 
 Успехов вам в автоматизации и тестировании биржевой торговли! ;)
+
+[![gift](https://badgen.net/badge/gift/donate/green)](https://yoomoney.ru/quickpay/shop-widget?writer=seller&targets=%D0%94%D0%BE%D0%BD%D0%B0%D1%82%20(%D0%BF%D0%BE%D0%B4%D0%B0%D1%80%D0%BE%D0%BA)%20%D0%B4%D0%BB%D1%8F%20%D0%B0%D0%B2%D1%82%D0%BE%D1%80%D0%BE%D0%B2%20%D0%BF%D1%80%D0%BE%D0%B5%D0%BA%D1%82%D0%B0%20PriceGenerator&default-sum=999&button-text=13&payment-type-choice=on&successURL=https%3A%2F%2Ftim55667757.github.io%2FPriceGenerator%2F&quickpay=shop&account=410015019068268)
