@@ -47,7 +47,7 @@
 Библиотека PriceGenerator позволяет:
 - сохранить сгенерированные цены в .csv-формате (пример: [./media/test.csv](./media/test.csv));
 - сохранить сгенерированные цены в переменную формата Pandas DataFrame для дальнейшего использования в скриптах автоматизации;
-- автоматически рассчитать некоторые статистические и вероятностные характеристики сгенерированных цен и сохранить их в markdown-формате (пример: [./media/index.html.md](./media/index.html.md));
+- автоматически рассчитать некоторые статистические и вероятностные характеристики сгенерированных цен и сохранить их в Markdown-формате (пример: [./media/index.html.md](./media/index.html.md));
 - загрузить цены реальных инструментов по модели OHLCV-candlesticks из .csv-файла и провести их статистический анализ;
 - нарисовать график сгенерированных или загруженных реальных цен и сохранить его в html-формате (пример: [./media/index.html](./media/index.html));
   - сгенерированные цены, график и некоторые данные о поведении цен можно сохранить в виде обычной png-картинки (пример: [./media/index.html.png](./media/index.html.png)):
@@ -303,7 +303,7 @@ pricegenerator --debug-level 20 --load-from test.csv --render-bokeh index.html
 pricegenerator --debug-level 20 --load-from test.csv --render-google index_google.html
 ``` 
 
-В результате выполнения команды вы получите график [./media/index_google.html](./media/index_google.html)) и статистику в markdown файле. Выглядеть он будет примерно так:
+В результате выполнения команды вы получите график [./media/index_google.html](./media/index_google.html)) и статистику в Markdown файле. Выглядеть он будет примерно так:
 
 ![](./media/index_google.html.png)
 
@@ -415,7 +415,7 @@ print("Dict with statistics:\n{}".format(priceModel.stat))
 priceModel.SaveToFile(fileName="test.csv")
 
 # Сохраняем график цен в html-файл и сразу открываем его в браузере.
-# Статистика в текстовом виде будет автоматически сохранена в markdown-файле с именем fileName + ".md".
+# Статистика в текстовом виде будет автоматически сохранена в Markdown-файле с именем fileName + ".md".
 priceModel.RenderBokeh(fileName="index.html", viewInBrowser=True)
 
 # Вместо библиотеки Bokeh вы можете отрисовать цены на простом, не интерактивном графике,

@@ -47,7 +47,7 @@ For further statistical analysis of prices in python, the Pandas library is very
 The PriceGenerator library allows you to:
 - save generated prices in .csv-format (example: [./media/test.csv](./media/test.csv));
 - save the generated prices to a Pandas DataFrame variable for further use in automation scripts;
-- automatically calculate some statistical and probabilistic characteristics of the generated prices and save them in markdown format (example: [./media/index.html.md](./media/index.html.md));
+- automatically calculate some statistical and probabilistic characteristics of the generated prices and save them in Markdown format (example: [./media/index.html.md](./media/index.html.md));
 - load the prices of real instruments according to the OHLCV-candlesticks model from the .csv file and carry out their statistical analysis;
 - draw a chart of generated or loaded real prices and save it in html-format (example: [./media/index.html](./media/index.html));
   - generated prices, a chart and some data on price behavior can be saved as a regular png-image (example: [./media/index.html.png](./media/index.html.png)):
@@ -285,7 +285,7 @@ Process finished with exit code 0
 After running the command above, you will get three files:
 - `test.csv` — .csv-file containing a random set of prices similar to the real ones (example: [./media/test.csv](./media/test.csv));
 - `index.html` — price chart and statistics drawn using the Bokeh library and saved to an .html-file (example: [./media/index.html](./media/index.html));
-- `index.html.md` — statistics as simple text, saved in markdown format (example: [./media/index.html.md](./media/index.html.md)).
+- `index.html.md` — statistics as simple text, saved in Markdown format (example: [./media/index.html.md](./media/index.html.md)).
 
 #### Statistics and chart from saved prices 
 
@@ -303,7 +303,7 @@ In the examples above, you can use a simple, non-interactive chart. For this, th
 pricegenerator --debug-level 20 --load-from test.csv --render-google index_google.html
 ``` 
 
-As a result of executing the command, you will receive a chart [./media/index_google.html](./media/index_google.html)) and statistics in the markdown file. It will look something like this:
+As a result of executing the command, you will receive a chart [./media/index_google.html](./media/index_google.html)) and statistics in the Markdown file. It will look something like this:
 
 ![](./media/index_google.html.png)
 
@@ -338,7 +338,7 @@ Parameters mean:
 As a result of executing the command, you will get your own unique chart of random prices with redefined basic generator parameters. We got next artifacts:
 - prices chart [./media/index_custom.html.png](./media/index_custom.html.png);
 - price chart and statistics [./media/index_custom.html](./media/index_custom.html);
-- statistics in markdown [./media/index_custom.html.md](./media/index_custom.html.md).
+- statistics in Markdown file [./media/index_custom.html.md](./media/index_custom.html.md).
 
 #### Split data by some trends
 
