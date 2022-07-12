@@ -26,7 +26,7 @@
   * Volume Weighted Moving Averages (5, 20),
   * Also, only "Max_close / Min_close / Trend line" is showing by default.
 * Volatility indicators were implements:
-  * Bollinger Bands.
+  * Bollinger Bands,
   * Parabolic Stop and Reverse,
   * Alligator (based on HMAs 13, 8, 5),
   * ZigZag with 3% deviation by default.
@@ -41,7 +41,7 @@
 
 ##### Bug fixes
 
-* Bug fix with not detected timeframe when rendering from pandas dataframe without loading from file.
+* Bug fix with not detected timeframe when rendering from Pandas DataFrame without loading from file.
 
 
 ### [1.1.30 (2021-02-20)](https://github.com/Tim55667757/PriceGenerator/releases/tag/1.1.30)
@@ -49,11 +49,11 @@
 ##### New features
 
 * A lot of keys were added for CLI: `--ticker`, `--timeframe`, `--start`, `--horizon`, `--max-close`, `--min-close`, `--init-close`, `--max-outlier`, `--max-body`, `--max-volume`, `--up-candles-prob`, `--outliers-prob`, `--trend-deviation`. That keys are overriding default parameters.
-* Implements new method `RenderGoogle()` and a `--render-google` key that can be draw not interactive Google Candlestick chart.
+* Implements new method `RenderGoogle()` and a `--render-google` key that can be draw not interactive [Google Candlestick Chart](https://developers.google.com/chart/interactive/docs/gallery/candlestickchart).
 
 ##### Improvements
 
-* Extended examples were added. See examples in `README.md` (english) and `README_RU.md` (russian).
+* Extended examples were added. See examples in [`README.md`](https://github.com/Tim55667757/PriceGenerator/blob/master/README.md) (english) and [`README_RU.md`](https://github.com/Tim55667757/PriceGenerator/blob/master/README_RU.md) (russian).
 
 
 ### [1.0.19 (2021-02-05)](https://github.com/Tim55667757/PriceGenerator/releases/tag/1.0.19)
@@ -66,6 +66,6 @@ The first version of PriceGenerator library allows you to:
 * automatically calculate some statistical and probabilistic characteristics of the generated prices and save them in markdown format (example: `./media/index.html.md`);
 * load the prices of real instruments according to the OHLCV-candlesticks model from the csv-file and carry out their statistical analysis;
   * draw a chart of generated or loaded real prices and save it in html-format (example: `./media/index.html`);
-  * generated prices, a chart and some data on price behavior can be saved as a regular png-image (example: `./media/index.html.png`).
+  * generate prices, a chart and some data on price behavior can be saved as a regular png-image (example: `./media/index.html.png`).
 
 [![gift](https://badgen.net/badge/gift/donate/green)](https://yoomoney.ru/quickpay/shop-widget?writer=seller&targets=Donat%20(gift)%20for%20the%20authors%20of%20the%20PriceGenerator%20project&default-sum=999&button-text=13&payment-type-choice=on&successURL=https%3A%2F%2Ftim55667757.github.io%2FPriceGenerator%2F&quickpay=shop&account=410015019068268)
