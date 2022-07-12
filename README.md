@@ -1,11 +1,16 @@
 # PriceGenerator
 
-
-See russian readme here (инструкция на русском здесь): https://github.com/Tim55667757/PriceGenerator/blob/master/README_RU.md
+A simple price generator similar to real stock prices, but you can control the statistics of their distribution. Use it to generate synthetic data to test your trading strategy.
 
 [![Build Status](https://travis-ci.com/Tim55667757/PriceGenerator.svg?branch=master)](https://travis-ci.com/Tim55667757/PriceGenerator)
 [![pypi](https://img.shields.io/pypi/v/PriceGenerator.svg)](https://pypi.python.org/pypi/PriceGenerator)
 [![license](https://img.shields.io/pypi/l/PriceGenerator.svg)](https://github.com/Tim55667757/PriceGenerator/blob/master/LICENSE)
+
+* 🇷🇺 [Документация на русском (see documentation in russian here)](https://github.com/Tim55667757/PriceGenerator/blob/master/README_RU.md)
+* 📚 [Release notes](https://github.com/Tim55667757/PriceGenerator/blob/master/CHANGELOG.md)
+* 🎁 Support the project with a donation to our yoomoney-wallet: [410015019068268](https://yoomoney.ru/quickpay/shop-widget?writer=seller&targets=Donat%20(gift)%20for%20the%20authors%20of%20the%20PriceGenerator%20project&default-sum=999&button-text=13&payment-type-choice=on&successURL=https%3A%2F%2Ftim55667757.github.io%2FPriceGenerator%2F&quickpay=shop&account=410015019068268)
+
+<iframe src="https://yoomoney.ru/quickpay/shop-widget?writer=seller&targets=Donat%20(gift)%20for%20the%20authors%20of%20the%20PriceGenerator%20project&default-sum=999&button-text=13&payment-type-choice=on&successURL=https%3A%2F%2Ftim55667757.github.io%2FPriceGenerator%2F&quickpay=shop&account=410015019068268" width="100%" height="250" frameborder="0" allowtransparency="true" scrolling="no"></iframe>
 
 **Contents**
 
