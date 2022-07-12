@@ -77,24 +77,24 @@ setup(
     tests_require=[
         "pytest>=6.2.2",
         "pandas>=1.2.2",
-        "pandas_ta>=0.2.45b0",
         "bokeh>=2.3.0",
         "bkcharts>=0.2",
         "numpy>=1.20.1",
         "matplotlib>=3.3.4",
         "python-dateutil>=2.8.1",
         "jinja2>=2.11.3",
+        "pandas_ta>=0.2.45b0",
     ],
 
     install_requires=[
         "pandas>=1.2.2",
-        "pandas_ta>=0.2.45b0",
         "bokeh>=2.3.0",
         "bkcharts>=0.2",
         "numpy>=1.20.1",
         "matplotlib>=3.3.4",
         "python-dateutil>=2.8.1",
         "jinja2>=2.11.3",
+        "pandas_ta>=0.2.45b0",
     ],
 
     packages=[
