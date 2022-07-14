@@ -55,10 +55,10 @@ setup(
         "Environment :: Console",
         "Intended Audience :: Financial and Insurance Industry",
         "Topic :: Utilities",
-        "License :: OSI Approved :: MIT License",
+        "License :: OSI Approved :: Apache Software License 2.0 (Apache-2.0)",
         "Natural Language :: English",
         "Programming Language :: Python :: 3",
-    ],
+    ],  # classifiers are from here: https://pypi.org/classifiers/
 
     keywords=[
         "history",
