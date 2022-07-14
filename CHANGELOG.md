@@ -11,6 +11,7 @@
 
 ##### New features
 
+* License changed from MIT to [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0).
 * [#8](https://github.com/Tim55667757/PriceGenerator/issues/8) Added ability to separate candlesticks by some trends. It was implemented two additional keys: `--split-trend` and `--split-count`. These keys affect the appearance of the trend and the number of candles in each trend.
   * The `--split-trend` key shows trends movements, e.g. `--split-trend=/\-` means that generated candles has uptrend at first part, next downtrend and then no trend.
   * The `--split-count` key set count of candles of difference periods, e.g. `--split-count 5 10 15` means that generated candles has 3 trends with 5, 10 and 15 candles in chain.
