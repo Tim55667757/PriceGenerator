@@ -77,7 +77,7 @@ setup(
     tests_require=[
         "pytest>=6.2.2",
         "requests>=2.25.1"  # Apache-2.0 license
-        "pandas>=1.2.2",
+        "pandas>=1.5.2",
         "bokeh>=2.3.0",
         "bkcharts>=0.2",
         "numpy>=1.20.1",
@@ -89,7 +89,7 @@ setup(
 
     install_requires=[
         "requests>=2.25.1"  # Apache-2.0 license
-        "pandas>=1.2.2",
+        "pandas>=1.5.2",
         "bokeh>=2.3.0",
         "bkcharts>=0.2",
         "numpy>=1.20.1",
