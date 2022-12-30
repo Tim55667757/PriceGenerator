@@ -1,12 +1,12 @@
 # The order of packages is significant, because pip processes them in the order of appearance.
 # Changing the order has an impact on the overall integration  process, which may cause troubles later.
-pytest>=6.2.2
-requests>=2.25.1  # Apache-2.0 license
-pandas>=1.5.2
-bokeh>=2.3.0
-bkcharts>=0.2
-numpy>=1.20.1
-matplotlib>=3.3.4
-python-dateutil>=2.8.1  # Apache-2.0 license
-jinja2>=2.11.3
-pandas_ta>=0.3.14b0
+pytest >= 6.2.2  # MIT License
+requests >= 2.25.1  # Apache-2.0 license
+pandas >= 1.5.2  # MIT License
+bokeh >= 3.0.3  # BSD-3-Clause license
+bkcharts >= 0.2  # New BSD License
+numpy >= 1.20.1  # BSD-3-Clause license
+matplotlib >= 3.3.4  # PSF license
+python-dateutil >= 2.8.1  # Apache-2.0 license
+jinja2 >= 2.11.3  # BSD-3-Clause license
+pandas_ta >= 0.3.14b0  # MIT License

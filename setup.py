@@ -75,28 +75,28 @@ setup(
     ],
 
     tests_require=[
-        "pytest>=6.2.2",
-        "requests>=2.25.1"  # Apache-2.0 license
-        "pandas>=1.5.2",
-        "bokeh>=2.3.0",
-        "bkcharts>=0.2",
-        "numpy>=1.20.1",
-        "matplotlib>=3.3.4",
-        "python-dateutil>=2.8.1",  # Apache-2.0 license
-        "jinja2>=2.11.3",
-        "pandas_ta>=0.2.45b0",
+        "pytest >= 6.2.2",
+        "requests >= 2.25.1"  # Apache-2.0 license
+        "pandas >= 1.5.2",
+        "bokeh >= 3.0.3",
+        "bkcharts >= 0.2",
+        "numpy >= 1.20.1",
+        "matplotlib >= 3.3.4",
+        "python-dateutil >= 2.8.1",  # Apache-2.0 license
+        "jinja2 >= 2.11.3",
+        "pandas_ta >= 0.2.45b0",
     ],
 
     install_requires=[
-        "requests>=2.25.1"  # Apache-2.0 license
-        "pandas>=1.5.2",
-        "bokeh>=2.3.0",
-        "bkcharts>=0.2",
-        "numpy>=1.20.1",
-        "matplotlib>=3.3.4",
-        "python-dateutil>=2.8.1",  # Apache-2.0 license
-        "jinja2>=2.11.3",
-        "pandas_ta>=0.2.45b0",
+        "requests >= 2.25.1"  # Apache-2.0 license
+        "pandas >= 1.5.2",
+        "bokeh >= 3.0.3",
+        "bkcharts >= 0.2",
+        "numpy >= 1.20.1",
+        "matplotlib >= 3.3.4",
+        "python-dateutil >= 2.8.1",  # Apache-2.0 license
+        "jinja2 >= 2.11.3",
+        "pandas_ta >= 0.2.45b0",
     ],
 
     packages=[
