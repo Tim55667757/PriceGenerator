@@ -39,7 +39,7 @@ from itertools import groupby
 import pandas as pd
 import pandas_ta as ta
 import random
-from bokeh.plotting import figure, save, output_file, ColumnDataSource, show
+from bokeh.plotting import figure, save, output_file, ColumnDataSource
 from bokeh.models import Legend, HoverTool, Range1d, NumeralTickFormatter
 from bokeh.layouts import gridplot
 import jinja2
@@ -56,7 +56,7 @@ uLogger.handlers[0].level = 20  # info level by default for STDOUT
 # uLogger.handlers[1].level = 10  # debug level by default for log.txt
 
 # Simple jinja2 template for rendering static html-page with not interactive Google Candlestick chart:
-GOOGLE_TEMPLATE_J2 = """{# This template based on Jinja markup language: http://jinja.pocoo.org/docs/dev/templates/ #}
+GOOGLE_TEMPLATE_J2 = """{# This template based on Jinja markup language: https://jinja.palletsprojects.com/en/latest/ #}
 <!DOCTYPE html>
 <html>
 
