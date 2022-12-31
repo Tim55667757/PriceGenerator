@@ -781,7 +781,7 @@ class PriceGenerator:
             self, fileName: Optional[str] = "index.html", viewInBrowser: bool = False,
             darkTheme: bool = False, layouts: Optional[list] = None,
             title: Optional[str] = None, width: Optional[int] = 1800, height: Optional[int] = 990,
-            showStatOnChart: bool = True, showControlsOnChart: bool = False,
+            showStatOnChart: bool = True, showControlsOnChart: bool = True,
     ) -> Optional[gridplot]:
         """
         Rendering prices from Pandas DataFrame as OHLCV Bokeh chart of candlesticks and save it to HTML-file.
