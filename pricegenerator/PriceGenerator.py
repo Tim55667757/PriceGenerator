@@ -169,7 +169,7 @@ GOOGLE_TEMPLATE_J2 = """{# This template based on Jinja markup language: https:/
 
 <table id="chart">
     <tr>
-        <th style="width: 75%;">
+        <th style="width: 80%;">
             <b>{{ title }}</b>
         </th>
         <th>
@@ -1201,7 +1201,10 @@ class PriceGenerator:
         :param fileName: html-file path to save Google Candlestick chart.
         :param viewInBrowser: If True, then immediately opens html in browser after rendering.
         """
-        if self.prices is not None and not self.prices.empty:
+        if self.prices is None or self.prices.empty:
+            raise Exception("Empty price data! Generate or load prices before show as Google Candlestick chart!")
+
+        else:
             uLogger.info("Rendering pandas dataframe as Google Candlestick chart...")
 
             self.DetectTimeframe()  # auto-detect time delta between last two neighbour candles
@@ -1235,9 +1238,6 @@ class PriceGenerator:
                 os.system(os.path.abspath(fileName))  # view forecast chart in default browser immediately
 
             uLogger.info("Pandas dataframe rendered as html-file [{}]".format(os.path.abspath(fileName)))
-
-        else:
-            raise Exception("Empty price data! Generate or load prices before show as Google Candlestick chart!")
 
 
 def ParseArgs():
