@@ -779,8 +779,9 @@ class PriceGenerator:
 
     def RenderBokeh(
             self, fileName: Optional[str] = "index.html", viewInBrowser: bool = False,
-            darkTheme: bool = True, layouts: Optional[list] = None,
+            darkTheme: bool = False, layouts: Optional[list] = None,
             title: Optional[str] = None, width: Optional[int] = 1800, height: Optional[int] = 990,
+            showStatOnChart: bool = True, showControlsOnChart: bool = False,
     ) -> Optional[gridplot]:
         """
         Rendering prices from Pandas DataFrame as OHLCV Bokeh chart of candlesticks and save it to HTML-file.
@@ -790,12 +791,14 @@ class PriceGenerator:
 
         :param fileName: HTML-file path to save Bokeh chart. `index.html` by default.
         :param viewInBrowser: If `True`, then immediately opens HTML chart in browser after rendering. `False` by default.
-        :param darkTheme: chart theme. `True` by default, mean that will be used dark theme, `False` mean light theme.
+        :param darkTheme: chart theme. `False` by default, mean that will be used light theme, `False` mean dark theme.
         :param layouts: list with additional chart object that can be placed with the method `add_layout`
                         to the `bokeh.models.plots.Plot` object. `None` by default.
         :param title: specific chart title. If `None`, then used auto-generated title. `None` by default.
         :param width: chart width. If `None`, then used auto-width. 1800 px by default.
         :param height: chart height. If `None`, then used auto-height. 990 px by default.
+        :param showStatOnChart: add statistics block on chart, `True` by default.
+        :param showControlsOnChart: add controls block on chart, `True` by default.
         :return: bokeh.layouts.gridplot with all layouts objects or None.
         """
         title = self._chartTitle if title is None or not title else title  # chart title
@@ -857,9 +860,18 @@ class PriceGenerator:
             legendNamePsar = "Parabolic Stop and Reverse (psar)"
             legendNameAlligator = "Alligator (based on HMA: 13, 8, 5)"
             legendNameZigZag = "Zig-Zag indicator (with {}% of difference)".format(self.zigZagDeviation * 100)
+
+            if showStatOnChart:
+                summaryItems = [(info, []) for info in infoBlock]
+                if showControlsOnChart:
+                    summaryItems += [("", []), ("Click to show/hide on chart:", [])]
+
+            else:
+                summaryItems = [("Click to show/hide on chart:", [])] if showControlsOnChart else [("", [])]
+
             summaryInfo = Legend(
                 click_policy="hide",
-                items=[(info, []) for info in infoBlock] + [("", []), ("Click to show/hide on chart:", [])],
+                items=summaryItems,
                 location="top_right",
                 label_text_font_size="8pt",
                 margin=0,
@@ -867,7 +879,7 @@ class PriceGenerator:
                 spacing=0,
                 label_text_font="Lucida Console",
             )
-            chart.add_layout(summaryInfo, 'right')
+            chart.add_layout(summaryInfo, "right")
 
             # preparing data for candles:
             inc = self.prices.open <= self.prices.close
@@ -954,33 +966,33 @@ class PriceGenerator:
             # preparing candle's average points:
             disabledObjects.append(chart.circle(
                 self.prices.datetime, self.prices.avg,
-                size=3, color="red", alpha=1, legend_label=legendNameAvg,
+                size=3, color="red", alpha=1, legend_label=legendNameAvg if showControlsOnChart else "",
             ))
             disabledObjects.append(chart.line(
                 self.prices.datetime, self.prices.avg,
-                line_width=1, line_color="red", line_alpha=1, legend_label=legendNameAvg,
+                line_width=1, line_color="red", line_alpha=1, legend_label=legendNameAvg if showControlsOnChart else "",
             ))
 
             # preparing for highest close line:
             highestClose = round(max(self.prices.close.values), self._precision)
             chart.line(
                 self.prices.datetime, highestClose,
-                line_width=2, line_color="yellow" if darkTheme else "#339933", line_alpha=1, legend_label=legendNameMain,
+                line_width=2, line_color="yellow" if darkTheme else "#339933", line_alpha=1, legend_label=legendNameMain if showControlsOnChart else "",
             )
             chart.text(
                 self.prices.datetime.values[-1], highestClose + 1 / self._deg10prec,
-                text=[str(highestClose)], angle=0, text_color="yellow" if darkTheme else "#339933", text_font_size="9pt", legend_label=legendNameMain,
+                text=[str(highestClose)], angle=0, text_color="yellow" if darkTheme else "#339933", text_font_size="9pt", legend_label=legendNameMain if showControlsOnChart else "",
             )
 
             # preparing for lowest close line:
             lowestClose = round(min(self.prices.close.values), self._precision)
             chart.line(
                 self.prices.datetime, lowestClose,
-                line_width=2, line_color="yellow" if darkTheme else "#339933", line_alpha=1, legend_label=legendNameMain,
+                line_width=2, line_color="yellow" if darkTheme else "#339933", line_alpha=1, legend_label=legendNameMain if showControlsOnChart else "",
             )
             chart.text(
                 self.prices.datetime.values[-1], lowestClose - 2 / self._deg10prec,
-                text=[str(lowestClose)], angle=0, text_color="yellow" if darkTheme else "#339933", text_font_size="9pt", legend_label=legendNameMain,
+                text=[str(lowestClose)], angle=0, text_color="yellow" if darkTheme else "#339933", text_font_size="9pt", legend_label=legendNameMain if showControlsOnChart else "",
             )
 
             # preparing direction lines for all trends:
@@ -991,7 +1003,7 @@ class PriceGenerator:
                     chart.line(
                         [self.prices.datetime.values[left], self.prices.datetime.values[right]],
                         [self.prices.close.values[left], self.prices.close.values[right]],
-                        line_width=1, line_color="white" if darkTheme else "#666666", line_alpha=0.9, line_dash=[3, 3], legend_label=legendNameMain,
+                        line_width=1, line_color="white" if darkTheme else "#666666", line_alpha=0.9, line_dash=[3, 3], legend_label=legendNameMain if showControlsOnChart else "",
                     )
                     left += self.splitCount[trendNum]
 
@@ -999,7 +1011,7 @@ class PriceGenerator:
             chart.line(
                 [self.prices.datetime.values[0], self.prices.datetime.values[-1]],
                 [self.prices.close.values[0], self.prices.close.values[-1]],
-                line_width=1, line_color="white" if darkTheme else "#666666", line_alpha=1, line_dash=[6, 6], legend_label=legendNameMain,
+                line_width=1, line_color="white" if darkTheme else "#666666", line_alpha=1, line_dash=[6, 6], legend_label=legendNameMain if showControlsOnChart else "",
             )
 
             # --- Preparing a lot of TA lines:
@@ -1007,85 +1019,85 @@ class PriceGenerator:
             # Simple Moving Averages (SMA) 5, 20
             disabledObjects.append(chart.line(
                 self.prices.datetime, self.stat["sma5"],
-                line_width=2, line_color="yellow" if darkTheme else "#999432", line_alpha=1, legend_label=legendNameSMA,
+                line_width=2, line_color="yellow" if darkTheme else "#999432", line_alpha=1, legend_label=legendNameSMA if showControlsOnChart else "",
             ))
             disabledObjects.append(chart.line(
                 self.prices.datetime, self.stat["sma20"],
-                line_width=3, line_color="red", line_alpha=1, legend_label=legendNameSMA,
+                line_width=3, line_color="red", line_alpha=1, legend_label=legendNameSMA if showControlsOnChart else "",
             ))
 
             # Long Simple Moving Averages (SMA) 50, 200
             disabledObjects.append(chart.line(
                 self.prices.datetime, self.stat["sma50"],
-                line_width=2, line_color="#ffbf00", line_alpha=1, legend_label=legendNameSMAlong,
+                line_width=2, line_color="#ffbf00", line_alpha=1, legend_label=legendNameSMAlong if showControlsOnChart else "",
             ))
             disabledObjects.append(chart.line(
                 self.prices.datetime, self.stat["sma200"],
-                line_width=3, line_color="#ff0040", line_alpha=1, legend_label=legendNameSMAlong,
+                line_width=3, line_color="#ff0040", line_alpha=1, legend_label=legendNameSMAlong if showControlsOnChart else "",
             ))
 
             # Hull Moving Averages (HMA) 5, 20
             disabledObjects.append(chart.line(
                 self.prices.datetime, self.stat["hma5"],
-                line_width=2, line_color="#00ffff" if darkTheme else "#336633", line_alpha=1, legend_label=legendNameHMA,
+                line_width=2, line_color="#00ffff" if darkTheme else "#336633", line_alpha=1, legend_label=legendNameHMA if showControlsOnChart else "",
             ))
             disabledObjects.append(chart.line(
                 self.prices.datetime, self.stat["hma20"],
-                line_width=3, line_color="#ff00ff" if darkTheme else "#333333", line_alpha=1, legend_label=legendNameHMA,
+                line_width=3, line_color="#ff00ff" if darkTheme else "#333333", line_alpha=1, legend_label=legendNameHMA if showControlsOnChart else "",
             ))
 
             # Volume Weighted Moving Averages (VWMA) 5, 20
             disabledObjects.append(chart.line(
                 self.prices.datetime, self.stat["vwma5"],
-                line_width=2, line_color="blue" if darkTheme else "#666633", line_alpha=1, legend_label=legendNameVWMA,
+                line_width=2, line_color="blue" if darkTheme else "#666633", line_alpha=1, legend_label=legendNameVWMA if showControlsOnChart else "",
             ))
             disabledObjects.append(chart.line(
                 self.prices.datetime, self.stat["vwma20"],
-                line_width=3, line_color="#ff8000" if darkTheme else "#333333", line_alpha=1, legend_label=legendNameVWMA,
+                line_width=3, line_color="#ff8000" if darkTheme else "#333333", line_alpha=1, legend_label=legendNameVWMA if showControlsOnChart else "",
             ))
 
             # Bollinger Bands (BBands)
             disabledObjects.append(chart.line(
                 self.prices.datetime, self.stat["bbands"]["lower"],
-                line_width=1, line_color="#66ffff" if darkTheme else "#333333", line_alpha=1, legend_label=legendNameBBANDS,
+                line_width=1, line_color="#66ffff" if darkTheme else "#333333", line_alpha=1, legend_label=legendNameBBANDS if showControlsOnChart else "",
             ))
             disabledObjects.append(chart.line(
                 self.prices.datetime, self.stat["bbands"]["mid"],
-                line_width=1, line_color="#66ffff" if darkTheme else "#333333", line_alpha=1, legend_label=legendNameBBANDS,
+                line_width=1, line_color="#66ffff" if darkTheme else "#333333", line_alpha=1, legend_label=legendNameBBANDS if showControlsOnChart else "",
             ))
             disabledObjects.append(chart.line(
                 self.prices.datetime, self.stat["bbands"]["upper"],
-                line_width=1, line_color="#66ffff" if darkTheme else "#333333", line_alpha=1, legend_label=legendNameBBANDS,
+                line_width=1, line_color="#66ffff" if darkTheme else "#333333", line_alpha=1, legend_label=legendNameBBANDS if showControlsOnChart else "",
             ))
 
             # Parabolic Stop and Reverse (psar)
             disabledObjects.append(chart.circle(
                 self.prices.datetime, self.stat["psar"]["long"],
-                size=3, line_color="#00ffff" if darkTheme else "#336633", line_alpha=1, legend_label=legendNamePsar,
+                size=3, line_color="#00ffff" if darkTheme else "#336633", line_alpha=1, legend_label=legendNamePsar if showControlsOnChart else "",
             ))
             disabledObjects.append(chart.circle(
                 self.prices.datetime, self.stat["psar"]["short"],
-                size=3, line_color="#ff00ff" if darkTheme else "#663333", line_alpha=1, legend_label=legendNamePsar,
+                size=3, line_color="#ff00ff" if darkTheme else "#663333", line_alpha=1, legend_label=legendNamePsar if showControlsOnChart else "",
             ))
 
             # Alligator (based on HMA 13, 8, 5) for the Alligator indicator (Jaw, Teeth, and Lips)
             disabledObjects.append(chart.line(
                 self.prices.datetime, self.stat["hma13"],
-                line_width=2, line_color="#1a1aff" if darkTheme else "#2100A6", line_alpha=1, legend_label=legendNameAlligator,
+                line_width=2, line_color="#1a1aff" if darkTheme else "#2100A6", line_alpha=1, legend_label=legendNameAlligator if showControlsOnChart else "",
             ))
             disabledObjects.append(chart.line(
                 self.prices.datetime, self.stat["hma8"],
-                line_width=2, line_color="#ff1a1a" if darkTheme else "#A6000C", line_alpha=1, legend_label=legendNameAlligator,
+                line_width=2, line_color="#ff1a1a" if darkTheme else "#A6000C", line_alpha=1, legend_label=legendNameAlligator if showControlsOnChart else "",
             ))
             disabledObjects.append(chart.line(
                 self.prices.datetime, self.stat["hma5"],
-                line_width=2, line_color="#40ff00" if darkTheme else "#17A600", line_alpha=1, legend_label=legendNameAlligator,
+                line_width=2, line_color="#40ff00" if darkTheme else "#17A600", line_alpha=1, legend_label=legendNameAlligator if showControlsOnChart else "",
             ))
 
             # Zig-Zag indicator with self.zigZagDeviation of difference parameter
             disabledObjects.append(chart.line(
                 self.stat["zigzag3"]["datetimes"], self.stat["zigzag3"]["filtered"],
-                line_width=3, line_color="cyan" if darkTheme else "#333333", line_alpha=1, legend_label=legendNameZigZag,
+                line_width=3, line_color="cyan" if darkTheme else "#333333", line_alpha=1, legend_label=legendNameZigZag if showControlsOnChart else "",
             ))
 
             for item in disabledObjects:
