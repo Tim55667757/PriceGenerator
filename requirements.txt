@@ -10,4 +10,4 @@ matplotlib >= 3.3.4  # PSF license
 python-dateutil >= 2.8.1  # Apache-2.0 license
 jinja2 >= 2.11.3  # BSD-3-Clause license
 pandas_ta >= 0.3.14b0  # MIT License
-notebook >= 6.5.2 # BSD License
+notebook >= 6.5.2  # BSD License
