@@ -438,6 +438,8 @@ Also, you can manipulate with chart and adding lines or markers to the main char
 
 `lines` is a list with custom series, where additional chart-lines will place on main series. `None` by default. Line data must contain at least two columns. There are `datetime` with date and time and `custom_line_name` with y-coordinates. Length of the chart-line dataframes must be equal to the length of main candle series.
 
+Example:
+
 ```python
 from pricegenerator.PriceGenerator import PriceGenerator, uLogger
 from datetime import datetime, timedelta

@@ -433,9 +433,11 @@ priceModel.RenderBokeh(fileName="index.html", viewInBrowser=True)
 
 Также вы можете манипулировать графиком и добавлять новые линии или маркеры на основной график. Используйте для этого параметры `markers` и `lines`.
 
-Лист `markers` содержит новые ряды, которые показывают, какой маркер нанести для той или иной свечи. `None` by default. One marker is a custom symbol, e.g. ×, ↓ or ↑ or anyone else. Marker data must contain at least two columns. There are `datetime` with date and time and some markers columns (`markersUpper`, `markersCenter` or `markersLower`). Length of marker dataframes must be equal to the length of main candle series.
+Лист `markers` содержит ряды, которые показывают, какой маркер нанести для той или иной свечи. `None` по умолчанию. Маркер представляет собой некоторый символ, например, ×, ↓ или ↑ или какой-либо другой. Датафрейм с маркерами должен содержать, как минимум, два столбца. Это столбец `datetime`, с датой и временем, и один из столбцов или все сразу: `markersUpper`, `markersCenter` или `markersLower`, с маркерами, которые нужно поставить сверху, по центру или снизу свечи соответственно. Длины рядов с маркерами должны быть равны длине основного ряда со свечами.
 
-`lines` is a list with custom series, where additional chart-lines will place on main series. `None` by default. Line data must contain at least two columns. There are `datetime` with date and time and `custom_line_name` with y-coordinates. Length of the chart-line dataframes must be equal to the length of main candle series.
+Лист `lines` содержит ряды с данными о точках новых линий, которые нужно разместить на основном свечном графике. `None` по умолчанию. Датафрейм с линиями должен содержать, как минимум, два столбца. Это `datetime`, с датой и временем, и произвольно названный столбец `custom_line_name`, с y-координатами точек линии. Длины рядов с точками линий должны быть равны длине основного ряда со свечами.
+
+Пример:
 
 ```python
 from pricegenerator.PriceGenerator import PriceGenerator, uLogger
