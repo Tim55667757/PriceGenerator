@@ -153,6 +153,9 @@ optional arguments:
                         ZigZag indicator, 0.03 by default.
   --sep SEP             Option: separator in csv-file, if None then auto-
                         detecting enable.
+  --dark DARK           Option: if key present, then will be used dark theme
+                        for the `--render-bokeh` key. `False` by default for
+                        light theme.
   --debug-level DEBUG_LEVEL
                         Option: showing STDOUT messages of minimal debug
                         level, e.g., 10 = DEBUG, 20 = INFO, 30 = WARNING, 40 =
