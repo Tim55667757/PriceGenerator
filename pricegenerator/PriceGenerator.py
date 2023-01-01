@@ -42,7 +42,7 @@ import random
 from bokeh.plotting import figure, save, output_file, ColumnDataSource
 from bokeh.models import Legend, HoverTool, Range1d, NumeralTickFormatter
 from bokeh.layouts import gridplot
-from bokeh.io import output_notebook,show
+from bokeh.io import output_notebook, show
 from bokeh.resources import INLINE
 import jinja2
 
@@ -221,7 +221,7 @@ class PriceGenerator:
         self.j2model = None  # dictionary of variables for jinja2 template, if None then auto-generating for default google_template.j2
 
         self._precision = 2  # signs after comma
-        self._deg10prec = 10 ** 2  # 10^precision is used for some formulas
+        self._deg10prec = 100  # 10^precision is used for some formulas
 
         self.ticker = "TEST"  # some fake ticker name
         self.timeframe = timedelta(hours=1)  # time delta between two neighbour candles, 1 hour by default
@@ -607,7 +607,7 @@ class PriceGenerator:
             "- Cumulative sum of volumes: {}".format(self.stat["cumSumVolumes"]),
         ]
 
-        uLogger.info("Some statistical info:\n{}".format("\n".join(summary)))
+        uLogger.info("Some statistics:\n{}".format("\n".join(summary)))
 
         return summary
 
@@ -781,9 +781,9 @@ class PriceGenerator:
 
     def RenderBokeh(
             self, fileName: Optional[str] = "index.html", viewInBrowser: bool = False,
-            darkTheme: bool = False, layouts: Optional[list] = None,
-            title: Optional[str] = None, width: Optional[int] = 1800, height: Optional[int] = 990,
-            showStatOnChart: bool = True, showControlsOnChart: bool = True, nbInLine: bool = False,
+            darkTheme: bool = False, markers: Optional[list[pd.DataFrame]] = None, lines: Optional[list[pd.DataFrame]] = None,
+            title: Optional[str] = None, width: Optional[int] = 1800, height: Optional[int] = 940,
+            showStatOnChart: bool = True, showControlsOnChart: bool = True, inline: bool = False,
     ) -> Optional[gridplot]:
         """
         Rendering prices from Pandas DataFrame as OHLCV Bokeh chart of candlesticks and save it to HTML-file.
@@ -794,14 +794,19 @@ class PriceGenerator:
         :param fileName: HTML-file path to save Bokeh chart. `index.html` by default.
         :param viewInBrowser: If `True`, then immediately opens HTML chart in browser after rendering. `False` by default.
         :param darkTheme: chart theme. `False` by default, mean that will be used light theme, `False` mean dark theme.
-        :param layouts: list with additional chart object that can be placed with the method `add_layout`
-                        to the `bokeh.models.plots.Plot` object. `None` by default.
+        :param markers: list with custom series, where additional markers will place on main series. `None` by default.
+                        Marker is a custom symbol, e.g. ×, ↓ or ↑. Marker data must contain at least two columns. There are `datetime`
+                        with date and time and some markers columns (`markersUpper`, `markersCenter` or `markersLower`).
+                        Length of marker dataframes must be equal to the length of main candle series.
+        :param lines: list with custom series, where additional chart-lines will place on main series. `None` by default.
+                      Line data must contain at least two columns. There are `datetime` with date and time and
+                      `custom_line_name` with y-coordinates. Length of the chart-line dataframes must be equal to the length of main candle series.
         :param title: specific chart title. If `None`, then used auto-generated title. `None` by default.
         :param width: chart width. If `None`, then used auto-width. 1800 px by default.
-        :param height: chart height. If `None`, then used auto-height. 990 px by default.
+        :param height: chart height. If `None`, then used auto-height. 940 px by default.
         :param showStatOnChart: add statistics block on chart, `True` by default.
         :param showControlsOnChart: add controls block on chart, `True` by default.
-        :param nbInLine: if `True`, then output chart in Jupyter Notebook cell. `False` by default.
+        :param inline: if `True`, then output chart in Jupyter Notebook cell. `False` by default.
         :return: bokeh.layouts.gridplot with all layouts objects or None.
         """
         if self.prices is None or self.prices.empty:
@@ -820,7 +825,7 @@ class PriceGenerator:
             uLogger.debug("Preparing Bokeh chart configuration...")
             uLogger.debug("Title: {}".format(title))
 
-            if nbInLine:
+            if inline:
                 output_notebook(resources=INLINE, verbose=False, hide_banner=True)  # set output to notebook cell
 
             # --- Preparing Main chart:
@@ -1109,6 +1114,52 @@ class PriceGenerator:
             for item in disabledObjects:
                 item.visible = False
 
+            # --- Preparing custom markers:
+
+            if markers is not None and isinstance(markers, list) and markers:
+                for marker in markers:
+                    if isinstance(marker, pd.DataFrame) and len(marker.axes) >= 2 and "datetime" in marker.columns and ("markersUpper" in marker.columns or "markersCenter" in marker.columns or "markersLower" in marker.columns):
+                        if "markersUpper" in marker.columns:
+                            chart.text(
+                                marker.datetime.values, self.prices.high + 0.5,
+                                text_align="center", text_baseline="bottom",
+                                text=marker.markersUpper.values, angle=0, text_color="lime" if darkTheme else "black",
+                                text_font_size="13pt", legend_label="Markers: upper" if showControlsOnChart else "",
+                            )
+
+                        if "markersCenter" in marker.columns:
+                            chart.text(
+                                marker.datetime.values, self.prices.avg,
+                                text_align="center", text_baseline="middle",
+                                text=marker.markersCenter.values, angle=0, text_color="red" if darkTheme else "black",
+                                text_font_size="13pt", legend_label="Markers: center" if showControlsOnChart else "",
+                            )
+
+                        if "markersLower" in marker.columns:
+                            chart.text(
+                                marker.datetime.values, self.prices.low - 0.5,
+                                text_align="center", text_baseline="top",
+                                text=marker.markersLower.values, angle=0, text_color="lime" if darkTheme else "black",
+                                text_font_size="13pt", legend_label="Markers: lower" if showControlsOnChart else "",
+                            )
+
+                    else:
+                        uLogger.warning("Every custom marker must be the Pandas Dataframe object! Marker is a custom symbol, e.g. ×, ↓ or ↑. Marker data must contain at least two columns. There are `datetime` with date and time and some markers columns (`markersUpper`, `markersCenter` or `markersLower`). Length of marker dataframes must be equal to the length of main candle series.")
+
+            # --- Preparing custom lines:
+
+            if lines is not None and isinstance(lines, list) and lines:
+                for line in lines:
+                    if isinstance(line, pd.DataFrame) and len(line.axes) >= 2 and "datetime" in line.columns:
+                        chart.line(
+                            line.datetime, line[line.columns[1]],
+                            line_width=3, line_color="red" if darkTheme else "#666666", line_alpha=1,
+                            legend_label="Line: " + line.columns[1] if showControlsOnChart else "",
+                        )
+
+                    else:
+                        uLogger.warning("Every custom line must be the Pandas Dataframe object! Line data must contain at least two columns: `datetime` with date and time and 2-nd column `custom_line_name` with y-coordinates. Length of the chart-line dataframes must be equal to the length of main candle series.")
+
             # --- Volume chart options:
             volumeChart = figure(
                 x_axis_type="datetime",
@@ -1186,20 +1237,21 @@ class PriceGenerator:
             )
             unionChart.toolbar.logo = None
 
-            if nbInLine:
-                show(unionChart)
+            if inline:
+                show(unionChart, notebook_handle=True)
 
-            # preparing html-file chart and statistics in markdown:
-            if fileName:
-                output_file(fileName, title=self._chartTitle, mode="cdn")
-                save(unionChart)
-                with open("{}.md".format(fileName), "w", encoding="UTF-8") as fH:
-                    fH.write("\n".join(infoBlock))
+            else:
+                # preparing html-file chart and statistics in markdown:
+                if fileName:
+                    output_file(fileName, title=self._chartTitle, mode="cdn")
+                    save(unionChart, fileName)
+                    with open("{}.md".format(fileName), "w", encoding="UTF-8") as fH:
+                        fH.write("\n".join(infoBlock))
 
-                uLogger.info("Pandas dataframe rendered as html-file [{}]".format(os.path.abspath(fileName)))
+                    uLogger.info("Pandas dataframe rendered as html-file [{}]".format(os.path.abspath(fileName)))
 
-                if viewInBrowser:
-                    os.system(os.path.abspath(fileName))  # view forecast chart in default browser immediately
+                    if viewInBrowser:
+                        os.system(os.path.abspath(fileName))  # view forecast chart in default browser immediately
 
             return unionChart
 
