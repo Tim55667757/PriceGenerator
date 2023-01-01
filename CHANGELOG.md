@@ -7,7 +7,15 @@
 * 🎁 Support the project with a donation to our yoomoney-wallet: [410015019068268](https://yoomoney.ru/quickpay/shop-widget?writer=seller&targets=Donat%20(gift)%20for%20the%20authors%20of%20the%20PriceGenerator%20project&default-sum=999&button-text=13&payment-type-choice=on&successURL=https%3A%2F%2Ftim55667757.github.io%2FPriceGenerator%2F&quickpay=shop&account=410015019068268)
 
 
-### [1.2.58 (2021-12-09)](https://github.com/Tim55667757/PriceGenerator/releases/tag/1.2.58) — stable release
+### [1.2.* (2023-01-*)](https://github.com/Tim55667757/PriceGenerator/releases/tag/) — preparing for release
+
+##### New features
+
+* Python version support was changed to 3.9.
+* [#17](https://github.com/Tim55667757/PriceGenerator/issues/17) Into the `RenderBokeh()` method was added `layouts` parameter. You can add new Bokeh Chart-objects on the Main Chart with that parameter. Also, `darkTheme` parameter was added. If it `True`, then will be used dark theme, `False` (by default) mean light theme. Also, you can manipulate with chart and adding lines or markers to the main chart. Use `markers` and `lines` parameters for it. `markers` is a list with custom series, where additional markers will place on main series. `None` by default. One marker is a custom symbol, e.g. ×, ↓ or ↑ or anyone else. Marker data must contain at least two columns. There are `datetime` with date and time and some markers columns (`markersUpper`, `markersCenter` or `markersLower`). Length of marker dataframes must be equal to the length of main candle series. `lines` is a list with custom series, where additional chart-lines will place on main series. `None` by default. Line data must contain at least two columns. There are `datetime` with date and time and `custom_line_name` with y-coordinates. Length of the chart-line dataframes must be equal to the length of main candle series.
+
+
+### [1.2.58 (2021-12-09)](https://github.com/Tim55667757/PriceGenerator/releases/tag/1.2.58) — released
 
 ##### New features
 
@@ -17,7 +25,7 @@
   * The `--split-count` key set count of candles of difference periods, e.g. `--split-count 5 10 15` means that generated candles has 3 trends with 5, 10 and 15 candles in chain.
 
 
-### [1.2.46 (2021-02-28)](https://github.com/Tim55667757/PriceGenerator/releases/tag/1.2.46)
+### [1.2.46 (2021-02-28)](https://github.com/Tim55667757/PriceGenerator/releases/tag/1.2.46) — released
 
 ##### New features
 
@@ -45,7 +53,7 @@
 * Not-detected timeframe when rendering from Pandas DataFrame without loading from file was fixed.
 
 
-### [1.1.30 (2021-02-20)](https://github.com/Tim55667757/PriceGenerator/releases/tag/1.1.30)
+### [1.1.30 (2021-02-20)](https://github.com/Tim55667757/PriceGenerator/releases/tag/1.1.30) — released
 
 ##### New features
 
@@ -57,7 +65,7 @@
 * Extended examples were added. See examples in [`README.md`](https://github.com/Tim55667757/PriceGenerator/blob/master/README.md) (english) and [`README_RU.md`](https://github.com/Tim55667757/PriceGenerator/blob/master/README_RU.md) (russian).
 
 
-### [1.0.19 (2021-02-05)](https://github.com/Tim55667757/PriceGenerator/releases/tag/1.0.19)
+### [1.0.19 (2021-02-05)](https://github.com/Tim55667757/PriceGenerator/releases/tag/1.0.19) — released
 
 ##### Retrospective
 
