@@ -8,7 +8,7 @@
 [![gift](https://badgen.net/badge/gift/donate/green)](https://yoomoney.ru/quickpay/shop-widget?writer=seller&targets=%D0%94%D0%BE%D0%BD%D0%B0%D1%82%20(%D0%BF%D0%BE%D0%B4%D0%B0%D1%80%D0%BE%D0%BA)%20%D0%B4%D0%BB%D1%8F%20%D0%B0%D0%B2%D1%82%D0%BE%D1%80%D0%BE%D0%B2%20%D0%BF%D1%80%D0%BE%D0%B5%D0%BA%D1%82%D0%B0%20PriceGenerator&default-sum=999&button-text=13&payment-type-choice=on&successURL=https%3A%2F%2Ftim55667757.github.io%2FPriceGenerator%2F&quickpay=shop&account=410015019068268)
 
 * 🇺🇸 [See current documentation in english here (актуальная документация на английском)](https://tim55667757.github.io/PriceGenerator/)
-* 📚 [Релиз-ноты](https://github.com/Tim55667757/PriceGenerator/blob/master/CHANGELOG_RU.md)
+* 📚 [Релиз-ноты](https://github.com/Tim55667757/PriceGenerator/blob/develop/CHANGELOG_RU.md)
 * 🎁 Поддержать проект донатом на ЮМани-кошелёк: [410015019068268](https://yoomoney.ru/quickpay/shop-widget?writer=seller&targets=%D0%94%D0%BE%D0%BD%D0%B0%D1%82%20(%D0%BF%D0%BE%D0%B4%D0%B0%D1%80%D0%BE%D0%BA)%20%D0%B4%D0%BB%D1%8F%20%D0%B0%D0%B2%D1%82%D0%BE%D1%80%D0%BE%D0%B2%20%D0%BF%D1%80%D0%BE%D0%B5%D0%BA%D1%82%D0%B0%20PriceGenerator&default-sum=999&button-text=13&payment-type-choice=on&successURL=https%3A%2F%2Ftim55667757.github.io%2FPriceGenerator%2F&quickpay=shop&account=410015019068268)
 
 **Содержание**
@@ -335,6 +335,8 @@ pricegenerator --debug-level 10 --ticker "MY_PRICES" --precision 2 --timeframe 2
 - `--generate` — запустить генерацию цен;
 - `--render-bokeh index_custom.html` — сохранить сгенерированные цены в файл index_custom.html и открыть его в браузере.
 
+По умолчанию используется светлая тема для графиков. Но если вы используете ключ `--render-bokeh`, вы также можете добавить к команде ключ `--dark`. В этом случае график будет отрисован в тёмном стиле:
+
 ![](./media/index_custom.html.png)
 
 В результате выполнения команды у вас получится свой уникальный график случайных цен с переопределёнными базовыми параметрами генератора. У нас получились вот такие артефакты:
@@ -355,10 +357,10 @@ pricegenerator --debug-level 10 --ticker "MY_PRICES" --precision 2 --timeframe 2
 Чтобы понять, как это работает, попробуйте один из следующих примеров:
 
 ```commandline
-pricegenerator --horizon 300 --render-bokeh index.html --split-trend=/\- --split-count 50 100 150 --generate
-pricegenerator --horizon 300 --render-bokeh index.html --split-trend=\/\ --split-count 50 100 150 --generate
-pricegenerator --horizon 300 --render-bokeh index.html --split-trend=\-/ --split-count 50 100 150 --generate
-pricegenerator --horizon 100 --render-bokeh index.html --split-trend=/\/\ --split-count 20 30 30 20 --generate
+pricegenerator --horizon 300 --render-bokeh index.html --split-trend="/\-" --split-count 50 100 150 --generate
+pricegenerator --horizon 300 --render-bokeh index.html --split-trend="\/\" --split-count 50 100 150 --generate
+pricegenerator --horizon 300 --render-bokeh index.html --split-trend="\-/" --split-count 50 100 150 --generate
+pricegenerator --horizon 100 --render-bokeh index.html --split-trend="/\/\" --split-count 20 30 30 20 --generate
 ```
 
 Для последнего примера вы можете получить картинку движения цены, похожую на эту:
@@ -429,7 +431,61 @@ priceModel.RenderBokeh(fileName="index.html", viewInBrowser=True)
 
 При запуске скрипта вы получите аналогичный вывод в логи, три файла: `test.csv`, `index.html` и `index.html.md`, а также html-файл с графиком цен будет сразу же открыт в браузере. Вы можете самостоятельно поэкспериментировать с параметрами класса `PriceGenerator()` для генерации цен подходящих под ваши условия.
 
+Также вы можете манипулировать графиком и добавлять новые линии или маркеры на основной график. Используйте для этого параметры `markers` и `lines`.
 
-Успехов вам в автоматизации и тестировании биржевой торговли! ;)
+Лист `markers` содержит новые ряды, которые показывают, какой маркер нанести для той или иной свечи. `None` by default. One marker is a custom symbol, e.g. ×, ↓ or ↑ or anyone else. Marker data must contain at least two columns. There are `datetime` with date and time and some markers columns (`markersUpper`, `markersCenter` or `markersLower`). Length of marker dataframes must be equal to the length of main candle series.
+
+`lines` is a list with custom series, where additional chart-lines will place on main series. `None` by default. Line data must contain at least two columns. There are `datetime` with date and time and `custom_line_name` with y-coordinates. Length of the chart-line dataframes must be equal to the length of main candle series.
+
+```python
+from pricegenerator.PriceGenerator import PriceGenerator, uLogger
+from datetime import datetime, timedelta
+import pandas as pd
+
+uLogger.setLevel(0)  # Отключаем излишнее логирование для этого примера.
+
+# Инициализируем PriceGenerator:
+priceModel = PriceGenerator()
+priceModel.ticker = "TEST_PRICES"
+priceModel.precision = 0
+priceModel.timeframe = timedelta(days=1)
+priceModel.timeStart = datetime.today()
+priceModel.horizon = 75
+priceModel.maxClose = 140
+priceModel.minClose = 40
+priceModel.initClose = 50
+priceModel.maxOutlier = 35
+priceModel.maxCandleBody = 15
+priceModel.maxVolume = 400000
+priceModel.upCandlesProb = 0.51
+priceModel.outliersProb = 0.1
+priceModel.trendDeviation = 0.005
+priceModel.trendSplit = "/\/"
+priceModel.splitCount = [40, 10, 25]
+
+priceModel.Generate()  # Генерируем основную серию свечей.
+
+# Давайте построим новую среднюю линию на основном графике и установим маркеры сверху, по центру и снизу свечей:
+priceModel.prices["avg"] = priceModel.prices.low + (priceModel.prices.high - priceModel.prices.low) / 2
+priceModel.prices["markersUpper"] = pd.Series(["↓"] * len(priceModel.prices.high))
+priceModel.prices["markersCenter"] = pd.Series(["×"] * len(priceModel.prices.avg))
+priceModel.prices["markersLower"] = pd.Series(["↑"] * len(priceModel.prices.low))
+priceModel.RenderBokeh(
+    fileName="index1.html",
+    viewInBrowser=True,
+    darkTheme=True,  # Установите `False` для переключения светлой темы.
+    markers=[priceModel.prices[["datetime", "markersUpper", "markersCenter", "markersLower"]]],
+    lines=[priceModel.prices[["datetime", "avg"]]],
+    showStatOnChart=True,
+    showControlsOnChart=True,
+    inline=True,  # Раскомментируйте, если скрипт запускается в Jupyter Notebook.
+)
+```
+
+Вывод скрипта:
+
+![Marked chart](./media/marked_dark.png)
+
+На этом всё. Успехов вам в автоматизации и тестировании биржевых торговых стратегий! ;)
 
 [![gift](https://badgen.net/badge/gift/donate/green)](https://yoomoney.ru/quickpay/shop-widget?writer=seller&targets=%D0%94%D0%BE%D0%BD%D0%B0%D1%82%20(%D0%BF%D0%BE%D0%B4%D0%B0%D1%80%D0%BE%D0%BA)%20%D0%B4%D0%BB%D1%8F%20%D0%B0%D0%B2%D1%82%D0%BE%D1%80%D0%BE%D0%B2%20%D0%BF%D1%80%D0%BE%D0%B5%D0%BA%D1%82%D0%B0%20PriceGenerator&default-sum=999&button-text=13&payment-type-choice=on&successURL=https%3A%2F%2Ftim55667757.github.io%2FPriceGenerator%2F&quickpay=shop&account=410015019068268)

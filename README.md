@@ -8,7 +8,7 @@ A simple price generator similar to real stock prices, but you can control the s
 [![gift](https://badgen.net/badge/gift/donate/green)](https://yoomoney.ru/quickpay/shop-widget?writer=seller&targets=Donat%20(gift)%20for%20the%20authors%20of%20the%20PriceGenerator%20project&default-sum=999&button-text=13&payment-type-choice=on&successURL=https%3A%2F%2Ftim55667757.github.io%2FPriceGenerator%2F&quickpay=shop&account=410015019068268)
 
 * 🇷🇺 [Документация на русском (see documentation in russian here)](https://github.com/Tim55667757/PriceGenerator/blob/master/README_RU.md)
-* 📚 [Release notes](https://github.com/Tim55667757/PriceGenerator/blob/master/CHANGELOG.md)
+* 📚 [Release notes](https://github.com/Tim55667757/PriceGenerator/blob/develop/CHANGELOG.md)
 * 🎁 Support the project with a donation to our yoomoney-wallet: [410015019068268](https://yoomoney.ru/quickpay/shop-widget?writer=seller&targets=Donat%20(gift)%20for%20the%20authors%20of%20the%20PriceGenerator%20project&default-sum=999&button-text=13&payment-type-choice=on&successURL=https%3A%2F%2Ftim55667757.github.io%2FPriceGenerator%2F&quickpay=shop&account=410015019068268)
 
 **Contents**
@@ -312,7 +312,7 @@ As a result of executing the command, you will receive a chart [./media/index_go
 
 #### Overriding parameters
 
-Let's change some of the default parameters that affect price generation and draw our own unique chart:
+Let's change some default parameters that affect price generation and draw our own unique chart:
 ```commandline
 pricegenerator --debug-level 10 --ticker "MY_PRICES" --precision 2 --timeframe 240 --start "2020-01-01 00:00" --horizon 150 --max-close 18000 --min-close 14000 --init-close 15000 --max-outlier 1000 --max-body 500 --max-volume 400000 --up-candles-prob 0.48 --outliers-prob 0.05 --trend-deviation 0.03 --zigzag 0.03 --generate --render-bokeh index_custom.html
 ``` 
@@ -326,7 +326,7 @@ Parameters mean:
 - `--max-close 18000` — the maximum closing price of any candle should be no more than 18000;
 - `--min-close 14000` — the minimum closing price of any candle should be no more than 14000;
 - `--init-close 15000` — the closing price of the "previous" and, accordingly, the opening price of the first generated candle should be equal to 15000;
-- `--max-outlier 1000` — if the candle has "outliers" and "tails" then they sizes should be no more than 1000;
+- `--max-outlier 1000` — if the candle has "outliers" and "tails" then they size should be no more than 1000;
 - `--max-body 500` — the maximum size of the "body" of the candle should be no more than 500;
 - `--max-volume 400000` — the maximum trading volume for each candle should be no more than 400000;
 - `--up-candles-prob 0.48` — set the probability that the next candlestick will be up, equal to 0.48 (48%);
@@ -335,6 +335,8 @@ Parameters mean:
 - `--zigzag 0.03` — relative difference between two points of ZigZag indicator;
 - `--generate` — begin to price generate;
 - `--render-bokeh index_custom.html` — save the generated prices in the index_custom.html file and open it in the default browser.
+
+Chart style is light by default. If you are using `--render-bokeh` key, also you can add to the command above `--dark` key. In this case chart will be shown with dark-mode style:
 
 ![](./media/index_custom.html.png)
 
@@ -356,10 +358,10 @@ The `--split-count` key set count of candles of difference periods, e.g. `--spli
 To understand how it works, try one of these examples:
 
 ```commandline
-pricegenerator --horizon 300 --render-bokeh index.html --split-trend=/\- --split-count 50 100 150 --generate
-pricegenerator --horizon 300 --render-bokeh index.html --split-trend=\/\ --split-count 50 100 150 --generate
-pricegenerator --horizon 300 --render-bokeh index.html --split-trend=\-/ --split-count 50 100 150 --generate
-pricegenerator --horizon 100 --render-bokeh index.html --split-trend=/\/\ --split-count 20 30 30 20 --generate
+pricegenerator --horizon 300 --render-bokeh index.html --split-trend="/\-" --split-count 50 100 150 --generate
+pricegenerator --horizon 300 --render-bokeh index.html --split-trend="\/\" --split-count 50 100 150 --generate
+pricegenerator --horizon 300 --render-bokeh index.html --split-trend="\-/" --split-count 50 100 150 --generate
+pricegenerator --horizon 100 --render-bokeh index.html --split-trend="/\/\" --split-count 20 30 30 20 --generate
 ```
 
 For the last example, you can get a picture like this:
@@ -385,9 +387,9 @@ priceModel.timeframe = timedelta(days=1)  # time interval between generated cand
 priceModel.timeStart = datetime.today()  # from what date to start generating candles, by default from the current time
 priceModel.horizon = 60  # how many candles to generate, there must be at least 5, by default 100
 priceModel.maxClose = 16000  # the highest candlestick closing price in the entire price chain
-                             # by default it is generated randomly in the interval (70, 90), it is similar to the current prices of USDRUB
+                             # by default, it is generated randomly in the interval (70, 90), it is similar to the current prices of USDRUB
 priceModel.minClose = 13800  # the lowest candlestick closing price in the entire price chain
-                             # by default it is generated randomly in the interval (60, 70), it is similar to the current prices of USDRUB
+                             # by default, it is generated randomly in the interval (60, 70), it is similar to the current prices of USDRUB
 priceModel.initClose = 14400  # if a price is specified, it will be the closing price like the "previous" candlestick, and at the same time the opening price of the first candlestick in the generated chain
                               # None by default means that the opening price of the first candle will be generated randomly in the interval (minClose, maxClose)
 priceModel.maxOutlier = 500  # The maximum value for the price outlier of the "tails" of the candles.
@@ -430,7 +432,61 @@ priceModel.RenderBokeh(fileName="index.html", viewInBrowser=True)
 
 When you run the script, you will receive a similar output to the logs, three files: `test.csv`,` index.html` and `index.html.md`. As well as the html-file with the price chart will be immediately opened in the browser. You can independently experiment with the parameters of the `PriceGenerator()` class to generate prices suitable for your conditions.
 
+Also, you can manipulate with chart and adding lines or markers to the main chart. Use `markers` and `lines` parameters for it.
 
-Good luck for you in automating and testing stock trading! ;)
+`markers` is a list with custom series, where additional markers will place on main series. `None` by default. One marker is a custom symbol, e.g. ×, ↓ or ↑ or anyone else. Marker data must contain at least two columns. There are `datetime` with date and time and some markers columns (`markersUpper`, `markersCenter` or `markersLower`). Length of marker dataframes must be equal to the length of main candle series.
+
+`lines` is a list with custom series, where additional chart-lines will place on main series. `None` by default. Line data must contain at least two columns. There are `datetime` with date and time and `custom_line_name` with y-coordinates. Length of the chart-line dataframes must be equal to the length of main candle series.
+
+```python
+from pricegenerator.PriceGenerator import PriceGenerator, uLogger
+from datetime import datetime, timedelta
+import pandas as pd
+
+uLogger.setLevel(0)  # Disable logging messages.
+
+# Initialize PriceGenerator:
+priceModel = PriceGenerator()
+priceModel.ticker = "TEST_PRICES"
+priceModel.precision = 0
+priceModel.timeframe = timedelta(days=1)
+priceModel.timeStart = datetime.today()
+priceModel.horizon = 75
+priceModel.maxClose = 140
+priceModel.minClose = 40
+priceModel.initClose = 50
+priceModel.maxOutlier = 35
+priceModel.maxCandleBody = 15
+priceModel.maxVolume = 400000
+priceModel.upCandlesProb = 0.51
+priceModel.outliersProb = 0.1
+priceModel.trendDeviation = 0.005
+priceModel.trendSplit = "/\/"
+priceModel.splitCount = [40, 10, 25]
+
+priceModel.Generate()  # Generate main candles series.
+
+# Let's draw new average line on the main chart and set markers on the top, center and bottom of candles:
+priceModel.prices["avg"] = priceModel.prices.low + (priceModel.prices.high - priceModel.prices.low) / 2
+priceModel.prices["markersUpper"] = pd.Series(["↓"] * len(priceModel.prices.high))
+priceModel.prices["markersCenter"] = pd.Series(["×"] * len(priceModel.prices.avg))
+priceModel.prices["markersLower"] = pd.Series(["↑"] * len(priceModel.prices.low))
+priceModel.RenderBokeh(
+    fileName="index1.html",
+    viewInBrowser=True,
+    darkTheme=True,  # Set `False` for light theme.
+    markers=[priceModel.prices[["datetime", "markersUpper", "markersCenter", "markersLower"]]],
+    lines=[priceModel.prices[["datetime", "avg"]]],
+    showStatOnChart=True,
+    showControlsOnChart=True,
+    inline=True,  # Uncomment if script runs in Jupyter Notebook.
+)
+```
+
+Output:
+
+![Marked chart](./media/marked_dark.png)
+
+That's all! Good luck for you in automating and testing stock trading! ;)
 
 [![gift](https://badgen.net/badge/gift/donate/green)](https://yoomoney.ru/quickpay/shop-widget?writer=seller&targets=Donat%20(gift)%20for%20the%20authors%20of%20the%20PriceGenerator%20project&default-sum=999&button-text=13&payment-type-choice=on&successURL=https%3A%2F%2Ftim55667757.github.io%2FPriceGenerator%2F&quickpay=shop&account=410015019068268)
