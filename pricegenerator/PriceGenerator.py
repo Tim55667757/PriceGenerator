@@ -42,6 +42,8 @@ import random
 from bokeh.plotting import figure, save, output_file, ColumnDataSource
 from bokeh.models import Legend, HoverTool, Range1d, NumeralTickFormatter
 from bokeh.layouts import gridplot
+from bokeh.io import output_notebook,show
+from bokeh.resources import INLINE
 import jinja2
 
 import pricegenerator.UniLogger as uLog
@@ -602,7 +604,7 @@ class PriceGenerator:
             "  - 99 percentile: ≤ {}".format(round(self.stat["deltas"]["q99"], self.precision)),
             "  - 95 percentile: ≤ {}".format(round(self.stat["deltas"]["q95"], self.precision)),
             "  - 80 percentile: ≤ {}".format(round(self.stat["deltas"]["q80"], self.precision)),
-            "- Cumulative sum of volumes:   {}".format(self.stat["cumSumVolumes"]),
+            "- Cumulative sum of volumes: {}".format(self.stat["cumSumVolumes"]),
         ]
 
         uLogger.info("Some statistical info:\n{}".format("\n".join(summary)))
@@ -781,7 +783,7 @@ class PriceGenerator:
             self, fileName: Optional[str] = "index.html", viewInBrowser: bool = False,
             darkTheme: bool = False, layouts: Optional[list] = None,
             title: Optional[str] = None, width: Optional[int] = 1800, height: Optional[int] = 990,
-            showStatOnChart: bool = True, showControlsOnChart: bool = True,
+            showStatOnChart: bool = True, showControlsOnChart: bool = True, nbInLine: bool = False,
     ) -> Optional[gridplot]:
         """
         Rendering prices from Pandas DataFrame as OHLCV Bokeh chart of candlesticks and save it to HTML-file.
@@ -799,12 +801,9 @@ class PriceGenerator:
         :param height: chart height. If `None`, then used auto-height. 990 px by default.
         :param showStatOnChart: add statistics block on chart, `True` by default.
         :param showControlsOnChart: add controls block on chart, `True` by default.
+        :param nbInLine: if `True`, then output chart in Jupyter Notebook cell. `False` by default.
         :return: bokeh.layouts.gridplot with all layouts objects or None.
         """
-        title = self._chartTitle if title is None or not title else title  # chart title
-        width = 1200 if width is None or width <= 0 else width  # chart summary width
-        height = 800 if height is None or height <= 0 else height - 90  # chart summary height
-
         if self.prices is None or self.prices.empty:
             raise Exception("Empty price data! Generate or load prices before show as Bokeh chart!")
 
@@ -814,8 +813,15 @@ class PriceGenerator:
             self.DetectTimeframe()  # auto-detect time delta between last two neighbour candles
             infoBlock = self.GetStatistics()  # calculating some indicators
 
+            title = self._chartTitle if title is None or not title else title  # chart title
+            width = 1200 if width is None or width <= 0 else width  # chart summary width
+            height = 800 if height is None or height <= 0 else height - 90  # chart summary height
+
             uLogger.debug("Preparing Bokeh chart configuration...")
-            uLogger.debug("Title: {}".format(self._chartTitle))
+            uLogger.debug("Title: {}".format(title))
+
+            if nbInLine:
+                output_notebook(resources=INLINE, verbose=False, hide_banner=True)  # set output to notebook cell
 
             # --- Preparing Main chart:
             chart = figure(
@@ -1180,6 +1186,9 @@ class PriceGenerator:
             )
             unionChart.toolbar.logo = None
 
+            if nbInLine:
+                show(unionChart)
+
             # preparing html-file chart and statistics in markdown:
             if fileName:
                 output_file(fileName, title=self._chartTitle, mode="cdn")
@@ -1187,19 +1196,22 @@ class PriceGenerator:
                 with open("{}.md".format(fileName), "w", encoding="UTF-8") as fH:
                     fH.write("\n".join(infoBlock))
 
+                uLogger.info("Pandas dataframe rendered as html-file [{}]".format(os.path.abspath(fileName)))
+
                 if viewInBrowser:
                     os.system(os.path.abspath(fileName))  # view forecast chart in default browser immediately
 
-            uLogger.info("Pandas dataframe rendered as html-file [{}]".format(os.path.abspath(fileName)))
-
             return unionChart
 
-    def RenderGoogle(self, fileName="index.html", viewInBrowser=False):
+    def RenderGoogle(self, fileName: str = "index.html", viewInBrowser: bool = False, title: Optional[str] = None):
         """
         Rendering prices from pandas dataframe to not interactive Google Candlestick chart and save to html-file.
-        See: https://developers.google.com/chart/interactive/docs/gallery/candlestickchart
+
+        See also: https://developers.google.com/chart/interactive/docs/gallery/candlestickchart
+
         :param fileName: html-file path to save Google Candlestick chart.
         :param viewInBrowser: If True, then immediately opens html in browser after rendering.
+        :param title: specific chart title. If `None`, then used auto-generated title. `None` by default.
         """
         if self.prices is None or self.prices.empty:
             raise Exception("Empty price data! Generate or load prices before show as Google Candlestick chart!")
@@ -1210,9 +1222,11 @@ class PriceGenerator:
             self.DetectTimeframe()  # auto-detect time delta between last two neighbour candles
             infoBlock = self.GetStatistics()  # calculating some indicators
 
+            title = self._chartTitle if title is None or not title else title  # chart title
+
             if self.j2model is None or not self.j2model:
                 uLogger.debug("Preparing Google Candlestick chart configuration...")
-                self.j2model = {"info": infoBlock, "title": self._chartTitle}
+                self.j2model = {"info": infoBlock, "title": title}
                 googleDates = [pd.to_datetime(date).strftime("%Y-%m-%d %H:%M:%S") for date in self.prices.datetime.values]
                 data = zip(googleDates, self.prices.low, self.prices.open, self.prices.close, self.prices.high)
                 self.j2model["candlesData"] = [list(x) for x in data]
