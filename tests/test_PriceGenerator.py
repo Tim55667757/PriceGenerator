@@ -115,20 +115,28 @@ class TestFeatures:
         assert list(self.model.prices) == headers, "Expected headers: {}".format(headers)
 
     def test_DetectPrecision(self):
+        """
+        See also about statistics.mode: https://docs.python.org/3.9/library/statistics.html#statistics.mode
+        Changed in Python version >= 3.8: Now mode() method handles multimodal datasets by returning the first mode encountered.
+        Previously, it raised StatisticsError when more than one mode was found.
+        """
         testData = [
-            [np.array([1, 2, 3], dtype=float), 1],  # precision can be 1
-            [np.array([1., 2., 3.], dtype=float), 1],  # precision can be 1
-            [np.array([1.1, 2.2, 3.3], dtype=float), 1],  # precision can be 1
-            [np.array([1.11, 2.2, 3.3], dtype=float), 1],  # precision can be 1
-            [np.array([1.11, 2.22, 3.3], dtype=float), 2],  # precision can be 2
-            [np.array([1.11, 2.22, 3.33], dtype=float), 2],  # precision can be 2
-            [np.array([1.11, 2.22, 3.3, 4.4], dtype=float), 2],  # precision can be 2 by default because mode() error
-            [np.array([1.111, 2.22, 3.333, 4.444], dtype=float), 3],  # precision can be 3
-            [np.array([1.111, 2.222, 3.3, 4.4], dtype=float), 2],  # precision can be 2 by default because mode() error
-            [np.array([1.1111, 2.2222, 3.3333, 4.4], dtype=float), 4],  # precision can be 4
-            [np.array([1.1111, 2., 3., 4.], dtype=float), 1],  # precision can be 1
-            [np.array([1.1111, 2.2222, 3., 4.], dtype=float), 2],  # precision can be 2 by default because mode() error
-            [np.array([1.1111, 2.2222, 3.1, 4.44], dtype=float), 4],  # precision can be 4
+            [np.array([1, 2, 3], dtype=float), 1],  # 1
+            [np.array([1., 2., 3.], dtype=float), 1],  # 1
+            [np.array([1.1, 2.2, 3.3], dtype=float), 1],  # 1
+            [np.array([1.11, 2.2, 3.3], dtype=float), 1],  # 1
+            [np.array([1.11, 2.22, 3.3], dtype=float), 2],  # 2
+            [np.array([1.11, 2.22, 3.33], dtype=float), 2],  # 2
+            [np.array([1.11, 2.22, 3.3, 4.4], dtype=float), 2],  # 2
+            [np.array([1.111, 2.22, 3.333, 4.444], dtype=float), 3],  # 3
+            [np.array([1.111, 2.222, 3.3, 4.4], dtype=float), 3],  # 3
+            [np.array([1.1111, 2.2222, 3.3333, 4.4], dtype=float), 4],  # 4
+            [np.array([1.1111, 2., 3., 4.], dtype=float), 1],  # 1
+            [np.array([1.1111, 2.2222, 3., 4.], dtype=float), 4],  # 4
+            [np.array([1.1111, 2.2222, 3.1, 4.44], dtype=float), 4],  # 4
+            [np.array([1.11, 2.222, 3.333, 4.44], dtype=float), 2],  # 2
+            [np.array([1.111, 2.22, 3.33, 4.444], dtype=float), 3],  # 3
+            [np.array([1.1111, 2.222, 3.33, 4.44], dtype=float), 2],  # 2
         ]
         for test in testData:
             self.model.DetectPrecision(test[0])

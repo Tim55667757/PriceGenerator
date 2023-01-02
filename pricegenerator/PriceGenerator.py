@@ -375,15 +375,19 @@ class PriceGenerator:
         """
         Auto-detect precision from example values. E.g. 0.123 => 3, 0.12345 => 5 and so on.
         This method set `self.precision` variable after detect precision.
+
+        See also about statistics.mode: https://docs.python.org/3.9/library/statistics.html#statistics.mode
+        Changed in Python version >= 3.8: Now mode() method handles multimodal datasets by returning the first mode encountered.
+        Previously, it raised StatisticsError when more than one mode was found.
+
         :param examples: numpy.ndarray with examples of float values.
         """
         uLogger.debug("Detecting precision of data values...")
         try:
-            if self.precision != 0:
-                self.precision = mode(list(map(lambda x: len(str(x).split('.')[-1]) if len(str(x).split('.')) > 1 else 0, examples)))
+            self.precision = mode(list(map(lambda x: len(str(x).split('.')[-1]) if len(str(x).split('.')) > 1 else 0, examples))) if self.precision >= 0 else 0
 
         except StatisticsError as e:
-            uLogger.warning("Unable to unambiguously determine Mode() of the value of precision! Precision is set to 2 (default). StatisticsError: '{}'".format(e))
+            uLogger.debug("Statistic mode() method return an error! Precision is set to 2 (default). StatisticsError: '{}'".format(e))
             self.precision = 2
 
         finally:
