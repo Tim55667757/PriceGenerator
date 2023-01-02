@@ -664,21 +664,21 @@ class PriceGenerator:
         """
         if self.horizon is None or self.horizon < 5:
             self.horizon = 5
-            uLogger.warning("Horizon length less than 5! It is set to 5 by default.")
+            uLogger.debug("Horizon length less than 5! It is set to 5 by default.")
 
         if self.trendSplit is not None and self.splitCount is not None:
             if len(self.trendSplit) > self.horizon:
-                uLogger.warning("Trend parts count ({}) must be less than horizon ({})! New trend: {}".format(len(self.trendSplit), self.horizon, self.trendSplit[0]))
+                uLogger.debug("Trend parts count ({}) must be less than horizon ({})! New trend: {}".format(len(self.trendSplit), self.horizon, self.trendSplit[0]))
                 self.trendSplit = self.trendSplit[0]
 
             if sum(self.splitCount) != self.horizon or len(self.trendSplit) == 1:
                 self.splitCount = [self.horizon]
-                uLogger.warning("Set only one trend with length equal to horizon: {}".format(self.splitCount))
+                uLogger.debug("Set only one trend with length equal to horizon: {}".format(self.splitCount))
 
             if len(self.splitCount) != len(self.trendSplit):
                 self.trendSplit = None
                 self.splitCount = None
-                uLogger.warning("See help to work with --split-trend and --split-count keys.")
+                uLogger.debug("No trend was set: `self.trendSplit = None`, `self.splitCount = None`. See `--help` how to work with `--split-trend` and `--split-count` keys.")
 
         # maximum of candle sizes: (high - low), if None then used (maxClose - minClose) / 10
         if self.maxOutlier is None:
@@ -1148,7 +1148,7 @@ class PriceGenerator:
                             )
 
                     else:
-                        uLogger.warning("Every custom marker must be the Pandas Dataframe object! Marker is a custom symbol, e.g. ×, ↓ or ↑. Marker data must contain at least two columns. There are `datetime` with date and time and some markers columns (`markersUpper`, `markersCenter` or `markersLower`). Length of marker dataframes must be equal to the length of main candle series.")
+                        uLogger.debug("Every custom marker must be the Pandas Dataframe object! Marker is a custom symbol, e.g. ×, ↓ or ↑. Marker data must contain at least two columns. There are `datetime` with date and time and some markers columns (`markersUpper`, `markersCenter` or `markersLower`). Length of marker dataframes must be equal to the length of main candle series.")
 
             # --- Preparing custom lines:
 
@@ -1162,7 +1162,7 @@ class PriceGenerator:
                         )
 
                     else:
-                        uLogger.warning("Every custom line must be the Pandas Dataframe object! Line data must contain at least two columns: `datetime` with date and time and 2-nd column `custom_line_name` with y-coordinates. Length of the chart-line dataframes must be equal to the length of main candle series.")
+                        uLogger.debug("Every custom line must be the Pandas Dataframe object! Line data must contain at least two columns: `datetime` with date and time and 2-nd column `custom_line_name` with y-coordinates. Length of the chart-line dataframes must be equal to the length of main candle series.")
 
             # --- Volume chart options:
             volumeChart = figure(
