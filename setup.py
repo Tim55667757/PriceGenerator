@@ -72,11 +72,13 @@ setup(
         "statistics",
         "testing",
         "testdata",
+        "OHLCV",
+        "generator",
     ],
 
     tests_require=[
         "pytest >= 6.2.2",
-        "requests >= 2.25.1"  # Apache-2.0 license
+        "requests >= 2.25.1",  # Apache-2.0 license
         "pandas >= 1.5.2",
         "bokeh >= 3.0.3",
         "bkcharts >= 0.2",
@@ -88,7 +90,7 @@ setup(
     ],
 
     install_requires=[
-        "requests >= 2.25.1"  # Apache-2.0 license
+        "requests >= 2.25.1",  # Apache-2.0 license
         "pandas >= 1.5.2",
         "bokeh >= 3.0.3",
         "bkcharts >= 0.2",
@@ -110,5 +112,6 @@ setup(
     },
 
     include_package_data=True,
+
     zip_safe=True,
 )
