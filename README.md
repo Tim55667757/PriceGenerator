@@ -434,9 +434,9 @@ When you run the script, you will receive a similar output to the logs, three fi
 
 Also, you can manipulate with chart and adding lines or markers to the main chart. Use `markers` and `lines` parameters for it.
 
-`markers` is a list with custom series, where additional markers will place on main series. `None` by default. One marker is a custom symbol, e.g. ×, ↓ or ↑ or anyone else. Marker data must contain at least two columns. There are `datetime` with date and time and some markers columns (`markersUpper`, `markersCenter` or `markersLower`). Length of marker dataframes must be equal to the length of main candle series.
+`markers` is a Pandas DataFrame with additional markers will place on main series. `None` by default. One marker is a custom symbol, e.g. ×, ↓ or ↑ or anyone else. Markers dataframe must contain at least two columns. There are `datetime` with date and time and some markers columns (`markersUpper`, `markersCenter` or `markersLower`). Length of markers dataframe must be equal to the length of main candle series.
 
-`lines` is a list with custom series, where additional chart-lines will place on main series. `None` by default. Line data must contain at least two columns. There are `datetime` with date and time and `custom_line_name` with y-coordinates. Length of the chart-line dataframes must be equal to the length of main candle series.
+`lines` is a list of Pandas DataFrames with additional chart-lines will place on main series. `None` by default. Every line data must contain at least two columns. There are `datetime` with date and time and `custom_line_name` with y-coordinates. Length of the chart-line dataframes must be equal to the length of main candle series.
 
 Example:
 
