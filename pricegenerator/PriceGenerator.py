@@ -785,7 +785,7 @@ class PriceGenerator:
 
     def RenderBokeh(
             self, fileName: Optional[str] = "index.html", viewInBrowser: bool = False,
-            darkTheme: bool = False, markers: Optional[list[pd.DataFrame]] = None, lines: Optional[list[pd.DataFrame]] = None,
+            darkTheme: bool = False, markers: Optional[pd.DataFrame] = None, lines: Optional[list[pd.DataFrame]] = None,
             title: Optional[str] = None, width: Optional[int] = 1800, height: Optional[int] = 940,
             showStatOnChart: bool = True, showControlsOnChart: bool = True, inline: bool = False,
     ) -> Optional[gridplot]:
@@ -798,10 +798,10 @@ class PriceGenerator:
         :param fileName: HTML-file path to save Bokeh chart. `index.html` by default.
         :param viewInBrowser: If `True`, then immediately opens HTML chart in browser after rendering. `False` by default.
         :param darkTheme: chart theme. `False` by default, mean that will be used light theme, `False` mean dark theme.
-        :param markers: list with custom series, where additional markers will place on main series. `None` by default.
-                        Marker is a custom symbol, e.g. ×, ↓ or ↑. Marker data must contain at least two columns. There are `datetime`
-                        with date and time and some markers columns (`markersUpper`, `markersCenter` or `markersLower`).
-                        Length of marker dataframes must be equal to the length of main candle series.
+        :param markers: Pandas Dataframe with additional markers that will be placed on main series. `None` by default.
+                        Marker is a custom symbol, example: ×, ↓ or ↑. Dataframe with markers must contain at least two columns.
+                        There are `datetime` with date and time and some markers columns (`markersUpper`, `markersCenter` or `markersLower`).
+                        Length of markers series must be equal to the length of main candles series.
         :param lines: list with custom series, where additional chart-lines will place on main series. `None` by default.
                       Line data must contain at least two columns. There are `datetime` with date and time and
                       `custom_line_name` with y-coordinates. Length of the chart-line dataframes must be equal to the length of main candle series.
@@ -1120,35 +1120,33 @@ class PriceGenerator:
 
             # --- Preparing custom markers:
 
-            if markers is not None and isinstance(markers, list) and markers:
-                for marker in markers:
-                    if isinstance(marker, pd.DataFrame) and len(marker.axes) >= 2 and "datetime" in marker.columns and ("markersUpper" in marker.columns or "markersCenter" in marker.columns or "markersLower" in marker.columns):
-                        if "markersUpper" in marker.columns:
-                            chart.text(
-                                marker.datetime.values, self.prices.high + 0.5,
-                                text_align="center", text_baseline="bottom",
-                                text=marker.markersUpper.values, angle=0, text_color="lime" if darkTheme else "black",
-                                text_font_size="13pt", legend_label="Markers: upper" if showControlsOnChart else "",
-                            )
+            if markers is not None and isinstance(markers, pd.DataFrame) and not markers.empty and len(markers.axes) >= 2 and "datetime" in markers.columns and ("markersUpper" in markers.columns or "markersCenter" in markers.columns or "markersLower" in markers.columns):
+                if "markersUpper" in markers.columns:
+                    chart.text(
+                        markers.datetime.values, self.prices.high + 0.5,
+                        text_align="center", text_baseline="bottom",
+                        text=markers.markersUpper.values, angle=0, text_color="lime" if darkTheme else "black",
+                        text_font_size="13pt", legend_label="Markers: upper ({})".format(len(markers.markersUpper[markers.markersUpper != ""])) if showControlsOnChart else "",
+                    )
 
-                        if "markersCenter" in marker.columns:
-                            chart.text(
-                                marker.datetime.values, self.prices.avg,
-                                text_align="center", text_baseline="middle",
-                                text=marker.markersCenter.values, angle=0, text_color="red" if darkTheme else "black",
-                                text_font_size="13pt", legend_label="Markers: center" if showControlsOnChart else "",
-                            )
+                if "markersCenter" in markers.columns:
+                    chart.text(
+                        markers.datetime.values, self.prices.avg,
+                        text_align="center", text_baseline="middle",
+                        text=markers.markersCenter.values, angle=0, text_color="red" if darkTheme else "black",
+                        text_font_size="13pt", legend_label="Markers: center ({})".format(len(markers.markersCenter[markers.markersCenter != ""])) if showControlsOnChart else "",
+                    )
 
-                        if "markersLower" in marker.columns:
-                            chart.text(
-                                marker.datetime.values, self.prices.low - 0.5,
-                                text_align="center", text_baseline="top",
-                                text=marker.markersLower.values, angle=0, text_color="lime" if darkTheme else "black",
-                                text_font_size="13pt", legend_label="Markers: lower" if showControlsOnChart else "",
-                            )
+                if "markersLower" in markers.columns:
+                    chart.text(
+                        markers.datetime.values, self.prices.low - 0.5,
+                        text_align="center", text_baseline="top",
+                        text=markers.markersLower.values, angle=0, text_color="lime" if darkTheme else "black",
+                        text_font_size="13pt", legend_label="Markers: lower ({})".format(len(markers.markersLower[markers.markersLower != ""])) if showControlsOnChart else "",
+                    )
 
-                    else:
-                        uLogger.debug("Every custom marker must be the Pandas Dataframe object! Marker is a custom symbol, e.g. ×, ↓ or ↑. Marker data must contain at least two columns. There are `datetime` with date and time and some markers columns (`markersUpper`, `markersCenter` or `markersLower`). Length of marker dataframes must be equal to the length of main candle series.")
+            else:
+                uLogger.debug("Marker data must be the Pandas Dataframe object! Or `None` (by default). Marker is a custom symbol, example: ×, ↓ or ↑. Dataframe with markers must contain at least two columns. There are `datetime` with date and time and some markers columns (`markersUpper`, `markersCenter` or `markersLower`). Length of markers series must be equal to the length of main candles series.")
 
             # --- Preparing custom lines:
 
