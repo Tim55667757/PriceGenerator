@@ -5,8 +5,8 @@
 A simple price generator similar to real stock prices, but you can control the statistics of their distribution.
 Use it to generate synthetic data to test your trading strategy.
 
-This module generates chain of candlesticks with predefined statistical parameters, return pandas dataframe,
-saving as .csv-file or .html-file with OHLCV-candlestick in every strings.
+This module generates chain of candlesticks with predefined statistical parameters, return Pandas DataFrame,
+saving as .csv-file or .html-file with OHLCV-candlestick in every string.
 
 In additional you can view some statistical and probability parameters of generated or loaded prices.
 """
@@ -227,7 +227,7 @@ class PriceGenerator:
         self.timeframe = timedelta(hours=1)  # time delta between two neighbour candles, 1 hour by default
         self.timeStart = datetime.now(tzlocal()).replace(microsecond=0, second=0, minute=0)
         self.horizon = None  # Candlesticks count (generating or in view), must be >= 5 for generator
-        self.trendSplit = ""  # set difference periods, e.g. split="/\-" means that generated candles has up trend at first part, next down trend and then no trend
+        self.trendSplit = ""  # set difference periods, e.g. split="/\-" means that generated candles has uptrend at first part, next downtrend and then no trend
         self.splitCount = []  # set count of candles of difference periods, e.g. splitCount=[5, 10, 15] means that generated candles has 3 trends with 5, 10 and 15 candles in chain, with sum equal to horizon
         self.maxClose = random.uniform(70, 90)  # maximum of close prices must be >= self.minClose
         self.minClose = random.uniform(60, 70)  # minimum of close prices must be <= self.maxClose
@@ -236,7 +236,7 @@ class PriceGenerator:
         self.maxCandleBody = None  # maximum of candle body sizes: abs(open - close), if None then used maxOutlier * 90%
         self._maxVolume = random.randint(0, 100000)  # maximum of trade volumes
         self._upCandlesProb = 0.5  # probability that next candle is up, 50% by default
-        self._outliersProb = 0.03  # statistical outliers probability (price "tails"), 3% by default
+        self._outliersProb = 0.03  # statistical outlier probability (price "tails"), 3% by default
         self._trendDeviation = 0.005  # relative deviation for trend detection, 0.005 mean ±0.5% by default. "NO trend" if (1st_close - last_close) / 1st_close <= self.trendDeviation
 
         self._chartTitle = ""  # chart title, auto-generated when loading or creating chain of candlesticks
@@ -410,7 +410,7 @@ class PriceGenerator:
         """
         Load Pandas OHLCV model from csv-file.
         :param fileName: path to csv-file with OHLCV columns.
-        :return: Pandas dataframe.
+        :return: Pandas DataFrame.
         """
         uLogger.info("Loading, parse and preparing input data from [{}]...".format(os.path.abspath(fileName)))
 
@@ -427,7 +427,7 @@ class PriceGenerator:
         self.DetectTimeframe()  # auto-detect time delta between last two neighbour candles
 
         uLogger.info("It was read {} rows".format(self.horizon))
-        uLogger.info("Showing last 5 rows as pandas dataframe:")
+        uLogger.info("Showing last 5 rows as Pandas DataFrame:")
         for line in pd.DataFrame.to_string(self.prices[self.dfHeaders][-5:], max_cols=20).split("\n"):
             uLogger.info(line)
 
@@ -439,7 +439,7 @@ class PriceGenerator:
         :param fileName: path to csv-file.
         """
         if self.prices is not None and not self.prices.empty:
-            uLogger.info("Saving [{}] rows of pandas dataframe with columns: {}...".format(len(self.prices), self.csvHeaders))
+            uLogger.info("Saving [{}] rows of Pandas DataFrame with columns: {}...".format(len(self.prices), self.csvHeaders))
             uLogger.debug("Delimeter: {}".format(self.sep))
             dataReplacedDateTime = self.prices.copy(deep=True)
             dataReplacedDateTime["date"] = [d.date() for d in dataReplacedDateTime["datetime"]]
@@ -447,7 +447,7 @@ class PriceGenerator:
             del dataReplacedDateTime["datetime"]
             dataReplacedDateTime = dataReplacedDateTime[self.csvHeaders]
             dataReplacedDateTime.to_csv(fileName, sep=self.sep, index=False, header=False)
-            uLogger.info("Pandas dataframe saved to .csv-file [{}]".format(os.path.abspath(fileName)))
+            uLogger.info("Pandas DataFrame saved to .csv-file [{}]".format(os.path.abspath(fileName)))
 
         else:
             raise Exception("Empty price data! Generate or load prices before saving!")
@@ -472,11 +472,11 @@ class PriceGenerator:
     @staticmethod
     def ZigZagFilter(datetimes: pd.Series, values: pd.Series, deviation: float) -> dict:
         """
-        This method filter input data as ZigZag indicator: when input value of candlestick price (e.g. close price)
-        is difference with next values with define percent then this point is a point of ZigZag indicator.
+        This method filter input data as Zig-Zag indicator: when input value of candlestick price (e.g. close price)
+        is difference with next values with define percent then this point is a point of Zig-Zag indicator.
         :param datetimes: input pandas Series with datetime values.
         :param values: input pandas Series or list, e.g. list of closes values of candlesticks.
-        :param deviation: [0, 1] float number is a relative difference between i and i+1 values to set as ZigZag point.
+        :param deviation: [0, 1] float number is a relative difference between `i` and `i + 1` values to set as Zig-Zag point.
         :return: dict with pandas Series filtered data: {"datetimes": filtered_datetimes, "filtered": filtered_values}
         """
         filteredPoints = [True]
@@ -787,7 +787,7 @@ class PriceGenerator:
             self, fileName: Optional[str] = "index.html", viewInBrowser: bool = False,
             darkTheme: bool = False, markers: Optional[pd.DataFrame] = None, lines: Optional[list[pd.DataFrame]] = None,
             title: Optional[str] = None, width: Optional[int] = 1800, height: Optional[int] = 940,
-            showStatOnChart: bool = True, showControlsOnChart: bool = True, inline: bool = False,
+            showControlsOnChart: bool = True, showStatOnChart: bool = True, inline: bool = False,
     ) -> Optional[gridplot]:
         """
         Rendering prices from Pandas DataFrame as OHLCV Bokeh chart of candlesticks and save it to HTML-file.
@@ -798,7 +798,7 @@ class PriceGenerator:
         :param fileName: HTML-file path to save Bokeh chart. `index.html` by default.
         :param viewInBrowser: If `True`, then immediately opens HTML chart in browser after rendering. `False` by default.
         :param darkTheme: chart theme. `False` by default, mean that will be used light theme, `False` mean dark theme.
-        :param markers: Pandas Dataframe with additional markers that will be placed on main series. `None` by default.
+        :param markers: Pandas DataFrame with additional markers that will be placed on main series. `None` by default.
                         Marker is a custom symbol, example: ×, ↓ or ↑. Dataframe with markers must contain at least two columns.
                         There are `datetime` with date and time and some markers columns (`markersUpper`, `markersCenter` or `markersLower`).
                         Length of markers series must be equal to the length of main candles series.
@@ -808,8 +808,12 @@ class PriceGenerator:
         :param title: specific chart title. If `None`, then used auto-generated title. `None` by default.
         :param width: chart width. If `None`, then used auto-width. 1800 px by default.
         :param height: chart height. If `None`, then used auto-height. 940 px by default.
-        :param showStatOnChart: add statistics block on chart, `True` by default.
-        :param showControlsOnChart: add controls block on chart, `True` by default.
+        :param showControlsOnChart: enable controls block in legend to hide/show some elements on chart, `True` by default.
+        :param showStatOnChart: show statistics block on chart, `True` (by default) mean that will be calculating additional
+                                series, like as Trend and Average Points. And some classical indicators, like as SMA, HMA,
+                                VWMA, Bollinger Bands, Parabolic Stop and Reverse, Alligator and Zig-Zag indicator.
+                                Warning! Calculate statistic takes more time. If you want to decrease chart rendering time,
+                                then set this parameter to `False`.
         :param inline: if `True`, then output chart in Jupyter Notebook cell. `False` by default.
         :return: bokeh.layouts.gridplot with all layouts objects or None.
         """
@@ -817,10 +821,10 @@ class PriceGenerator:
             raise Exception("Empty price data! Generate or load prices before show as Bokeh chart!")
 
         else:
-            uLogger.info("Rendering pandas dataframe as Bokeh chart...")
+            uLogger.info("Rendering Pandas DataFrame as Bokeh chart...")
 
             self.DetectTimeframe()  # auto-detect time delta between last two neighbour candles
-            infoBlock = self.GetStatistics()  # calculating some indicators
+            infoBlock = self.GetStatistics() if showStatOnChart else []  # calculating some indicators
 
             title = self._chartTitle if title is None or not title else title  # chart title
             width = 1200 if width is None or width <= 0 else width  # chart summary width
@@ -863,18 +867,6 @@ class PriceGenerator:
             chart.ygrid.minor_grid_line_dash = [6, 4]
             chart.ygrid.minor_grid_line_alpha = 0.3
             chart.ygrid.minor_grid_line_color = "white" if darkTheme else "gray"
-
-            # Summary section and controls:
-            legendNameMain = "Max close / Min close / Trend line"
-            legendNameAvg = "Averages points (highs - deltas/2)"
-            legendNameSMA = "Simple Moving Averages (SMA: 5, 20)"
-            legendNameSMAlong = "Long Simple Moving Averages (SMA: 50, 200)"
-            legendNameHMA = "Hull Moving Averages (HMA: 5, 20)"
-            legendNameVWMA = "Volume Weighted Moving Averages (VWMA: 5, 20)"
-            legendNameBBANDS = "Bollinger Bands (BBands)"
-            legendNamePsar = "Parabolic Stop and Reverse (psar)"
-            legendNameAlligator = "Alligator (based on HMA: 13, 8, 5)"
-            legendNameZigZag = "Zig-Zag indicator (with {}% of difference)".format(self.zigZagDeviation * 100)
 
             if showStatOnChart:
                 summaryItems = [(info, []) for info in infoBlock]
@@ -978,145 +970,158 @@ class PriceGenerator:
                 fill_color="white" if darkTheme else "#999999", line_color="#20ff00" if darkTheme else "black", line_width=1, fill_alpha=1, line_alpha=1,
             )
 
-            # preparing candle's average points:
-            disabledObjects.append(chart.circle(
-                self.prices.datetime, self.prices.avg,
-                size=3, color="red", alpha=1, legend_label=legendNameAvg if showControlsOnChart else "",
-            ))
-            disabledObjects.append(chart.line(
-                self.prices.datetime, self.prices.avg,
-                line_width=1, line_color="red", line_alpha=1, legend_label=legendNameAvg if showControlsOnChart else "",
-            ))
+            if showStatOnChart:
+                # Summary section and controls:
+                legendNameMain = "Max close / Min close / Trend line"
+                legendNameAvg = "Averages points (highs - deltas/2)"
+                legendNameSMA = "Simple Moving Averages (SMA: 5, 20)"
+                legendNameSMAlong = "Long Simple Moving Averages (SMA: 50, 200)"
+                legendNameHMA = "Hull Moving Averages (HMA: 5, 20)"
+                legendNameVWMA = "Volume Weighted Moving Averages (VWMA: 5, 20)"
+                legendNameBBANDS = "Bollinger Bands (BBands)"
+                legendNamePsar = "Parabolic Stop and Reverse (psar)"
+                legendNameAlligator = "Alligator (based on HMA: 13, 8, 5)"
+                legendNameZigZag = "Zig-Zag indicator (with {}% of difference)".format(self.zigZagDeviation * 100)
 
-            # preparing for highest close line:
-            highestClose = round(max(self.prices.close.values), self._precision)
-            chart.line(
-                self.prices.datetime, highestClose,
-                line_width=2, line_color="yellow" if darkTheme else "#339933", line_alpha=1, legend_label=legendNameMain if showControlsOnChart else "",
-            )
-            chart.text(
-                self.prices.datetime.values[-1], highestClose + 1 / self._deg10prec,
-                text=[str(highestClose)], angle=0, text_color="yellow" if darkTheme else "#339933", text_font_size="9pt", legend_label=legendNameMain if showControlsOnChart else "",
-            )
+                # preparing for highest close line:
+                highestClose = round(max(self.prices.close.values), self._precision)
+                chart.line(
+                    self.prices.datetime, highestClose,
+                    line_width=2, line_color="yellow" if darkTheme else "#339933", line_alpha=1, legend_label=legendNameMain if showControlsOnChart else "",
+                )
+                chart.text(
+                    self.prices.datetime.values[-1], highestClose + 1 / self._deg10prec,
+                    text=[str(highestClose)], angle=0, text_color="yellow" if darkTheme else "#339933", text_font_size="9pt", legend_label=legendNameMain if showControlsOnChart else "",
+                )
 
-            # preparing for lowest close line:
-            lowestClose = round(min(self.prices.close.values), self._precision)
-            chart.line(
-                self.prices.datetime, lowestClose,
-                line_width=2, line_color="yellow" if darkTheme else "#339933", line_alpha=1, legend_label=legendNameMain if showControlsOnChart else "",
-            )
-            chart.text(
-                self.prices.datetime.values[-1], lowestClose - 2 / self._deg10prec,
-                text=[str(lowestClose)], angle=0, text_color="yellow" if darkTheme else "#339933", text_font_size="9pt", legend_label=legendNameMain if showControlsOnChart else "",
-            )
+                # preparing for lowest close line:
+                lowestClose = round(min(self.prices.close.values), self._precision)
+                chart.line(
+                    self.prices.datetime, lowestClose,
+                    line_width=2, line_color="yellow" if darkTheme else "#339933", line_alpha=1, legend_label=legendNameMain if showControlsOnChart else "",
+                )
+                chart.text(
+                    self.prices.datetime.values[-1], lowestClose - 2 / self._deg10prec,
+                    text=[str(lowestClose)], angle=0, text_color="yellow" if darkTheme else "#339933", text_font_size="9pt", legend_label=legendNameMain if showControlsOnChart else "",
+                )
 
-            # preparing direction lines for all trends:
-            if self.trendSplit is not None and self.trendSplit and self.splitCount is not None and self.splitCount:
-                left = 0
-                for trendNum in range(len(self.splitCount)):
-                    right = left + self.splitCount[trendNum] - 1
-                    chart.line(
-                        [self.prices.datetime.values[left], self.prices.datetime.values[right]],
-                        [self.prices.close.values[left], self.prices.close.values[right]],
-                        line_width=1, line_color="white" if darkTheme else "#666666", line_alpha=0.9, line_dash=[3, 3], legend_label=legendNameMain if showControlsOnChart else "",
-                    )
-                    left += self.splitCount[trendNum]
+                # preparing direction lines for all trends:
+                if self.trendSplit is not None and self.trendSplit and self.splitCount is not None and self.splitCount:
+                    left = 0
+                    for trendNum in range(len(self.splitCount)):
+                        right = left + self.splitCount[trendNum] - 1
+                        chart.line(
+                            [self.prices.datetime.values[left], self.prices.datetime.values[right]],
+                            [self.prices.close.values[left], self.prices.close.values[right]],
+                            line_width=1, line_color="white" if darkTheme else "#666666", line_alpha=0.9, line_dash=[3, 3], legend_label=legendNameMain if showControlsOnChart else "",
+                        )
+                        left += self.splitCount[trendNum]
 
-            # preparing for main direction line:
-            chart.line(
-                [self.prices.datetime.values[0], self.prices.datetime.values[-1]],
-                [self.prices.close.values[0], self.prices.close.values[-1]],
-                line_width=1, line_color="white" if darkTheme else "#666666", line_alpha=1, line_dash=[6, 6], legend_label=legendNameMain if showControlsOnChart else "",
-            )
+                # preparing for main direction line:
+                chart.line(
+                    [self.prices.datetime.values[0], self.prices.datetime.values[-1]],
+                    [self.prices.close.values[0], self.prices.close.values[-1]],
+                    line_width=1, line_color="white" if darkTheme else "#666666", line_alpha=1, line_dash=[6, 6], legend_label=legendNameMain if showControlsOnChart else "",
+                )
 
-            # --- Preparing a lot of TA lines:
+                # preparing candle's average points:
+                disabledObjects.append(chart.circle(
+                    self.prices.datetime, self.prices.avg,
+                    size=3, color="red", alpha=1, legend_label=legendNameAvg if showControlsOnChart else "",
+                ))
+                disabledObjects.append(chart.line(
+                    self.prices.datetime, self.prices.avg,
+                    line_width=1, line_color="red", line_alpha=1, legend_label=legendNameAvg if showControlsOnChart else "",
+                ))
 
-            # Simple Moving Averages (SMA) 5, 20
-            disabledObjects.append(chart.line(
-                self.prices.datetime, self.stat["sma5"],
-                line_width=2, line_color="yellow" if darkTheme else "#999432", line_alpha=1, legend_label=legendNameSMA if showControlsOnChart else "",
-            ))
-            disabledObjects.append(chart.line(
-                self.prices.datetime, self.stat["sma20"],
-                line_width=3, line_color="red", line_alpha=1, legend_label=legendNameSMA if showControlsOnChart else "",
-            ))
+                # --- Preparing a lot of TA lines:
 
-            # Long Simple Moving Averages (SMA) 50, 200
-            disabledObjects.append(chart.line(
-                self.prices.datetime, self.stat["sma50"],
-                line_width=2, line_color="#ffbf00", line_alpha=1, legend_label=legendNameSMAlong if showControlsOnChart else "",
-            ))
-            disabledObjects.append(chart.line(
-                self.prices.datetime, self.stat["sma200"],
-                line_width=3, line_color="#ff0040", line_alpha=1, legend_label=legendNameSMAlong if showControlsOnChart else "",
-            ))
+                # Simple Moving Averages (SMA) 5, 20
+                disabledObjects.append(chart.line(
+                    self.prices.datetime, self.stat["sma5"],
+                    line_width=2, line_color="yellow" if darkTheme else "#999432", line_alpha=1, legend_label=legendNameSMA if showControlsOnChart else "",
+                ))
+                disabledObjects.append(chart.line(
+                    self.prices.datetime, self.stat["sma20"],
+                    line_width=3, line_color="red", line_alpha=1, legend_label=legendNameSMA if showControlsOnChart else "",
+                ))
 
-            # Hull Moving Averages (HMA) 5, 20
-            disabledObjects.append(chart.line(
-                self.prices.datetime, self.stat["hma5"],
-                line_width=2, line_color="#00ffff" if darkTheme else "#336633", line_alpha=1, legend_label=legendNameHMA if showControlsOnChart else "",
-            ))
-            disabledObjects.append(chart.line(
-                self.prices.datetime, self.stat["hma20"],
-                line_width=3, line_color="#ff00ff" if darkTheme else "#333333", line_alpha=1, legend_label=legendNameHMA if showControlsOnChart else "",
-            ))
+                # Long Simple Moving Averages (SMA) 50, 200
+                disabledObjects.append(chart.line(
+                    self.prices.datetime, self.stat["sma50"],
+                    line_width=2, line_color="#ffbf00", line_alpha=1, legend_label=legendNameSMAlong if showControlsOnChart else "",
+                ))
+                disabledObjects.append(chart.line(
+                    self.prices.datetime, self.stat["sma200"],
+                    line_width=3, line_color="#ff0040", line_alpha=1, legend_label=legendNameSMAlong if showControlsOnChart else "",
+                ))
 
-            # Volume Weighted Moving Averages (VWMA) 5, 20
-            disabledObjects.append(chart.line(
-                self.prices.datetime, self.stat["vwma5"],
-                line_width=2, line_color="blue" if darkTheme else "#666633", line_alpha=1, legend_label=legendNameVWMA if showControlsOnChart else "",
-            ))
-            disabledObjects.append(chart.line(
-                self.prices.datetime, self.stat["vwma20"],
-                line_width=3, line_color="#ff8000" if darkTheme else "#333333", line_alpha=1, legend_label=legendNameVWMA if showControlsOnChart else "",
-            ))
+                # Hull Moving Averages (HMA) 5, 20
+                disabledObjects.append(chart.line(
+                    self.prices.datetime, self.stat["hma5"],
+                    line_width=2, line_color="#00ffff" if darkTheme else "#336633", line_alpha=1, legend_label=legendNameHMA if showControlsOnChart else "",
+                ))
+                disabledObjects.append(chart.line(
+                    self.prices.datetime, self.stat["hma20"],
+                    line_width=3, line_color="#ff00ff" if darkTheme else "#333333", line_alpha=1, legend_label=legendNameHMA if showControlsOnChart else "",
+                ))
 
-            # Bollinger Bands (BBands)
-            disabledObjects.append(chart.line(
-                self.prices.datetime, self.stat["bbands"]["lower"],
-                line_width=1, line_color="#66ffff" if darkTheme else "#333333", line_alpha=1, legend_label=legendNameBBANDS if showControlsOnChart else "",
-            ))
-            disabledObjects.append(chart.line(
-                self.prices.datetime, self.stat["bbands"]["mid"],
-                line_width=1, line_color="#66ffff" if darkTheme else "#333333", line_alpha=1, legend_label=legendNameBBANDS if showControlsOnChart else "",
-            ))
-            disabledObjects.append(chart.line(
-                self.prices.datetime, self.stat["bbands"]["upper"],
-                line_width=1, line_color="#66ffff" if darkTheme else "#333333", line_alpha=1, legend_label=legendNameBBANDS if showControlsOnChart else "",
-            ))
+                # Volume Weighted Moving Averages (VWMA) 5, 20
+                disabledObjects.append(chart.line(
+                    self.prices.datetime, self.stat["vwma5"],
+                    line_width=2, line_color="blue" if darkTheme else "#666633", line_alpha=1, legend_label=legendNameVWMA if showControlsOnChart else "",
+                ))
+                disabledObjects.append(chart.line(
+                    self.prices.datetime, self.stat["vwma20"],
+                    line_width=3, line_color="#ff8000" if darkTheme else "#333333", line_alpha=1, legend_label=legendNameVWMA if showControlsOnChart else "",
+                ))
 
-            # Parabolic Stop and Reverse (psar)
-            disabledObjects.append(chart.circle(
-                self.prices.datetime, self.stat["psar"]["long"],
-                size=3, line_color="#00ffff" if darkTheme else "#336633", line_alpha=1, legend_label=legendNamePsar if showControlsOnChart else "",
-            ))
-            disabledObjects.append(chart.circle(
-                self.prices.datetime, self.stat["psar"]["short"],
-                size=3, line_color="#ff00ff" if darkTheme else "#663333", line_alpha=1, legend_label=legendNamePsar if showControlsOnChart else "",
-            ))
+                # Bollinger Bands (BBands)
+                disabledObjects.append(chart.line(
+                    self.prices.datetime, self.stat["bbands"]["lower"],
+                    line_width=1, line_color="#66ffff" if darkTheme else "#333333", line_alpha=1, legend_label=legendNameBBANDS if showControlsOnChart else "",
+                ))
+                disabledObjects.append(chart.line(
+                    self.prices.datetime, self.stat["bbands"]["mid"],
+                    line_width=1, line_color="#66ffff" if darkTheme else "#333333", line_alpha=1, legend_label=legendNameBBANDS if showControlsOnChart else "",
+                ))
+                disabledObjects.append(chart.line(
+                    self.prices.datetime, self.stat["bbands"]["upper"],
+                    line_width=1, line_color="#66ffff" if darkTheme else "#333333", line_alpha=1, legend_label=legendNameBBANDS if showControlsOnChart else "",
+                ))
 
-            # Alligator (based on HMA 13, 8, 5) for the Alligator indicator (Jaw, Teeth, and Lips)
-            disabledObjects.append(chart.line(
-                self.prices.datetime, self.stat["hma13"],
-                line_width=2, line_color="#1a1aff" if darkTheme else "#2100A6", line_alpha=1, legend_label=legendNameAlligator if showControlsOnChart else "",
-            ))
-            disabledObjects.append(chart.line(
-                self.prices.datetime, self.stat["hma8"],
-                line_width=2, line_color="#ff1a1a" if darkTheme else "#A6000C", line_alpha=1, legend_label=legendNameAlligator if showControlsOnChart else "",
-            ))
-            disabledObjects.append(chart.line(
-                self.prices.datetime, self.stat["hma5"],
-                line_width=2, line_color="#40ff00" if darkTheme else "#17A600", line_alpha=1, legend_label=legendNameAlligator if showControlsOnChart else "",
-            ))
+                # Parabolic Stop and Reverse (psar)
+                disabledObjects.append(chart.circle(
+                    self.prices.datetime, self.stat["psar"]["long"],
+                    size=3, line_color="#00ffff" if darkTheme else "#336633", line_alpha=1, legend_label=legendNamePsar if showControlsOnChart else "",
+                ))
+                disabledObjects.append(chart.circle(
+                    self.prices.datetime, self.stat["psar"]["short"],
+                    size=3, line_color="#ff00ff" if darkTheme else "#663333", line_alpha=1, legend_label=legendNamePsar if showControlsOnChart else "",
+                ))
 
-            # Zig-Zag indicator with self.zigZagDeviation of difference parameter
-            disabledObjects.append(chart.line(
-                self.stat["zigzag3"]["datetimes"], self.stat["zigzag3"]["filtered"],
-                line_width=3, line_color="cyan" if darkTheme else "#333333", line_alpha=1, legend_label=legendNameZigZag if showControlsOnChart else "",
-            ))
+                # Alligator (based on HMA 13, 8, 5) for the Alligator indicator (Jaw, Teeth, and Lips)
+                disabledObjects.append(chart.line(
+                    self.prices.datetime, self.stat["hma13"],
+                    line_width=2, line_color="#1a1aff" if darkTheme else "#2100A6", line_alpha=1, legend_label=legendNameAlligator if showControlsOnChart else "",
+                ))
+                disabledObjects.append(chart.line(
+                    self.prices.datetime, self.stat["hma8"],
+                    line_width=2, line_color="#ff1a1a" if darkTheme else "#A6000C", line_alpha=1, legend_label=legendNameAlligator if showControlsOnChart else "",
+                ))
+                disabledObjects.append(chart.line(
+                    self.prices.datetime, self.stat["hma5"],
+                    line_width=2, line_color="#40ff00" if darkTheme else "#17A600", line_alpha=1, legend_label=legendNameAlligator if showControlsOnChart else "",
+                ))
 
-            for item in disabledObjects:
-                item.visible = False
+                # Zig-Zag indicator with self.zigZagDeviation of difference parameter
+                disabledObjects.append(chart.line(
+                    self.stat["zigzag3"]["datetimes"], self.stat["zigzag3"]["filtered"],
+                    line_width=3, line_color="cyan" if darkTheme else "#333333", line_alpha=1, legend_label=legendNameZigZag if showControlsOnChart else "",
+                ))
+
+                for item in disabledObjects:
+                    item.visible = False
 
             # --- Preparing custom markers:
 
@@ -1146,7 +1151,10 @@ class PriceGenerator:
                     )
 
             else:
-                uLogger.debug("Marker data must be the Pandas Dataframe object! Or `None` (by default). Marker is a custom symbol, example: ×, ↓ or ↑. Dataframe with markers must contain at least two columns. There are `datetime` with date and time and some markers columns (`markersUpper`, `markersCenter` or `markersLower`). Length of markers series must be equal to the length of main candles series.")
+                uLogger.debug("Marker data must be the Pandas DataFrame object! Or `None` (by default). Marker is a custom symbol, example: ×, ↓ or ↑. Dataframe with markers must contain at least two columns. There are `datetime` with date and time and some markers columns (`markersUpper`, `markersCenter` or `markersLower`). Length of markers series must be equal to the length of main candles series.")
+
+            if not (showControlsOnChart or showStatOnChart):
+                summaryInfo.visible = False
 
             # --- Preparing custom lines:
 
@@ -1160,7 +1168,7 @@ class PriceGenerator:
                         )
 
                     else:
-                        uLogger.debug("Every custom line must be the Pandas Dataframe object! Line data must contain at least two columns: `datetime` with date and time and 2-nd column `custom_line_name` with y-coordinates. Length of the chart-line dataframes must be equal to the length of main candle series.")
+                        uLogger.debug("Every custom line must be the Pandas DataFrame object! Line data must contain at least two columns: `datetime` with date and time and 2-nd column `custom_line_name` with y-coordinates. Length of the chart-line dataframes must be equal to the length of main candle series.")
 
             # --- Volume chart options:
             volumeChart = figure(
@@ -1231,6 +1239,7 @@ class PriceGenerator:
                 fill_color="white" if darkTheme else "#999999", line_color="#20ff00" if darkTheme else "black", line_width=1, fill_alpha=1, line_alpha=1,
             )
 
+            # Merge Main and Volume charts in one Bokeh gridplot object:
             unionChart = gridplot(
                 children=[[chart], [volumeChart]],
                 sizing_mode="stretch_both",
@@ -1245,12 +1254,17 @@ class PriceGenerator:
             else:
                 # preparing html-file chart and statistics in markdown:
                 if fileName:
-                    output_file(fileName, title=self._chartTitle, mode="cdn")
+                    output_file(fileName, title=title, mode="cdn")
                     save(unionChart, fileName)
-                    with open("{}.md".format(fileName), "w", encoding="UTF-8") as fH:
-                        fH.write("\n".join(infoBlock))
 
-                    uLogger.info("Pandas dataframe rendered as html-file [{}]".format(os.path.abspath(fileName)))
+                    if showStatOnChart:
+                        mdFile = "{}.md".format(fileName)
+                        with open(mdFile, "w", encoding="UTF-8") as fH:
+                            fH.write("\n".join(infoBlock))
+
+                            uLogger.info("Statistics saved to [{}]".format(os.path.abspath(mdFile)))
+
+                    uLogger.info("Pandas DataFrame rendered as html-file [{}]".format(os.path.abspath(fileName)))
 
                     if viewInBrowser:
                         os.system(os.path.abspath(fileName))  # view forecast chart in default browser immediately
@@ -1259,7 +1273,7 @@ class PriceGenerator:
 
     def RenderGoogle(self, fileName: str = "index.html", viewInBrowser: bool = False, title: Optional[str] = None):
         """
-        Rendering prices from pandas dataframe to not interactive Google Candlestick chart and save to html-file.
+        Rendering prices from Pandas DataFrame to not interactive Google Candlestick chart and save to html-file.
 
         See also: https://developers.google.com/chart/interactive/docs/gallery/candlestickchart
 
@@ -1271,7 +1285,7 @@ class PriceGenerator:
             raise Exception("Empty price data! Generate or load prices before show as Google Candlestick chart!")
 
         else:
-            uLogger.info("Rendering pandas dataframe as Google Candlestick chart...")
+            uLogger.info("Rendering Pandas DataFrame as Google Candlestick chart...")
 
             self.DetectTimeframe()  # auto-detect time delta between last two neighbour candles
             infoBlock = self.GetStatistics()  # calculating some indicators
@@ -1305,7 +1319,7 @@ class PriceGenerator:
             if viewInBrowser:
                 os.system(os.path.abspath(fileName))  # view forecast chart in default browser immediately
 
-            uLogger.info("Pandas dataframe rendered as html-file [{}]".format(os.path.abspath(fileName)))
+            uLogger.info("Pandas DataFrame rendered as html-file [{}]".format(os.path.abspath(fileName)))
 
 
 def ParseArgs():
@@ -1314,7 +1328,7 @@ def ParseArgs():
     """
     parser = ArgumentParser()  # command-line string parser
 
-    parser.description = "Forex and stocks price generator. Generates chain of candlesticks with predefined statistical parameters, return pandas dataframe or saving as .csv-file with OHLCV-candlestick in every strings. See examples: https://tim55667757.github.io/PriceGenerator"
+    parser.description = "Forex and stocks price generator. Generates chain of candlesticks with predefined statistical parameters, return Pandas DataFrame or saving as .csv-file with OHLCV-candlestick in every strings. See examples: https://tim55667757.github.io/PriceGenerator"
     parser.usage = "python PriceGenerator.py [some options] [one or more commands]"
 
     # options:
@@ -1340,8 +1354,8 @@ def ParseArgs():
     parser.add_argument("--debug-level", type=int, default=20, help="Option: showing STDOUT messages of minimal debug level, e.g., 10 = DEBUG, 20 = INFO, 30 = WARNING, 40 = ERROR, 50 = CRITICAL.")
 
     # commands:
-    parser.add_argument("--load-from", type=str, help="Command: Load .cvs-file to Pandas dataframe. You can draw chart in additional with --render-bokeh key.")
-    parser.add_argument("--generate", action="store_true", help="Command: Generates chain of candlesticks with predefined statistical parameters and save stock history as pandas dataframe or .csv-file if --save-to key is defined. You can draw chart in additional with --render-bokeh key.")
+    parser.add_argument("--load-from", type=str, help="Command: Load .cvs-file to Pandas DataFrame. You can draw chart in additional with --render-bokeh key.")
+    parser.add_argument("--generate", action="store_true", help="Command: Generates chain of candlesticks with predefined statistical parameters and save stock history as Pandas DataFrame or .csv-file if --save-to key is defined. You can draw chart in additional with --render-bokeh key.")
     parser.add_argument("--save-to", type=str, help="Command: Save generated or loaded dataframe to .csv-file. You can draw chart in additional with --render-bokeh key.")
     parser.add_argument("--render-bokeh", type=str, help="Command: Show chain of candlesticks as interactive Bokeh chart. See: https://docs.bokeh.org/en/latest/docs/gallery/candlestick.html. Before using this key you must define --load-from or --generate keys.")
     parser.add_argument("--render-google", type=str, help="Command: Show chain of candlesticks as not interactive Google Candlestick chart. See: https://developers.google.com/chart/interactive/docs/gallery/candlestickchart. Before using this key you must define --load-from or --generate keys.")
@@ -1352,7 +1366,7 @@ def ParseArgs():
 
 def Main():
     """
-    Main function to work from CLI, generate pandas dataframe, show charts and save to file.
+    Main function to work from CLI, generate Pandas DataFrame, show charts and save to file.
     """
     args = ParseArgs()  # get and parse command-line parameters
     exitCode = 0
@@ -1393,7 +1407,7 @@ def Main():
             priceModel.trendSplit = args.split_trend  # difference periods
 
         if args.split_count:
-            priceModel.splitCount = args.split_count  # candles in every periods
+            priceModel.splitCount = args.split_count  # candles in every period
 
         if args.min_close:
             priceModel.minClose = args.min_close  # minimum of all close prices
@@ -1414,7 +1428,7 @@ def Main():
             priceModel.upCandlesProb = args.up_candles_prob  # float number in [0; 1] is a probability that next candle is up, 0.5 = 50% by default
 
         if args.outliers_prob:
-            priceModel.outliersProb = args.outliers_prob  # float number in [0; 1] is a statistical outliers probability (price "tails"), 0.03 = 3% by default
+            priceModel.outliersProb = args.outliers_prob  # float number in [0; 1] is a statistical outlier probability (price "tails"), 0.03 = 3% by default
 
         if args.trend_deviation:
             priceModel.trendDeviation = args.trend_deviation  # relative deviation for trend detection, 0.005 mean ±0.5% by default. "NO trend" if (1st_close - last_close) / 1st_close <= trend-deviation
@@ -1437,10 +1451,22 @@ def Main():
             priceModel.SaveToFile(fileName=args.save_to)
 
         if args.render_bokeh:
-            priceModel.RenderBokeh(fileName=args.render_bokeh, viewInBrowser=True, darkTheme=args.dark)
+            priceModel.RenderBokeh(
+                fileName=args.render_bokeh,
+                viewInBrowser=True,
+                darkTheme=args.dark,
+                width=1800,
+                height=940,
+                showControlsOnChart=True,
+                showStatOnChart=True,
+                inline=False,
+            )
 
         if args.render_google:
-            priceModel.RenderGoogle(fileName=args.render_google, viewInBrowser=True)
+            priceModel.RenderGoogle(
+                fileName=args.render_google,
+                viewInBrowser=True,
+            )
 
     except Exception as e:
         uLogger.error(e)
