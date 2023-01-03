@@ -98,7 +98,7 @@ pricegenerator --help
 Запуск: python PriceGenerator.py [параметры] [одна или несколько команд]
 
 Генератор биржевых цен. Генерирует цепочку японских свечей с заранее предопределёнными
-параметрами, возвращает pandas dataframe или сохраняет цены как .csv-файл
+параметрами, возвращает Pandas DataFrame или сохраняет цены как .csv-файл
 в формате свечей OHLCV в каждой строке. Смотрите примеры здесь:
 https://tim55667757.github.io/PriceGenerator
 
@@ -160,11 +160,11 @@ https://tim55667757.github.io/PriceGenerator
                         например, 10 = DEBUG, 20 = INFO, 30 = WARNING,
                         40 = ERROR, 50 = CRITICAL.
   --load-from LOAD_FROM
-                        Команда: загрузить .cvs-файл в Pandas dataframe. Также вы
+                        Команда: загрузить .cvs-файл в Pandas DataFrame. Также вы
                         можете нарисовать график цен, указав ключ --render-bokeh.
   --generate            Команда: сгенерировать цепочку свечей с предопределёнными
                         статистическими параметрами и сохранить историю цен
-                        как pandas dataframe или .csv-файл, если ключ --save-to
+                        как Pandas DataFrame или .csv-файл, если ключ --save-to
                         будет указан. Также вы можете нарисовать график цен,
                         указав ключ --render-bokeh.
   --save-to SAVE_TO     Команда: сохранить сгенерированные или загруженные цены
@@ -208,21 +208,19 @@ PriceGenerator.py   L:377  DEBUG   [2021-01-31 17:52:49,955] - Init close (1st o
 PriceGenerator.py   L:378  DEBUG   [2021-01-31 17:52:49,955] - Maximum of volume of one candle: 42340
 PriceGenerator.py   L:379  DEBUG   [2021-01-31 17:52:49,955] - Probability that next candle is up: 50.0%
 PriceGenerator.py   L:380  DEBUG   [2021-01-31 17:52:49,955] - Statistical outliers probability: 3.0%
-PriceGenerator.py   L:397  INFO    [2021-01-31 17:52:49,958] Showing last 5 rows as pandas dataframe:
+PriceGenerator.py   L:397  INFO    [2021-01-31 17:52:49,958] Showing last 5 rows as Pandas DataFrame:
 PriceGenerator.py   L:399  INFO    [2021-01-31 17:52:49,963]                     datetime   open   high    low  close  volume
 PriceGenerator.py   L:399  INFO    [2021-01-31 17:52:49,963] 95 2021-02-03 11:00:00+03:00  76.82  78.43  76.21  78.13   33652
 PriceGenerator.py   L:399  INFO    [2021-01-31 17:52:49,963] 96 2021-02-03 12:00:00+03:00  78.13  78.37  78.12  78.36    9347
 PriceGenerator.py   L:399  INFO    [2021-01-31 17:52:49,963] 97 2021-02-03 13:00:00+03:00  78.36  78.40  78.05  78.07   27250
 PriceGenerator.py   L:399  INFO    [2021-01-31 17:52:49,963] 98 2021-02-03 14:00:00+03:00  78.07  78.61  75.72  76.42   22979
 PriceGenerator.py   L:399  INFO    [2021-01-31 17:52:49,963] 99 2021-02-03 15:00:00+03:00  76.42  77.37  76.25  77.16   30845
-PriceGenerator.py   L:173  INFO    [2021-01-31 17:52:49,963] Saving [100] rows of pandas dataframe with columns: ['date', 'time', 'open', 'high', 'low', 'close', 'volume']...
+PriceGenerator.py   L:173  INFO    [2021-01-31 17:52:49,963] Saving [100] rows of Pandas DataFrame with columns: ['date', 'time', 'open', 'high', 'low', 'close', 'volume']...
 PriceGenerator.py   L:174  DEBUG   [2021-01-31 17:52:49,963] Delimeter: ,
-PriceGenerator.py   L:181  INFO    [2021-01-31 17:52:49,976] Pandas dataframe saved to .csv-file [./test.csv]
+PriceGenerator.py   L:181  INFO    [2021-01-31 17:52:49,976] Pandas DataFrame saved to .csv-file [./test.csv]
 PriceGenerator.py   L:645  DEBUG   [2021-01-31 17:52:49,976] All PriceGenerator operations are finished success (summary code is 0).
 PriceGenerator.py   L:650  DEBUG   [2021-01-31 17:52:49,976] PriceGenerator work duration: 0:00:00.022938
 PriceGenerator.py   L:651  DEBUG   [2021-01-31 17:52:49,976] PriceGenerator work finished: 2021-01-31 17:52:49
-
-Process finished with exit code 0
 ```
 
 Также рядом будет сохранён файл `test.csv`, пример которого можно посмотреть здесь: [./media/test.csv](./media/test.csv).
@@ -244,9 +242,9 @@ PriceGenerator.py   L:399  INFO    [2021-01-31 18:00:31,719] 96 2021-02-03 12:00
 PriceGenerator.py   L:399  INFO    [2021-01-31 18:00:31,719] 97 2021-02-03 13:00:00+03:00  78.36  78.40  78.05  78.07   27250
 PriceGenerator.py   L:399  INFO    [2021-01-31 18:00:31,719] 98 2021-02-03 14:00:00+03:00  78.07  78.61  75.72  76.42   22979
 PriceGenerator.py   L:399  INFO    [2021-01-31 18:00:31,719] 99 2021-02-03 15:00:00+03:00  76.42  77.37  76.25  77.16   30845
-PriceGenerator.py   L:173  INFO    [2021-01-31 18:00:31,719] Saving [100] rows of pandas dataframe with columns: ['date', 'time', 'open', 'high', 'low', 'close', 'volume']...
-PriceGenerator.py   L:181  INFO    [2021-01-31 18:00:31,731] Pandas dataframe saved to .csv-file [./test.csv]
-PriceGenerator.py   L:410  INFO    [2021-01-31 18:00:31,731] Rendering pandas dataframe as Bokeh chart...
+PriceGenerator.py   L:173  INFO    [2021-01-31 18:00:31,719] Saving [100] rows of Pandas DataFrame with columns: ['date', 'time', 'open', 'high', 'low', 'close', 'volume']...
+PriceGenerator.py   L:181  INFO    [2021-01-31 18:00:31,731] Pandas DataFrame saved to .csv-file [./test.csv]
+PriceGenerator.py   L:410  INFO    [2021-01-31 18:00:31,731] Rendering Pandas DataFrame as Bokeh chart...
 PriceGenerator.py   L:300  INFO    [2021-01-31 18:00:31,740] Some statistical info:
 ## Summary
 
@@ -279,9 +277,7 @@ PriceGenerator.py   L:300  INFO    [2021-01-31 18:00:31,740] Some statistical in
 | - 80 percentile:                             | ≤ 2.2
 | - 50 percentile:                             | ≤ 1.15
 | Cumulative sum of volumes:                   | 1777314
-PriceGenerator.py   L:563  INFO    [2021-01-31 18:00:32,290] Pandas dataframe rendered as html-file [./index.html]
-
-Process finished with exit code 0
+PriceGenerator.py   L:563  INFO    [2021-01-31 18:00:32,290] Pandas DataFrame rendered as html-file [./index.html]
 ```
 
 После выполнения команды выше вы получите три файла:
