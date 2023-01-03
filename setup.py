@@ -87,6 +87,7 @@ setup(
         "python-dateutil >= 2.8.1",  # Apache-2.0 license
         "jinja2 >= 2.11.3",
         "pandas_ta >= 0.2.45b0",
+        "notebook >= 6.5.2",
     ],
 
     install_requires=[
@@ -99,6 +100,7 @@ setup(
         "python-dateutil >= 2.8.1",  # Apache-2.0 license
         "jinja2 >= 2.11.3",
         "pandas_ta >= 0.2.45b0",
+        "notebook >= 6.5.2",
     ],
 
     packages=[
