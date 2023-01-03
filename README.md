@@ -481,7 +481,7 @@ priceModel.RenderBokeh(
     lines=[priceModel.prices[["datetime", "avg"]]],
     showStatOnChart=True,
     showControlsOnChart=True,
-    inline=True,  # Uncomment if script runs in Jupyter Notebook.
+    inline=False,  # Set `True` if script runs in Jupyter Notebook.
 )
 ```
 
