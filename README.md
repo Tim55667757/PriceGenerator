@@ -1,6 +1,6 @@
 # PriceGenerator
 
-A simple price generator similar to real stock prices, but you can control the statistics of their distribution. Use it to generate synthetic data to test your trading strategy.
+**[PriceGenerator](https://github.com/Tim55667757/PriceGenerator)** is the platform for generating prices similar to real stock prices, but you can control the statistics of their distribution. Generates chain of candlesticks with predefined statistical parameters, return Pandas DataFrame or saving as .CSV-file with OHLCV-candlestick in every string. Use PriceGenerator to generate synthetic data to test your trading strategy.
 
 [![Build Status](https://travis-ci.com/Tim55667757/PriceGenerator.svg?branch=master)](https://travis-ci.com/Tim55667757/PriceGenerator)
 [![pypi](https://img.shields.io/pypi/v/PriceGenerator.svg)](https://pypi.python.org/pypi/PriceGenerator)
