@@ -5,6 +5,8 @@
 [![Build Status](https://travis-ci.com/Tim55667757/PriceGenerator.svg?branch=master)](https://travis-ci.com/Tim55667757/PriceGenerator)
 [![pypi](https://img.shields.io/pypi/v/PriceGenerator.svg)](https://pypi.python.org/pypi/PriceGenerator)
 [![license](https://img.shields.io/pypi/l/PriceGenerator.svg)](https://github.com/Tim55667757/PriceGenerator/blob/master/LICENSE)
+[![ru-doc](https://badgen.net/badge/russian/readme/pink)](https://github.com/Tim55667757/PriceGenerator/blob/master/README_RU.md)
+[![api-doc](https://badgen.net/badge/api-doc/PriceGenerator/blue)](https://tim55667757.github.io/PriceGenerator/docs/pricegenerator/PriceGenerator.html)
 [![gift](https://badgen.net/badge/gift/donate/green)](https://yoomoney.ru/quickpay/shop-widget?writer=seller&targets=Donat%20(gift)%20for%20the%20authors%20of%20the%20PriceGenerator%20project&default-sum=999&button-text=13&payment-type-choice=on&successURL=https%3A%2F%2Ftim55667757.github.io%2FPriceGenerator%2F&quickpay=shop&account=410015019068268)
 
 * 🇷🇺 [Документация на русском (see documentation in russian here)](https://github.com/Tim55667757/PriceGenerator/blob/master/README_RU.md)
@@ -473,7 +475,7 @@ priceModel.RenderBokeh(
     fileName="index1.html",
     viewInBrowser=True,
     darkTheme=True,  # Set `False` for light theme.
-    markers=[priceModel.prices[["datetime", "markersUpper", "markersCenter", "markersLower"]]],
+    markers=priceModel.prices[["datetime", "markersUpper", "markersCenter", "markersLower"]],
     lines=[priceModel.prices[["datetime", "avg"]]],
     showStatOnChart=True,
     showControlsOnChart=True,
