@@ -5,6 +5,8 @@
 """
 This module init standard python logging system with some of pre-defined parameters,
 e.g. debug level for log-file, info level for console, log-rotate and so on.
+
+Current internal logger name for PriceGenerator module is `PriceGenerator-UniLogger`.
 """
 
 # Copyright (c) 2022 Gilmillin Timur Mansurovich
@@ -27,7 +29,7 @@ import logging.handlers
 
 
 # initialize Main Parent Logger:
-UniLogger = logging.getLogger("UniLogger")
+UniLogger = logging.getLogger("PriceGenerator-UniLogger")
 formatString = "%(filename)-20sL:%(lineno)-5d%(levelname)-8s[%(asctime)s] %(message)s"
 formatter = logging.Formatter(formatString)
 sys.stderr = sys.stdout
