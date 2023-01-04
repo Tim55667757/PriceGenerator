@@ -704,7 +704,7 @@ class PriceGenerator:
         uLogger.debug("- Probability that next candle is up: {}%".format(self.upCandlesProb * 100))
         uLogger.debug("- Statistical outliers probability: {}%".format(self.outliersProb * 100))
 
-        # prepare candles chain:
+        # -- Preparing candles chain:
         if self.trendSplit is not None and self.trendSplit and self.splitCount is not None and self.splitCount:
             userProb = self.upCandlesProb
             userHorizon = self.horizon
@@ -731,16 +731,20 @@ class PriceGenerator:
                 for _ in range(1, self.horizon):
                     candles.append(self._GenNextCandle(candles[-1]["close"]))
 
-                # change last candle in every trend:
+                # -- Change last candle in every trend:
+                lowDelta = min(candles[-1]["open"], candles[-1]["close"]) - candles[-1]["low"]  # lower shadow
+                highDelta = candles[-1]["high"] - max(candles[-1]["open"], candles[-1]["close"])  # higher shadow
                 if self.trendSplit[trendNum] == "/":
-                    if firstCandle["close"] > candles[-1]["close"]:
-                        candles[-1]["close"] = round(random.uniform(a=firstCandle["close"], b=self.maxClose), self.precision)
+                    if firstCandle["close"] >= candles[-1]["close"]:
+                        candles[-1]["high"] = round(random.uniform(a=firstCandle["close"], b=self.maxClose), self.precision)
+                        candles[-1]["close"] = round(random.uniform(a=candles[-1]["open"], b=candles[-1]["high"]), self.precision)
 
                 elif self.trendSplit[trendNum] == "\\":
                     if firstCandle["close"] < candles[-1]["close"]:
-                        candles[-1]["close"] = round(random.uniform(a=self.minClose, b=firstCandle["close"]), self.precision)
+                        candles[-1]["low"] = round(random.uniform(a=self.minClose, b=firstCandle["close"]), self.precision)
+                        candles[-1]["close"] = round(random.uniform(a=candles[-1]["low"], b=candles[-1]["open"]), self.precision)
 
-                else:
+                else:  # if NO trend:
                     if abs(firstCandle["close"] - candles[-1]["close"]) / firstCandle["close"] > self.trendDeviation:
                         candles[-1]["close"] = round(
                             random.uniform(
@@ -749,6 +753,15 @@ class PriceGenerator:
                             ),
                             self.precision,
                         )
+
+                # Fixing shadows:
+                if candles[-1]["close"] >= candles[-1]["open"]:
+                    candles[-1]["high"] = candles[-1]["close"] + highDelta
+                    candles[-1]["low"] = candles[-1]["open"] - lowDelta
+
+                else:
+                    candles[-1]["high"] = candles[-1]["open"] + highDelta
+                    candles[-1]["low"] = candles[-1]["close"] - lowDelta
 
             self.upCandlesProb = userProb
             self.horizon = userHorizon
@@ -852,14 +865,14 @@ class PriceGenerator:
             chart.toolbar.logo = None  # remove bokeh logo and link to https://bokeh.org/
             chart.xaxis.major_label_orientation = pi / 6
             chart.grid.grid_line_dash = [6, 4]
-            chart.grid.grid_line_alpha = 0.5
+            chart.grid.grid_line_alpha = 0.4
             chart.grid.minor_grid_line_dash = [6, 4]
-            chart.grid.minor_grid_line_alpha = 0.5
+            chart.grid.minor_grid_line_alpha = 0.4
             chart.xgrid.minor_grid_line_dash = [6, 4]
-            chart.xgrid.minor_grid_line_alpha = 0.4
+            chart.xgrid.minor_grid_line_alpha = 0.3
             chart.xgrid.minor_grid_line_color = "white" if darkTheme else "gray"
             chart.ygrid.minor_grid_line_dash = [6, 4]
-            chart.ygrid.minor_grid_line_alpha = 0.4
+            chart.ygrid.minor_grid_line_alpha = 0.3
             chart.ygrid.minor_grid_line_color = "white" if darkTheme else "gray"
 
             if showStatOnChart:
