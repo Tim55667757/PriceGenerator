@@ -498,18 +498,10 @@ class PriceGenerator:
         :return: text in markdown with statistics.
         """
         uLogger.debug("Calculating column with deltas between high and low values...")
-        self.prices["delta"] = list(map(
-            lambda x, y: x - y,
-            self.prices.high.values,
-            self.prices.low.values
-        ))
+        self.prices["delta"] = self.prices.high.values - self.prices.low.values
 
         uLogger.debug("Calculating column with average values...")
-        self.prices["avg"] = list(map(
-            lambda x, y: x - y / 2,
-            self.prices.high.values,
-            self.prices.delta.values
-        ))
+        self.prices["avg"] = round((self.prices.high + self.prices.low) / 2, self._precision)
 
         uLogger.debug("Calculating some technical analysis indicators...")
         self.prices["sma5"] = ta.sma(close=self.prices.close, length=5, offset=None)
@@ -1166,6 +1158,9 @@ class PriceGenerator:
                     )
 
                 if "markersCenter" in markers.columns:
+                    if "avg" not in self.prices.columns:
+                        self.prices["avg"] = round((self.prices.high + self.prices.low) / 2, self._precision)
+
                     chart.text(
                         markers.datetime.values, self.prices.avg,
                         text_align="center", text_baseline="middle", text=markers.markersCenter.values,
