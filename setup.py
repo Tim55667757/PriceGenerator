@@ -80,27 +80,27 @@ setup(
         "pytest >= 6.2.2",
         "requests >= 2.25.1",  # Apache-2.0 license
         "pandas >= 1.5.2",
-        "bokeh >= 3.0.3",
-        "bkcharts >= 0.2",
-        "numpy >= 1.20.1",
-        "matplotlib >= 3.3.4",
+        "bokeh >= 3.0.3",  # BSD-3-Clause license
+        "bkcharts >= 0.2",  # New BSD License
+        "numpy >= 1.23.5",  # BSD-3-Clause license
+        "matplotlib >= 3.3.4",  # PSF license
         "python-dateutil >= 2.8.1",  # Apache-2.0 license
-        "jinja2 >= 2.11.3",
-        "pandas_ta >= 0.2.45b0",
-        "notebook >= 6.5.2",
+        "jinja2 >= 2.11.3",  # BSD-3-Clause license
+        "pandas_ta >= 0.2.45b0",  # MIT License
+        "notebook >= 6.5.2",  # BSD License
     ],
 
     install_requires=[
         "requests >= 2.25.1",  # Apache-2.0 license
-        "pandas >= 1.5.2",
-        "bokeh >= 3.0.3",
-        "bkcharts >= 0.2",
-        "numpy >= 1.20.1",
-        "matplotlib >= 3.3.4",
+        "pandas >= 1.5.2",  # MIT License
+        "bokeh >= 3.0.3",  # BSD-3-Clause license
+        "bkcharts >= 0.2",  # New BSD License
+        "numpy >= 1.23.5",  # BSD-3-Clause license
+        "matplotlib >= 3.3.4",  # PSF license
         "python-dateutil >= 2.8.1",  # Apache-2.0 license
-        "jinja2 >= 2.11.3",
-        "pandas_ta >= 0.2.45b0",
-        "notebook >= 6.5.2",
+        "jinja2 >= 2.11.3",  # BSD-3-Clause license
+        "pandas_ta >= 0.2.45b0",  # MIT License
+        "notebook >= 6.5.2",  # BSD License
     ],
 
     packages=[
