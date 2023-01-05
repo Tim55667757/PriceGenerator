@@ -1456,7 +1456,7 @@ def ParseArgs():
     parser.add_argument("--start", type=str, help="Option: start time of 1st candle as string with format 'year-month-day hour:min', e.g. '2021-01-02 12:00'.")
     parser.add_argument("--horizon", type=int, default=30, help="Option: candlesticks count. Default: 30.")
     parser.add_argument("--split-trend", type=str, default="", help=r"Option: set different trends, e.g. `--split-trend=/\-` means that generated candles has uptrend at first part, next downtrend and then no trend. Used only together with `--split-count` key. Default: empty string (mean that will be used random trend directions).")
-    parser.add_argument("--split-count", type=int, nargs="+", help="Option: set candles count in different trends, e.g. `splitCount=[5, 10, 15]` means that generated candles has 3 trends with 5, 10 and 15 candles in chain, with sum must be equal to `--horizon` value. Used only together with `--split-trend` key. Default: [], empty list mean that will be used random candles count in trends.")
+    parser.add_argument("--split-count", type=int, nargs="+", help="Option: set candles count in different trends, e.g. `--split-count 5 10 15` means that generated candles has 3 trends with 5, 10 and 15 candles in chain, with sum must be equal to `--horizon` value. Used only together with `--split-trend` key. Default: [], empty list mean that will be used random candles count in trends.")
     parser.add_argument("--max-close", type=float, help="Option: maximum of all close prices.")
     parser.add_argument("--min-close", type=float, help="Option: minimum of all close prices.")
     parser.add_argument("--init-close", type=float, help="Option: generator started 1st open price equal to this last close price.")
