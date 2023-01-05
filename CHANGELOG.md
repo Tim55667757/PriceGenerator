@@ -9,6 +9,20 @@
 
 ### [1.3.81 (2023-01-05)](https://github.com/Tim55667757/PriceGenerator/releases/tag/1.3.81) — released
 
+##### Digest
+
+**WARNING!** Python supported version was changed to 3.9.
+ 
+Now you can draw an additional custom lines and markers on main chart with candles (using `RenderBokeh()` method). You can specify trend directions with simple words: `up`, `down`, `no` or chars: `u`, `d`, `n`, when using `--split-trend` key (in addition to the existing ability to identify trend with symbols `/\-`), e.g. `--split-trend=up-down-no-up`, `--split-trend=u-d-n-u` etc. Also, you can choose themes for charts drawn by `RenderBokeh()` method with the new parameter `darkTheme` (if `True` then using dark theme, else light theme).
+
+Light style example (with some custom markers and new average line):
+
+![image](https://user-images.githubusercontent.com/7660870/210442177-a7d9f2bd-e426-43bb-bf5d-bf66339ea56e.png)
+
+Dark style example (with some custom markers):
+
+![image](https://user-images.githubusercontent.com/7660870/210591393-3f36cb5f-a8fd-4c3c-a085-23177c8c464d.png)
+
 ##### New features
 
 * Python version support was changed to 3.9.
