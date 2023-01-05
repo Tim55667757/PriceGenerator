@@ -835,18 +835,17 @@ class PriceGenerator:
                 for _ in range(1, self.horizon):
                     candles.append(self._GenNextCandle(candles[-1]["close"]))
 
+                highDelta = abs(candles[-1]["high"] - max(candles[-1]["open"], candles[-1]["close"]))  # save higher shadow
+                lowDelta = abs(min(candles[-1]["open"], candles[-1]["close"]) - candles[-1]["low"])  # save lower shadow
+
                 # -- Change last candle in every trend:
-                lowDelta = min(candles[-1]["open"], candles[-1]["close"]) - candles[-1]["low"]  # lower shadow
-                highDelta = candles[-1]["high"] - max(candles[-1]["open"], candles[-1]["close"])  # higher shadow
                 if trends[trendNum] == "up":
                     if firstCandle["close"] >= candles[-1]["close"]:
-                        candles[-1]["high"] = round(random.uniform(a=firstCandle["close"], b=self.maxClose), self.precision)
-                        candles[-1]["close"] = round(random.uniform(a=candles[-1]["open"], b=candles[-1]["high"]), self.precision)
+                        candles[-1]["close"] = round(random.uniform(a=firstCandle["close"], b=self.maxClose), self.precision)
 
                 elif trends[trendNum] == "down":
                     if firstCandle["close"] < candles[-1]["close"]:
-                        candles[-1]["low"] = round(random.uniform(a=self.minClose, b=firstCandle["close"]), self.precision)
-                        candles[-1]["close"] = round(random.uniform(a=candles[-1]["low"], b=candles[-1]["open"]), self.precision)
+                        candles[-1]["close"] = round(random.uniform(a=self.minClose, b=firstCandle["close"]), self.precision)
 
                 else:  # if NO trend:
                     if abs(firstCandle["close"] - candles[-1]["close"]) / firstCandle["close"] > self.trendDeviation:
@@ -858,14 +857,8 @@ class PriceGenerator:
                             self.precision,
                         )
 
-                # Fixing shadows:
-                if candles[-1]["close"] >= candles[-1]["open"]:
-                    candles[-1]["high"] = candles[-1]["close"] + highDelta
-                    candles[-1]["low"] = candles[-1]["open"] - lowDelta
-
-                else:
-                    candles[-1]["high"] = candles[-1]["open"] + highDelta
-                    candles[-1]["low"] = candles[-1]["close"] - lowDelta
+                candles[-1]["high"] = max(candles[-1]["open"], candles[-1]["close"]) + highDelta  # fixing higher shadow
+                candles[-1]["low"] = min(candles[-1]["open"], candles[-1]["close"]) - lowDelta  # fixing lower shadow
 
             self.upCandlesProb = userProb
             self.horizon = userHorizon
