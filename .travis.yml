@@ -1,8 +1,8 @@
 language: python
 python: "3.9"
 branches:
-  only: []
-#  - master
+  only:
+  - master
 #  - develop
 
 install:
