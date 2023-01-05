@@ -3,7 +3,7 @@ python: "3.9"
 branches:
   only:
   - master
-  - develop
+#  - develop
 
 install:
   - python -m pip install --upgrade pip --force-reinstall
