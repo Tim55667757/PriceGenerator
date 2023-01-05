@@ -1472,7 +1472,7 @@ def ParseArgs():
     parser.add_argument("--debug-level", type=int, default=20, help="Option: showing STDOUT messages of minimal debug level, e.g., 10 = DEBUG, 20 = INFO, 30 = WARNING, 40 = ERROR, 50 = CRITICAL.")
 
     # commands:
-    parser.add_argument("--load-from", type=str, help="Command: load .cvs-file to Pandas DataFrame. You can draw chart in additional with `--render-bokeh` key.")
+    parser.add_argument("--load-from", type=str, help="Command: load .cvs-file to Pandas DataFrame. You can draw chart in additional with `--render-bokeh` or `--render-google` key.")
     parser.add_argument("--generate", action="store_true", help="Command: generates chain of candlesticks with predefined statistical parameters and save stock history as Pandas DataFrame or .CSV-file if `--save-to` key is defined. You can draw chart in additional with `--render-bokeh` or `--render-google` keys.")
     parser.add_argument("--save-to", type=str, help="Command: save generated or loaded dataframe to .CSV-file. You can draw chart in additional with `--render-bokeh` or `--render-google` keys.")
     parser.add_argument("--render-bokeh", type=str, help="Command: show chain of candlesticks as interactive Bokeh chart. Used only together with `--load-from` or `--generate` keys.")
