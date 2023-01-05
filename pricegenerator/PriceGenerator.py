@@ -207,6 +207,7 @@ GOOGLE_TEMPLATE_J2 = """{# This template based on Jinja markup language: https:/
 </html>
 """
 
+
 class PriceGenerator:
     """
     This class implements methods to generation of prices statistically similar to real ones.
@@ -253,7 +254,7 @@ class PriceGenerator:
         """Candlesticks count in generated or loaded chain of prices, must be >= 5. Default: `None` (means auto-detect length of chain if loaded from file)."""
 
         self.trendSplit = ""
-        r"""Set different trends, e.g. `split="/\-"` means that generated candles has uptrend at first part, next downtrend and then no trend. Used only together with `splitCount` variable. Default: `""`, empty string mean that will be used random trend directions."""
+        r"""Set different trends, e.g. `trendSplit="/\-"` means that generated candles has uptrend at first part, next downtrend and then no trend. Used only together with `splitCount` variable. Also, you can use words: `up`, `down`, `no` or chars: `u`, `d`, `n` with the hyphen symbol as separator, e.g. `trendSplit=up-down-no-up`, `trendSplit=u-d-n-u` etc. Default: `""`, empty string mean that will be used random trend directions."""
 
         self.splitCount = []
         """Set candles count in different trends, e.g. `splitCount=[5, 10, 15]` means that generated candles has 3 trends with 5, 10 and 15 candles in chain, with sum must be equal to horizon. Used only together with `trendSplit` variable. Default: `[]`, empty list mean that will be used random candles count in trends."""
@@ -732,18 +733,43 @@ class PriceGenerator:
             uLogger.debug("Horizon length less than 5! It is set to 5 by default.")
 
         if self.trendSplit is not None and self.splitCount is not None:
-            if len(self.trendSplit) > self.horizon:
-                uLogger.debug("Trend parts count ({}) must be less than horizon ({})! New trend: {}".format(len(self.trendSplit), self.horizon, self.trendSplit[0]))
-                self.trendSplit = self.trendSplit[0]
+            # Detecting input trend:
+            self.trendSplit = self.trendSplit.lower()
+            if "/" in self.trendSplit or "\\" in self.trendSplit:
+                uLogger.debug("Detected old-style string for split trend: {}".format(self.trendSplit))
 
-            if sum(self.splitCount) != self.horizon or len(self.trendSplit) == 1:
+                self.trendSplit = self.trendSplit.replace("-", "-no-").replace("/", "-up-").replace("\\", "-down-").replace("--", "-").lstrip("-").rstrip("-")
+
+            else:
+                uLogger.debug("Detected new-style string for split trend: {}".format(self.trendSplit))
+
+                self.trendSplit = "-{}-".format(self.trendSplit)
+                self.trendSplit = self.trendSplit.replace("-u-", "-up-").replace("-d-", "-down-").replace("-n-", "-no-").lstrip("-").rstrip("-")
+
+            uLogger.debug("New style string for trend split is set: {}".format(self.trendSplit))
+
+            trends = self.trendSplit.split("-")
+
+            uLogger.debug("Trends list: {}".format(trends))
+
+            if len(trends) > self.horizon:
+                trends = trends[0]
+
+                uLogger.debug("Trend parts count ({}) must be less than horizon ({})! New trend will be used: {}".format(len(trends), self.horizon, trends[0]))
+
+            if sum(self.splitCount) != self.horizon or len(trends) == 1:
                 self.splitCount = [self.horizon]
-                uLogger.debug("Set only one trend with length equal to horizon: {}".format(self.splitCount))
 
-            if len(self.splitCount) != len(self.trendSplit):
+                uLogger.debug("Only one trend will be used with length equal to horizon: {}".format(self.splitCount))
+
+            if len(self.splitCount) != len(trends):
                 self.trendSplit = None
                 self.splitCount = None
-                uLogger.debug("No trend was set: `self.trendSplit = None`, `self.splitCount = None`. See `--help` how to work with `--split-trend` and `--split-count` keys.")
+
+                uLogger.debug("Random trend direction will be used, because trends count not equal to split count!")
+
+        else:
+            trends = []
 
         # maximum of candle sizes: (high - low), if None then used (maxClose - minClose) / 10
         if self.maxOutlier is None:
@@ -784,19 +810,24 @@ class PriceGenerator:
             userInitC = self.initClose
             candles = []
 
-            for trendNum in range(len(self.splitCount)):
+            for trendNum in range(len(trends)):
                 self.horizon = self.splitCount[trendNum]
                 self.initClose = candles[-1]["close"] if trendNum > 0 else self.initClose
 
                 # change probability of candles direction in next trend:
-                if self.trendSplit[trendNum] == "/":
+                if trends[trendNum] == "up":
                     self.upCandlesProb = 0.51 if userProb <= 0.5 else userProb
 
-                elif self.trendSplit[trendNum] == "\\":
+                elif trends[trendNum] == "down":
                     self.upCandlesProb = 0.49 if userProb >= 0.5 else userProb
 
-                else:
+                elif trends[trendNum] == "no":
                     self.upCandlesProb = 0.5
+
+                else:
+                    uLogger.error("Unknown direction used: {}".format(trends[trendNum]))
+
+                    raise Exception("Unknown direction")
 
                 firstCandle = self._GenNextCandle(round(self.initClose, self.precision))  # first candle in next trend
                 candles.append(firstCandle)
@@ -1455,7 +1486,7 @@ def ParseArgs():
     parser.add_argument("--timeframe", type=int, default=60, help="Option: time delta between two neighbour candles in minutes, 60 (1 hour) by default.")
     parser.add_argument("--start", type=str, help="Option: start time of 1st candle as string with format 'year-month-day hour:min', e.g. '2021-01-02 12:00'.")
     parser.add_argument("--horizon", type=int, default=30, help="Option: candlesticks count. Default: 30.")
-    parser.add_argument("--split-trend", type=str, default="", help=r"Option: set different trends, e.g. `--split-trend=/\-` means that generated candles has uptrend at first part, next downtrend and then no trend. Used only together with `--split-count` key. Default: empty string (mean that will be used random trend directions).")
+    parser.add_argument("--split-trend", type=str, default="", help=r"Option: set different trends, e.g. `--split-trend=/\-` means that generated candles has uptrend at first part, next downtrend and then no trend. Used only together with `--split-count` key. Also, you can use words: `up`, `down`, `no` or chars: `u`, `d`, `n` with the hyphen symbol as separator, e.g. `--split-trend=up-down-no-up`, `--split-trend=u-d-n-u` etc. Default: empty string, mean that will be used random trend directions.")
     parser.add_argument("--split-count", type=int, nargs="+", help="Option: set candles count in different trends, e.g. `--split-count 5 10 15` means that generated candles has 3 trends with 5, 10 and 15 candles in chain, with sum must be equal to `--horizon` value. Used only together with `--split-trend` key. Default: [], empty list mean that will be used random candles count in trends.")
     parser.add_argument("--max-close", type=float, help="Option: maximum of all close prices.")
     parser.add_argument("--min-close", type=float, help="Option: minimum of all close prices.")
