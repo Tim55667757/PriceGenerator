@@ -838,12 +838,12 @@ class PriceGenerator:
                 # -- Change last candle in every trend:
                 lowDelta = min(candles[-1]["open"], candles[-1]["close"]) - candles[-1]["low"]  # lower shadow
                 highDelta = candles[-1]["high"] - max(candles[-1]["open"], candles[-1]["close"])  # higher shadow
-                if self.trendSplit[trendNum] == "/":
+                if trends[trendNum] == "up":
                     if firstCandle["close"] >= candles[-1]["close"]:
                         candles[-1]["high"] = round(random.uniform(a=firstCandle["close"], b=self.maxClose), self.precision)
                         candles[-1]["close"] = round(random.uniform(a=candles[-1]["open"], b=candles[-1]["high"]), self.precision)
 
-                elif self.trendSplit[trendNum] == "\\":
+                elif trends[trendNum] == "down":
                     if firstCandle["close"] < candles[-1]["close"]:
                         candles[-1]["low"] = round(random.uniform(a=self.minClose, b=firstCandle["close"]), self.precision)
                         candles[-1]["close"] = round(random.uniform(a=candles[-1]["low"], b=candles[-1]["open"]), self.precision)
