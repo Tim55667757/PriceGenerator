@@ -1,14 +1,16 @@
 # PriceGenerator
 
-A simple price generator similar to real stock prices, but you can control the statistics of their distribution. Use it to generate synthetic data to test your trading strategy.
+**[PriceGenerator](https://github.com/Tim55667757/PriceGenerator)** is the platform for generating prices similar to real stock prices, but you can control the statistics of their distribution. Generates chain of candlesticks with predefined statistical parameters, return Pandas DataFrame or saving as .CSV-file with OHLCV-candlestick in every string. Use PriceGenerator to generate synthetic data to test your trading strategy.
 
 [![Build Status](https://travis-ci.com/Tim55667757/PriceGenerator.svg?branch=master)](https://travis-ci.com/Tim55667757/PriceGenerator)
 [![pypi](https://img.shields.io/pypi/v/PriceGenerator.svg)](https://pypi.python.org/pypi/PriceGenerator)
 [![license](https://img.shields.io/pypi/l/PriceGenerator.svg)](https://github.com/Tim55667757/PriceGenerator/blob/master/LICENSE)
+[![ru-doc](https://badgen.net/badge/russian/readme/pink)](https://github.com/Tim55667757/PriceGenerator/blob/master/README_RU.md)
+[![api-doc](https://badgen.net/badge/api-doc/PriceGenerator/blue)](https://tim55667757.github.io/PriceGenerator/docs/pricegenerator/PriceGenerator.html)
 [![gift](https://badgen.net/badge/gift/donate/green)](https://yoomoney.ru/quickpay/shop-widget?writer=seller&targets=Donat%20(gift)%20for%20the%20authors%20of%20the%20PriceGenerator%20project&default-sum=999&button-text=13&payment-type-choice=on&successURL=https%3A%2F%2Ftim55667757.github.io%2FPriceGenerator%2F&quickpay=shop&account=410015019068268)
 
 * 🇷🇺 [Документация на русском (see documentation in russian here)](https://github.com/Tim55667757/PriceGenerator/blob/master/README_RU.md)
-* 📚 [Release notes](https://github.com/Tim55667757/PriceGenerator/blob/master/CHANGELOG.md)
+* 📚 [Release notes](https://github.com/Tim55667757/PriceGenerator/blob/develop/CHANGELOG.md)
 * 🎁 Support the project with a donation to our yoomoney-wallet: [410015019068268](https://yoomoney.ru/quickpay/shop-widget?writer=seller&targets=Donat%20(gift)%20for%20the%20authors%20of%20the%20PriceGenerator%20project&default-sum=999&button-text=13&payment-type-choice=on&successURL=https%3A%2F%2Ftim55667757.github.io%2FPriceGenerator%2F&quickpay=shop&account=410015019068268)
 
 **Contents**
@@ -95,90 +97,98 @@ pricegenerator --help
 
 Output:
 ```text
-usage: python PriceGenerator.py [some options] [one or more commands]
+usage: 
+/as module/ python PriceGenerator.py [some options] [one command]
+/as CLI tool/ pricegenerator [some options] [one command]
 
-Forex and stocks price generator. Generates chain of candlesticks with
-predefined statistical parameters, return pandas dataframe or saving as .csv-
-file with OHLCV-candlestick in every strings. See examples:
-https://tim55667757.github.io/PriceGenerator
+PriceGenerator is the platform for generating prices similar to real stock
+prices, but you can control the statistics of their distribution. Generates
+chain of candlesticks with predefined statistical parameters, return Pandas
+DataFrame or saving as .CSV-file with OHLCV-candlestick in every string. Use
+PriceGenerator to generate synthetic data to test your trading strategy. See
+examples: https://tim55667757.github.io/PriceGenerator
 
 optional arguments:
   -h, --help            show this help message and exit
   --ticker TICKER       Option: some fake ticker name, 'TEST' by default.
   --precision PRECISION
-                        Option: precision is count of digits after comma, 2 by
-                        default.
+                        Option: precision is count of digits after comma, 2 by default.
   --timeframe TIMEFRAME
                         Option: time delta between two neighbour candles in
                         minutes, 60 (1 hour) by default.
   --start START         Option: start time of 1st candle as string with format
                         'year-month-day hour:min', e.g. '2021-01-02 12:00'.
-  --horizon HORIZON     Option: candlesticks count.
+  --horizon HORIZON     Option: candlesticks count. Default: 30.
   --split-trend SPLIT_TREND
-                        Option: set difference periods, e.g. --split-trend=/\-
-                        means that generated candles has up trend at first
-                        part, next down trend and then no trend. Used with
-                        --split-count key.
+                        Option: set different trends, e.g. `--split-trend=/\-`
+                        means that generated candles has uptrend at first
+                        part, next downtrend and then no trend. Used only
+                        together with `--split-count` key. Also, you can use
+                        words: `up`, `down`, `no` or chars: `u`, `d`, `n` with
+                        the hyphen symbol as separator, e.g. `--split-
+                        trend=up-down-no-up`, `--split-trend=u-d-n-u` etc. Default:
+                        empty string, mean that will be used random trend directions.
   --split-count SPLIT_COUNT [SPLIT_COUNT ...]
-                        Option: set count of candles of difference periods,
-                        e.g. --split-count 5 10 15 means that generated
-                        candles has 3 trends with 5, 10 and 15 candles in
-                        chain, with sum equal to --horizon. Used with --split-
-                        count and --horizon keys.
+                        Option: set candles count in different trends, e.g.
+                        `--split-count 5 10 15` means that generated candles
+                        has 3 trends with 5, 10 and 15 candles in chain, with
+                        sum must be equal to `--horizon` value. Used only
+                        together with `--split-trend` key. Default: [], empty
+                        list mean that will be used random candles count in trends.
   --max-close MAX_CLOSE
                         Option: maximum of all close prices.
   --min-close MIN_CLOSE
                         Option: minimum of all close prices.
   --init-close INIT_CLOSE
-                        Option: generator started 1st open price of chain from
-                        this 'last' close price.
+                        Option: generator started 1st open price equal to this
+                        last close price.
   --max-outlier MAX_OUTLIER
                         Option: maximum of outlier size of candle tails, by
-                        default used (max-close - min-close) / 10.
-  --max-body MAX_BODY   Option: maximum of candle body sizes: abs(open -
-                        close), by default used max-outlier * 0.9.
+                        default used (max_close - min_close) / 10.
+  --max-body MAX_BODY   Option: maximum of candle body sizes:
+                        abs(open - close), by default used max_outlier * 0.9.
   --max-volume MAX_VOLUME
                         Option: maximum of trade volumes.
   --up-candles-prob UP_CANDLES_PROB
                         Option: float number in [0; 1] is a probability that
                         next candle is up, 0.5 by default.
   --outliers-prob OUTLIERS_PROB
-                        Option: float number in [0; 1] is a statistical
-                        outliers probability (price 'tails'), 0.03 by default.
+                        Option: float number in [0; 1] is an outliers
+                        probability (price tails), 0.03 by default.
   --trend-deviation TREND_DEVIATION
                         Option: relative deviation for trend detection, 0.005
-                        mean ±0.005 by default. 'NO trend' if (1st_close -
-                        last_close) / 1st_close <= trend-deviation.
+                        mean ±0.005 by default. No trend if
+                        (1st_close - last_close) / 1st_close <= trend_deviation.
   --zigzag ZIGZAG       Option: relative deviation to detection points of
-                        ZigZag indicator, 0.03 by default.
-  --sep SEP             Option: separator in csv-file, if None then auto-
+                        Zig-Zag indicator, 0.03 by default.
+  --sep SEP             Option: separator in CSV-file, if None then auto-
                         detecting enable.
+  --dark                Option: if key present, then will be used dark theme
+                        for the `--render-bokeh` key. `False` by default for
+                        light theme.
   --debug-level DEBUG_LEVEL
-                        Option: showing STDOUT messages of minimal debug
-                        level, e.g., 10 = DEBUG, 20 = INFO, 30 = WARNING, 40 =
-                        ERROR, 50 = CRITICAL.
+                        Option: showing STDOUT messages of minimal debug level,
+                        e.g., 10 = DEBUG, 20 = INFO, 30 = WARNING, 40 = ERROR,
+                        50 = CRITICAL.
   --load-from LOAD_FROM
-                        Command: Load .cvs-file to Pandas dataframe. You can
-                        draw chart in additional with --render-bokeh key.
-  --generate            Command: Generates chain of candlesticks with
+                        Command: load .cvs-file to Pandas DataFrame. You can
+                        draw chart in additional with `--render-bokeh` or
+                        `--render-google` key.
+  --generate            Command: generates chain of candlesticks with
                         predefined statistical parameters and save stock
-                        history as pandas dataframe or .csv-file if --save-to
-                        key is defined. You can draw chart in additional with
-                        --render-bokeh key.
-  --save-to SAVE_TO     Command: Save generated or loaded dataframe to .csv-
-                        file. You can draw chart in additional with --render-
-                        bokeh key.
+                        history as Pandas DataFrame or .CSV-file if `--save-
+                        to` key is defined. You can draw chart in additional
+                        with `--render-bokeh` or `--render-google` keys.
+  --save-to SAVE_TO     Command: save generated or loaded dataframe to .CSV-
+                        file. You can draw chart in additional with `--render-bokeh`
+                        or `--render-google` keys.
   --render-bokeh RENDER_BOKEH
-                        Command: Show chain of candlesticks as interactive
-                        Bokeh chart. See: https://docs.bokeh.org/en/latest/doc
-                        s/gallery/candlestick.html. Before using this key you
-                        must define --load-from or --generate keys.
+                        Command: show chain of candlesticks as interactive
+                        Bokeh chart. Used only together with `--load-from` or `--generate` keys.
   --render-google RENDER_GOOGLE
-                        Command: Show chain of candlesticks as not interactive
-                        Google Candlestick chart. See: https://developers.goog
-                        le.com/chart/interactive/docs/gallery/candlestickchart
-                        . Before using this key you must define --load-from or
-                        --generate keys.
+                        Command: show chain of candlesticks as non-interactive
+                        Google Candlestick chart. Used only together with
+                        `--load-from` or `--generate` keys.
 ```
 
 #### Generating prices with default parameters
@@ -206,21 +216,19 @@ PriceGenerator.py   L:377  DEBUG   [2021-01-31 17:52:49,955] - Init close (1st o
 PriceGenerator.py   L:378  DEBUG   [2021-01-31 17:52:49,955] - Maximum of volume of one candle: 42340
 PriceGenerator.py   L:379  DEBUG   [2021-01-31 17:52:49,955] - Probability that next candle is up: 50.0%
 PriceGenerator.py   L:380  DEBUG   [2021-01-31 17:52:49,955] - Statistical outliers probability: 3.0%
-PriceGenerator.py   L:397  INFO    [2021-01-31 17:52:49,958] Showing last 5 rows as pandas dataframe:
+PriceGenerator.py   L:397  INFO    [2021-01-31 17:52:49,958] Showing last 5 rows as Pandas DataFrame:
 PriceGenerator.py   L:399  INFO    [2021-01-31 17:52:49,963]                     datetime   open   high    low  close  volume
 PriceGenerator.py   L:399  INFO    [2021-01-31 17:52:49,963] 95 2021-02-03 11:00:00+03:00  76.82  78.43  76.21  78.13   33652
 PriceGenerator.py   L:399  INFO    [2021-01-31 17:52:49,963] 96 2021-02-03 12:00:00+03:00  78.13  78.37  78.12  78.36    9347
 PriceGenerator.py   L:399  INFO    [2021-01-31 17:52:49,963] 97 2021-02-03 13:00:00+03:00  78.36  78.40  78.05  78.07   27250
 PriceGenerator.py   L:399  INFO    [2021-01-31 17:52:49,963] 98 2021-02-03 14:00:00+03:00  78.07  78.61  75.72  76.42   22979
 PriceGenerator.py   L:399  INFO    [2021-01-31 17:52:49,963] 99 2021-02-03 15:00:00+03:00  76.42  77.37  76.25  77.16   30845
-PriceGenerator.py   L:173  INFO    [2021-01-31 17:52:49,963] Saving [100] rows of pandas dataframe with columns: ['date', 'time', 'open', 'high', 'low', 'close', 'volume']...
+PriceGenerator.py   L:173  INFO    [2021-01-31 17:52:49,963] Saving [100] rows of Pandas DataFrame with columns: ['date', 'time', 'open', 'high', 'low', 'close', 'volume']...
 PriceGenerator.py   L:174  DEBUG   [2021-01-31 17:52:49,963] Delimeter: ,
-PriceGenerator.py   L:181  INFO    [2021-01-31 17:52:49,976] Pandas dataframe saved to .csv-file [./test.csv]
+PriceGenerator.py   L:181  INFO    [2021-01-31 17:52:49,976] Pandas DataFrame saved to .csv-file [./test.csv]
 PriceGenerator.py   L:645  DEBUG   [2021-01-31 17:52:49,976] All PriceGenerator operations are finished success (summary code is 0).
 PriceGenerator.py   L:650  DEBUG   [2021-01-31 17:52:49,976] PriceGenerator work duration: 0:00:00.022938
 PriceGenerator.py   L:651  DEBUG   [2021-01-31 17:52:49,976] PriceGenerator work finished: 2021-01-31 17:52:49
-
-Process finished with exit code 0
 ```
 
 Also next to it will be saved the file `test.csv`, an example of which can be found here: [./media/test.csv](./media/test.csv).
@@ -242,9 +250,9 @@ PriceGenerator.py   L:399  INFO    [2021-01-31 18:00:31,719] 96 2021-02-03 12:00
 PriceGenerator.py   L:399  INFO    [2021-01-31 18:00:31,719] 97 2021-02-03 13:00:00+03:00  78.36  78.40  78.05  78.07   27250
 PriceGenerator.py   L:399  INFO    [2021-01-31 18:00:31,719] 98 2021-02-03 14:00:00+03:00  78.07  78.61  75.72  76.42   22979
 PriceGenerator.py   L:399  INFO    [2021-01-31 18:00:31,719] 99 2021-02-03 15:00:00+03:00  76.42  77.37  76.25  77.16   30845
-PriceGenerator.py   L:173  INFO    [2021-01-31 18:00:31,719] Saving [100] rows of pandas dataframe with columns: ['date', 'time', 'open', 'high', 'low', 'close', 'volume']...
-PriceGenerator.py   L:181  INFO    [2021-01-31 18:00:31,731] Pandas dataframe saved to .csv-file [./test.csv]
-PriceGenerator.py   L:410  INFO    [2021-01-31 18:00:31,731] Rendering pandas dataframe as Bokeh chart...
+PriceGenerator.py   L:173  INFO    [2021-01-31 18:00:31,719] Saving [100] rows of Pandas DataFrame with columns: ['date', 'time', 'open', 'high', 'low', 'close', 'volume']...
+PriceGenerator.py   L:181  INFO    [2021-01-31 18:00:31,731] Pandas DataFrame saved to .csv-file [./test.csv]
+PriceGenerator.py   L:410  INFO    [2021-01-31 18:00:31,731] Rendering Pandas DataFrame as Bokeh chart...
 PriceGenerator.py   L:300  INFO    [2021-01-31 18:00:31,740] Some statistical info:
 ## Summary
 
@@ -277,9 +285,7 @@ PriceGenerator.py   L:300  INFO    [2021-01-31 18:00:31,740] Some statistical in
 | - 80 percentile:                             | ≤ 2.2
 | - 50 percentile:                             | ≤ 1.15
 | Cumulative sum of volumes:                   | 1777314
-PriceGenerator.py   L:563  INFO    [2021-01-31 18:00:32,290] Pandas dataframe rendered as html-file [./index.html]
-
-Process finished with exit code 0
+PriceGenerator.py   L:563  INFO    [2021-01-31 18:00:32,290] Pandas DataFrame rendered as html-file [./index.html]
 ```
 
 After running the command above, you will get three files:
@@ -309,7 +315,7 @@ As a result of executing the command, you will receive a chart [./media/index_go
 
 #### Overriding parameters
 
-Let's change some of the default parameters that affect price generation and draw our own unique chart:
+Let's change some default parameters that affect price generation and draw our own unique chart:
 ```commandline
 pricegenerator --debug-level 10 --ticker "MY_PRICES" --precision 2 --timeframe 240 --start "2020-01-01 00:00" --horizon 150 --max-close 18000 --min-close 14000 --init-close 15000 --max-outlier 1000 --max-body 500 --max-volume 400000 --up-candles-prob 0.48 --outliers-prob 0.05 --trend-deviation 0.03 --zigzag 0.03 --generate --render-bokeh index_custom.html
 ``` 
@@ -323,7 +329,7 @@ Parameters mean:
 - `--max-close 18000` — the maximum closing price of any candle should be no more than 18000;
 - `--min-close 14000` — the minimum closing price of any candle should be no more than 14000;
 - `--init-close 15000` — the closing price of the "previous" and, accordingly, the opening price of the first generated candle should be equal to 15000;
-- `--max-outlier 1000` — if the candle has "outliers" and "tails" then they sizes should be no more than 1000;
+- `--max-outlier 1000` — if the candle has "outliers" and "tails" then they size should be no more than 1000;
 - `--max-body 500` — the maximum size of the "body" of the candle should be no more than 500;
 - `--max-volume 400000` — the maximum trading volume for each candle should be no more than 400000;
 - `--up-candles-prob 0.48` — set the probability that the next candlestick will be up, equal to 0.48 (48%);
@@ -332,6 +338,8 @@ Parameters mean:
 - `--zigzag 0.03` — relative difference between two points of ZigZag indicator;
 - `--generate` — begin to price generate;
 - `--render-bokeh index_custom.html` — save the generated prices in the index_custom.html file and open it in the default browser.
+
+Chart style is light by default. If you are using `--render-bokeh` key, also you can add to the command above `--dark` key. In this case chart will be shown with dark-mode style:
 
 ![](./media/index_custom.html.png)
 
@@ -348,15 +356,17 @@ It was implemented two additional keys: `--split-trend` and `--split-count`. The
 
 The `--split-trend` key shows trends movements, e.g. `--split-trend=/\-` means that generated candles has up trend at first part, next down trend and then no trend.
 
+Since PriceGenerator v1.3.* ability to specify directions with words or chars was added. Words may be next: `up`, `down`, `no` or chars: `u`, `d`, `n` for the `--split-trend` key, in addition to the existing ability to set up of the trend with symbols `/\-`. To separate words or chars use the hyphen symbol, e.g. `--split-trend=up-down-no-up`, `--split-trend=u-d-n-u` etc.
+
 The `--split-count` key set count of candles of difference periods, e.g. `--split-count 5 10 15` means that generated candles has 3 trends with 5, 10 and 15 candles in chain.
 
 To understand how it works, try one of these examples:
 
 ```commandline
-pricegenerator --horizon 300 --render-bokeh index.html --split-trend=/\- --split-count 50 100 150 --generate
-pricegenerator --horizon 300 --render-bokeh index.html --split-trend=\/\ --split-count 50 100 150 --generate
-pricegenerator --horizon 300 --render-bokeh index.html --split-trend=\-/ --split-count 50 100 150 --generate
-pricegenerator --horizon 100 --render-bokeh index.html --split-trend=/\/\ --split-count 20 30 30 20 --generate
+pricegenerator --horizon 300 --render-bokeh index.html --split-trend="/\-" --split-count 50 100 150 --generate
+pricegenerator --horizon 300 --render-bokeh index.html --split-trend="\/\" --split-count 50 100 150 --generate
+pricegenerator --horizon 300 --render-bokeh index.html --split-trend="\-/" --split-count 50 100 150 --generate
+pricegenerator --horizon 100 --render-bokeh index.html --split-trend="/\/\" --split-count 20 30 30 20 --generate
 ```
 
 For the last example, you can get a picture like this:
@@ -382,9 +392,9 @@ priceModel.timeframe = timedelta(days=1)  # time interval between generated cand
 priceModel.timeStart = datetime.today()  # from what date to start generating candles, by default from the current time
 priceModel.horizon = 60  # how many candles to generate, there must be at least 5, by default 100
 priceModel.maxClose = 16000  # the highest candlestick closing price in the entire price chain
-                             # by default it is generated randomly in the interval (70, 90), it is similar to the current prices of USDRUB
+                             # by default, it is generated randomly in the interval (70, 90), it is similar to the current prices of USDRUB
 priceModel.minClose = 13800  # the lowest candlestick closing price in the entire price chain
-                             # by default it is generated randomly in the interval (60, 70), it is similar to the current prices of USDRUB
+                             # by default, it is generated randomly in the interval (60, 70), it is similar to the current prices of USDRUB
 priceModel.initClose = 14400  # if a price is specified, it will be the closing price like the "previous" candlestick, and at the same time the opening price of the first candlestick in the generated chain
                               # None by default means that the opening price of the first candle will be generated randomly in the interval (minClose, maxClose)
 priceModel.maxOutlier = 500  # The maximum value for the price outlier of the "tails" of the candles.
@@ -427,7 +437,63 @@ priceModel.RenderBokeh(fileName="index.html", viewInBrowser=True)
 
 When you run the script, you will receive a similar output to the logs, three files: `test.csv`,` index.html` and `index.html.md`. As well as the html-file with the price chart will be immediately opened in the browser. You can independently experiment with the parameters of the `PriceGenerator()` class to generate prices suitable for your conditions.
 
+Also, you can manipulate with chart and adding lines or markers to the main chart. Use `markers` and `lines` parameters for it.
 
-Good luck for you in automating and testing stock trading! ;)
+`markers` is a Pandas DataFrame with additional markers will place on main series. `None` by default. One marker is a custom symbol, e.g. ×, ↓ or ↑ or anyone else. Markers dataframe must contain at least two columns. There are `datetime` with date and time and some markers columns (`markersUpper`, `markersCenter` or `markersLower`). Length of markers dataframe must be equal to the length of main candle series.
+
+`lines` is a list of Pandas DataFrames with additional chart-lines will place on main series. `None` by default. Every line data must contain at least two columns. There are `datetime` with date and time and `custom_line_name` with y-coordinates. Length of the chart-line dataframes must be equal to the length of main candle series.
+
+Example:
+
+```python
+from pricegenerator.PriceGenerator import PriceGenerator, uLogger
+from datetime import datetime, timedelta
+import pandas as pd
+
+uLogger.setLevel(0)  # Disable logging messages.
+
+# Initialize PriceGenerator:
+priceModel = PriceGenerator()
+priceModel.ticker = "TEST_PRICES"
+priceModel.precision = 0
+priceModel.timeframe = timedelta(days=1)
+priceModel.timeStart = datetime.today()
+priceModel.horizon = 75
+priceModel.maxClose = 140
+priceModel.minClose = 40
+priceModel.initClose = 50
+priceModel.maxOutlier = 35
+priceModel.maxCandleBody = 15
+priceModel.maxVolume = 400000
+priceModel.upCandlesProb = 0.51
+priceModel.outliersProb = 0.1
+priceModel.trendDeviation = 0.005
+priceModel.trendSplit = "/\/"
+priceModel.splitCount = [40, 10, 25]
+
+priceModel.Generate()  # Generate main candles series.
+
+# Let's draw new average line on the main chart and set markers on the top, center and bottom of candles:
+priceModel.prices["avg"] = priceModel.prices.low + (priceModel.prices.high - priceModel.prices.low) / 2
+priceModel.prices["markersUpper"] = pd.Series(["↓"] * len(priceModel.prices.high))
+priceModel.prices["markersCenter"] = pd.Series(["×"] * len(priceModel.prices.avg))
+priceModel.prices["markersLower"] = pd.Series(["↑"] * len(priceModel.prices.low))
+priceModel.RenderBokeh(
+    fileName="index1.html",
+    viewInBrowser=True,
+    darkTheme=True,  # Set `False` for light theme.
+    markers=priceModel.prices[["datetime", "markersUpper", "markersCenter", "markersLower"]],
+    lines=[priceModel.prices[["datetime", "avg"]]],
+    showStatOnChart=True,
+    showControlsOnChart=True,
+    inline=False,  # Set `True` if script runs in Jupyter Notebook.
+)
+```
+
+Output:
+
+![Marked chart](./media/marked_dark.png)
+
+That's all! Good luck for you in automating and testing stock trading! ;)
 
 [![gift](https://badgen.net/badge/gift/donate/green)](https://yoomoney.ru/quickpay/shop-widget?writer=seller&targets=Donat%20(gift)%20for%20the%20authors%20of%20the%20PriceGenerator%20project&default-sum=999&button-text=13&payment-type-choice=on&successURL=https%3A%2F%2Ftim55667757.github.io%2FPriceGenerator%2F&quickpay=shop&account=410015019068268)

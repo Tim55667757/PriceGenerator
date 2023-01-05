@@ -7,7 +7,7 @@
 from setuptools import setup
 import os
 
-__version__ = "1.2"
+__version__ = "1.3"
 
 devStatus = "4 - Beta"
 
@@ -34,9 +34,9 @@ setup(
 
     version=__version__,
 
-    description="A simple price generator similar to real stock prices, but you can control the statistics of their distribution. Generates chain of candlesticks with predefined statistical parameters, return pandas dataframe or saving as .csv-file with OHLCV-candlestick in every strings.",
+    description="PriceGenerator is the platform for generating prices similar to real stock prices, but you can control the statistics of their distribution. Generates chain of candlesticks with predefined statistical parameters, return Pandas DataFrame or saving as .CSV-file with OHLCV-candlestick in every string. Use PriceGenerator to generate synthetic data to test your trading strategy.",
 
-    long_description="GitHub Pages: https://tim55667757.github.io/PriceGenerator",
+    long_description="See full documentation with examples: https://github.com/Tim55667757/PriceGenerator/blob/master/README.md\n\nTKSBrokerAPI module documentation: https://tim55667757.github.io/PriceGenerator/docs/pricegenerator/PriceGenerator.html\n\nПодробная документация на русском с примерами: https://github.com/Tim55667757/PriceGenerator/blob/master/README_RU.md\n\nДокументация на модуль PriceGenerator: https://tim55667757.github.io/PriceGenerator/docs/pricegenerator/PriceGenerator.html",
 
     license="Apache-2.0",
 
@@ -72,31 +72,35 @@ setup(
         "statistics",
         "testing",
         "testdata",
+        "OHLCV",
+        "generator",
     ],
 
     tests_require=[
-        "pytest>=6.2.2",
-        "requests>=2.25.1"  # Apache-2.0 license
-        "pandas>=1.2.2",
-        "bokeh>=2.3.0",
-        "bkcharts>=0.2",
-        "numpy>=1.20.1",
-        "matplotlib>=3.3.4",
-        "python-dateutil>=2.8.1",  # Apache-2.0 license
-        "jinja2>=2.11.3",
-        "pandas_ta>=0.2.45b0",
+        "pytest >= 6.2.2",
+        "requests >= 2.25.1",  # Apache-2.0 license
+        "pandas >= 1.5.2",
+        "bokeh >= 3.0.3",  # BSD-3-Clause license
+        "bkcharts >= 0.2",  # New BSD License
+        "numpy >= 1.23.5",  # BSD-3-Clause license
+        "matplotlib >= 3.3.4",  # PSF license
+        "python-dateutil >= 2.8.1",  # Apache-2.0 license
+        "jinja2 >= 2.11.3",  # BSD-3-Clause license
+        "pandas_ta >= 0.2.45b0",  # MIT License
+        "notebook >= 6.5.2",  # BSD License
     ],
 
     install_requires=[
-        "requests>=2.25.1"  # Apache-2.0 license
-        "pandas>=1.2.2",
-        "bokeh>=2.3.0",
-        "bkcharts>=0.2",
-        "numpy>=1.20.1",
-        "matplotlib>=3.3.4",
-        "python-dateutil>=2.8.1",  # Apache-2.0 license
-        "jinja2>=2.11.3",
-        "pandas_ta>=0.2.45b0",
+        "requests >= 2.25.1",  # Apache-2.0 license
+        "pandas >= 1.5.2",  # MIT License
+        "bokeh >= 3.0.3",  # BSD-3-Clause license
+        "bkcharts >= 0.2",  # New BSD License
+        "numpy >= 1.23.5",  # BSD-3-Clause license
+        "matplotlib >= 3.3.4",  # PSF license
+        "python-dateutil >= 2.8.1",  # Apache-2.0 license
+        "jinja2 >= 2.11.3",  # BSD-3-Clause license
+        "pandas_ta >= 0.2.45b0",  # MIT License
+        "notebook >= 6.5.2",  # BSD License
     ],
 
     packages=[
@@ -110,5 +114,6 @@ setup(
     },
 
     include_package_data=True,
+
     zip_safe=True,
 )

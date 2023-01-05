@@ -2,12 +2,33 @@
 
 [![gift](https://badgen.net/badge/gift/donate/green)](https://yoomoney.ru/quickpay/shop-widget?writer=seller&targets=Donat%20(gift)%20for%20the%20authors%20of%20the%20PriceGenerator%20project&default-sum=999&button-text=13&payment-type-choice=on&successURL=https%3A%2F%2Ftim55667757.github.io%2FPriceGenerator%2F&quickpay=shop&account=410015019068268)
 
-* 🇷🇺 [Релиз-ноты на русском (see release notes in russian here)](https://github.com/Tim55667757/PriceGenerator/blob/master/CHANGELOG_RU.md)
+* 🇷🇺 [Релиз-ноты на русском (see release notes in russian here)](https://github.com/Tim55667757/PriceGenerator/blob/develop/CHANGELOG_RU.md)
 * 📚 [Documentation for the PriceGenerator module and examples of working with CLI](https://tim55667757.github.io/PriceGenerator)
 * 🎁 Support the project with a donation to our yoomoney-wallet: [410015019068268](https://yoomoney.ru/quickpay/shop-widget?writer=seller&targets=Donat%20(gift)%20for%20the%20authors%20of%20the%20PriceGenerator%20project&default-sum=999&button-text=13&payment-type-choice=on&successURL=https%3A%2F%2Ftim55667757.github.io%2FPriceGenerator%2F&quickpay=shop&account=410015019068268)
 
 
-### [1.2.58 (2021-12-09)](https://github.com/Tim55667757/PriceGenerator/releases/tag/1.2.58) — stable release
+### [1.3.81 (2023-01-05)](https://github.com/Tim55667757/PriceGenerator/releases/tag/1.3.81) — released
+
+##### New features
+
+* Python version support was changed to 3.9.
+* [#17](https://github.com/Tim55667757/PriceGenerator/issues/17) Into the `RenderBokeh()` method was added `layouts` parameter. You can add new Bokeh Chart-objects on the Main Chart with that parameter. Also, `darkTheme` parameter was added. If it `True`, then will be used dark theme, `False` (by default) mean light theme. Also, you can manipulate with chart and adding lines or markers to the main chart. Use `markers` and `lines` parameters for it. `markers` is a Pandas Dataframe with custom series, where additional markers will place on main series. `None` by default. One marker is a custom symbol, e.g. ×, ↓ or ↑ or anyone else. Marker data must contain at least two columns. There are `datetime` with date and time and some markers columns (`markersUpper`, `markersCenter` or `markersLower`). Length of marker dataframes must be equal to the length of main candle series. `lines` is a list with custom series, where additional chart-lines will place on main series. `None` by default. Line data must contain at least two columns. There are `datetime` with date and time and `custom_line_name` with y-coordinates. Length of the chart-line dataframes must be equal to the length of main candle series.
+* [#10](https://github.com/Tim55667757/PriceGenerator/issues/10) Ability to specify directions with words or chars was added. Words may be next: `up`, `down`, `no` or chars: `u`, `d`, `n` for the `--split-trend` key, in addition to the existing ability to set up of the trend with symbols `/\-`. To separate words or chars use the hyphen symbol, e.g. `--split-trend=up-down-no-up`, `--split-trend=u-d-n-u` etc.
+* [#13](https://github.com/Tim55667757/PriceGenerator/issues/13) [API-doc](https://tim55667757.github.io/PriceGenerator/docs/pricegenerator/PriceGenerator.html) on module `PriceGenerator` was added.
+
+##### Improvements
+
+* [#15](https://github.com/Tim55667757/PriceGenerator/issues/15) Statistic block view was improvement.
+* [#16](https://github.com/Tim55667757/PriceGenerator/issues/16) Examples were added: [how to generate prices chain without candles](https://github.com/Tim55667757/PriceGenerator/issues/16#issuecomment-1287875048).
+
+##### Bug fixes
+
+* [#19](https://github.com/Tim55667757/PriceGenerator/issues/19) Bug fix with incorrect high and low values when trend is set.
+* [#18](https://github.com/Tim55667757/PriceGenerator/issues/18) Bug fix with incorrect multiple tips on chart and incorrect width of visible area.
+* [#11](https://github.com/Tim55667757/PriceGenerator/issues/11) Incorrect warnings were disabled.
+
+
+### [1.2.58 (2021-12-09)](https://github.com/Tim55667757/PriceGenerator/releases/tag/1.2.58) — released
 
 ##### New features
 
@@ -17,7 +38,7 @@
   * The `--split-count` key set count of candles of difference periods, e.g. `--split-count 5 10 15` means that generated candles has 3 trends with 5, 10 and 15 candles in chain.
 
 
-### [1.2.46 (2021-02-28)](https://github.com/Tim55667757/PriceGenerator/releases/tag/1.2.46)
+### [1.2.46 (2021-02-28)](https://github.com/Tim55667757/PriceGenerator/releases/tag/1.2.46) — released
 
 ##### New features
 
@@ -45,7 +66,7 @@
 * Not-detected timeframe when rendering from Pandas DataFrame without loading from file was fixed.
 
 
-### [1.1.30 (2021-02-20)](https://github.com/Tim55667757/PriceGenerator/releases/tag/1.1.30)
+### [1.1.30 (2021-02-20)](https://github.com/Tim55667757/PriceGenerator/releases/tag/1.1.30) — released
 
 ##### New features
 
@@ -57,7 +78,7 @@
 * Extended examples were added. See examples in [`README.md`](https://github.com/Tim55667757/PriceGenerator/blob/master/README.md) (english) and [`README_RU.md`](https://github.com/Tim55667757/PriceGenerator/blob/master/README_RU.md) (russian).
 
 
-### [1.0.19 (2021-02-05)](https://github.com/Tim55667757/PriceGenerator/releases/tag/1.0.19)
+### [1.0.19 (2021-02-05)](https://github.com/Tim55667757/PriceGenerator/releases/tag/1.0.19) — released
 
 ##### Retrospective
 
