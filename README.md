@@ -123,8 +123,11 @@ optional arguments:
                         Option: set different trends, e.g. `--split-trend=/\-`
                         means that generated candles has uptrend at first
                         part, next downtrend and then no trend. Used only
-                        together with `--split-count` key. Default: empty
-                        string (mean that will be used random trend directions).
+                        together with `--split-count` key. Also, you can use
+                        words: `up`, `down`, `no` or chars: `u`, `d`, `n` with
+                        the hyphen symbol as separator, e.g. `--split-
+                        trend=up-down-no-up`, `--split-trend=u-d-n-u` etc. Default:
+                        empty string, mean that will be used random trend directions.
   --split-count SPLIT_COUNT [SPLIT_COUNT ...]
                         Option: set candles count in different trends, e.g.
                         `--split-count 5 10 15` means that generated candles
@@ -352,6 +355,8 @@ This feature is in the newest dev-version than `pricegenerator>=1.2.dev53` or th
 It was implemented two additional keys: `--split-trend` and `--split-count`. These keys affect the appearance of the trend and the number of candles in each trend.
 
 The `--split-trend` key shows trends movements, e.g. `--split-trend=/\-` means that generated candles has up trend at first part, next down trend and then no trend.
+
+Since PriceGenerator v1.3.* ability to specify directions with words or chars was added. Words may be next: `up`, `down`, `no` or chars: `u`, `d`, `n` for the `--split-trend` key, in addition to the existing ability to set up of the trend with symbols `/\-`. To separate words or chars use the hyphen symbol, e.g. `--split-trend=up-down-no-up`, `--split-trend=u-d-n-u` etc.
 
 The `--split-count` key set count of candles of difference periods, e.g. `--split-count 5 10 15` means that generated candles has 3 trends with 5, 10 and 15 candles in chain.
 
