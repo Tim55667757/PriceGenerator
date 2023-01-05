@@ -1466,7 +1466,7 @@ def ParseArgs():
     parser.add_argument("--up-candles-prob", type=float, default=0.5, help="Option: float number in [0; 1] is a probability that next candle is up, 0.5 by default.")
     parser.add_argument("--outliers-prob", type=float, default=0.03, help="Option: float number in [0; 1] is an outliers probability (price tails), 0.03 by default.")
     parser.add_argument("--trend-deviation", type=float, default=0.005, help="Option: relative deviation for trend detection, 0.005 mean ±0.005 by default. No trend if (1st_close - last_close) / 1st_close <= trend_deviation.")
-    parser.add_argument("--zigzag", type=float, default=0.03, help="Option: relative deviation to detection points of ZigZag indicator, 0.03 by default.")
+    parser.add_argument("--zigzag", type=float, default=0.03, help="Option: relative deviation to detection points of Zig-Zag indicator, 0.03 by default.")
     parser.add_argument("--sep", type=str, default=None, help="Option: separator in CSV-file, if None then auto-detecting enable.")
     parser.add_argument("--dark", action="store_true", default=False, help="Option: if key present, then will be used dark theme for the `--render-bokeh` key. `False` by default for light theme.")
     parser.add_argument("--debug-level", type=int, default=20, help="Option: showing STDOUT messages of minimal debug level, e.g., 10 = DEBUG, 20 = INFO, 30 = WARNING, 40 = ERROR, 50 = CRITICAL.")
