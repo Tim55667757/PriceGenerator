@@ -1461,7 +1461,7 @@ def ParseArgs():
     parser.add_argument("--min-close", type=float, help="Option: minimum of all close prices.")
     parser.add_argument("--init-close", type=float, help="Option: generator started 1st open price equal to this last close price.")
     parser.add_argument("--max-outlier", type=float, help="Option: maximum of outlier size of candle tails, by default used (max_close - min_close) / 10.")
-    parser.add_argument("--max-body", type=float, help="Option: maximum of candle body sizes: abs(open - close), by default used max-outlier * 0.9.")
+    parser.add_argument("--max-body", type=float, help="Option: maximum of candle body sizes: abs(open - close), by default used max_outlier * 0.9.")
     parser.add_argument("--max-volume", type=int, help="Option: maximum of trade volumes.")
     parser.add_argument("--up-candles-prob", type=float, default=0.5, help="Option: float number in [0; 1] is a probability that next candle is up, 0.5 by default.")
     parser.add_argument("--outliers-prob", type=float, default=0.03, help="Option: float number in [0; 1] is an outliers probability (price tails), 0.03 by default.")
