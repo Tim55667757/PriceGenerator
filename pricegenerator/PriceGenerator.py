@@ -2,13 +2,13 @@
 # Author: Timur Gilmullin
 
 """
-A simple price generator similar to real stock prices, but you can control the statistics of their distribution.
-Use it to generate synthetic data to test your trading strategy.
-
-This module generates chain of candlesticks with predefined statistical parameters, return Pandas DataFrame,
-saving as .csv-file or .html-file with OHLCV-candlestick in every string.
+**PriceGenerator** is the platform for generating prices similar to real stock prices, but you can control the statistics of their distribution. Generates chain of candlesticks with predefined statistical parameters, return Pandas DataFrame or saving as .CSV-file with OHLCV-candlestick in every string. Use PriceGenerator to generate synthetic data to test your trading strategy.
 
 In additional you can view some statistical and probability parameters of generated or loaded prices.
+
+Sample example:
+
+<a href="https://github.com/Tim55667757/PriceGenerator"><img src="https://github.com/Tim55667757/PriceGenerator/blob/master/media/index_google.html.png?raw=true" alt="Chart" width="780" target="_blank" /></a>
 """
 
 # Copyright (c) 2022 Gilmillin Timur Mansurovich
@@ -28,8 +28,10 @@ In additional you can view some statistical and probability parameters of genera
 
 import os
 import sys
-from typing import Optional
+from typing import Optional, Union
 from datetime import datetime, timedelta
+
+import numpy as np
 from dateutil.tz import tzlocal
 from argparse import ArgumentParser
 
@@ -57,7 +59,7 @@ uLogger.level = 10  # debug level by default
 uLogger.handlers[0].level = 20  # info level by default for STDOUT
 # uLogger.handlers[1].level = 10  # debug level by default for log.txt
 
-# Simple jinja2 template for rendering static html-page with not interactive Google Candlestick chart:
+# Simple internal jinja2 template for rendering static html-page with Google Candlestick chart. `GOOGLE_TEMPLATE_J2` may use with `j2template` variable.
 GOOGLE_TEMPLATE_J2 = """{# This template based on Jinja markup language: https://jinja.palletsprojects.com/en/latest/ #}
 <!DOCTYPE html>
 <html>
@@ -205,45 +207,90 @@ GOOGLE_TEMPLATE_J2 = """{# This template based on Jinja markup language: https:/
 </html>
 """
 
-
 class PriceGenerator:
     """
     This class implements methods to generation of prices statistically similar to real ones.
+
+    **Model generated: OHLCV-candlesticks (open, high, low, close, volume).**
     """
 
     def __init__(self):
-        self.prices = None  # generated or loaded prices will be put into this Pandas variable
+        """Main class init."""
+        self.prices = None
+        """Generated or loaded prices will be available in this Pandas DataFrame variable."""
 
-        self.csvHeaders = ["date", "time", "open", "high", "low", "close", "volume"]  # headers if .csv-file used
-        self.dfHeaders = ["datetime", "open", "high", "low", "close", "volume"]  # dataframe headers
-        self.sep = ","  # Separator in csv-file
-        self.j2template = GOOGLE_TEMPLATE_J2  # full path to custom jinja2 html template (e.g. "google_template_example.j2") or template as a long multi-string variable
-        self.j2model = None  # dictionary of variables for jinja2 template, if None then auto-generating for default google_template.j2
+        self.csvHeaders = ["date", "time", "open", "high", "low", "close", "volume"]
+        """Headers in .CSV-file. Default: `["date", "time", "open", "high", "low", "close", "volume"]`."""
 
-        self._precision = 2  # signs after comma
-        self._deg10prec = 100  # 10^precision is used for some formulas
+        self.dfHeaders = ["datetime", "open", "high", "low", "close", "volume"]
+        """Headers in Pandas DataFrame. Default: `["datetime", "open", "high", "low", "close", "volume"]`."""
 
-        self.ticker = "TEST"  # some fake ticker name
-        self.timeframe = timedelta(hours=1)  # time delta between two neighbour candles, 1 hour by default
+        self.sep = ","
+        """Separator in csv - file. Default: `,`"""
+
+        self.j2template = GOOGLE_TEMPLATE_J2
+        """Full path to custom jinja2 html-template file (e.g. `google_template_example.j2`) or just set here a long multi-string variable. Default: `GOOGLE_TEMPLATE_J2` is a multi-string variable with internal template."""
+
+        self.j2model = None
+        """Dictionary of variables for jinja2 template. If `None` then used default variables for internal `GOOGLE_TEMPLATE_J2`"""
+
+        self._precision = 2
+        """Signs after comma. Default: `2`."""
+
+        self._deg10prec = 100
+        """Constant 10^precision is used by some formulas. Not recommended to change it. Default: `100` (`10 ** precision`)."""
+
+        self.ticker = "TEST"
+        """Some fake ticker name. Default: `Test`."""
+
+        self.timeframe = timedelta(hours=1)
+        """Time delta between two neighbour candles. Default: `timedelta(hours=1)`."""
+
         self.timeStart = datetime.now(tzlocal()).replace(microsecond=0, second=0, minute=0)
-        self.horizon = None  # Candlesticks count (generating or in view), must be >= 5 for generator
-        self.trendSplit = ""  # set difference periods, e.g. split="/\-" means that generated candles has uptrend at first part, next downtrend and then no trend
-        self.splitCount = []  # set count of candles of difference periods, e.g. splitCount=[5, 10, 15] means that generated candles has 3 trends with 5, 10 and 15 candles in chain, with sum equal to horizon
-        self.maxClose = random.uniform(70, 90)  # maximum of close prices must be >= self.minClose
-        self.minClose = random.uniform(60, 70)  # minimum of close prices must be <= self.maxClose
-        self.initClose = None  # if not None generator started 1st open price of chain from this price
-        self.maxOutlier = None  # maximum of outlier size of candle tails, if None then used (maxClose - minClose) / 10
-        self.maxCandleBody = None  # maximum of candle body sizes: abs(open - close), if None then used maxOutlier * 90%
-        self._maxVolume = random.randint(0, 100000)  # maximum of trade volumes
-        self._upCandlesProb = 0.5  # probability that next candle is up, 50% by default
-        self._outliersProb = 0.03  # statistical outlier probability (price "tails"), 3% by default
-        self._trendDeviation = 0.005  # relative deviation for trend detection, 0.005 mean ±0.5% by default. "NO trend" if (1st_close - last_close) / 1st_close <= self.trendDeviation
+        """First date and time for candles chain."""
 
-        self._chartTitle = ""  # chart title, auto-generated when loading or creating chain of candlesticks
+        self.horizon = None
+        """Candlesticks count in generated or loaded chain of prices, must be >= 5. Default: `None` (means auto-detect length of chain if loaded from file)."""
 
-        self._zigZagDeviation = 0.03  # relative deviation to detection points of Zig-Zag indicator, 0.03 mean 3% by default
+        self.trendSplit = ""
+        r"""Set different trends, e.g. `split="/\-"` means that generated candles has uptrend at first part, next downtrend and then no trend. Used only together with `splitCount` variable. Default: `""`, empty string mean that will be used random trend directions."""
 
-        # some default statistics for calculation:
+        self.splitCount = []
+        """Set candles count in different trends, e.g. `splitCount=[5, 10, 15]` means that generated candles has 3 trends with 5, 10 and 15 candles in chain, with sum must be equal to horizon. Used only together with `trendSplit` variable. Default: `[]`, empty list mean that will be used random candles count in trends."""
+
+        self.maxClose = random.uniform(70, 90)
+        """Maximum of close prices must be >= `minClose`. Default: random in interval `(70, 90)`."""
+
+        self.minClose = random.uniform(60, 70)
+        """Minimum of close prices must be <= `maxClose`. Default: random in interval `(60, 70)`."""
+
+        self.initClose = None
+        """First candle close price value. If `None` then used random number in interval between `minClose` and `maxClose`. Default: `None`."""
+
+        self.maxOutlier = None
+        """Maximum size of outliers. If `None` then used value `(maxClose - minClose) / 10`. Default: `None`."""
+
+        self.maxCandleBody = None
+        """Maximum of candle body sizes: `abs(open - close)`. If `None` then used value `maxOutlier * 90%`. Default: `None`."""
+
+        self._maxVolume = random.randint(0, 100000)
+        """Maximum of generated trade volumes. Default: random in interval `(0, 100000)`."""
+
+        self._upCandlesProb = 0.5
+        """Probability that next candle is up. Default: `0.5` (means 50% of probability)."""
+
+        self._outliersProb = 0.03
+        """Outlier probability (price tails). Default: `0.03` (means 3% of probability)."""
+
+        self._trendDeviation = 0.005
+        """Relative deviation for trend detection. "NO trend" if `(1st_close - last_close) / 1st_close <= self.trendDeviation`. Default: `0.005` (means ±0.5% of price deviation)."""
+
+        self._chartTitle = ""
+        """Chart title. It will be auto-generated when loading or creating chain of candlesticks."""
+
+        self._zigZagDeviation = 0.03
+        """Relative deviation to detection next points used by Zig-Zag indicator. Default: `0.03` (means 3% of price deviation)."""
+
         self._stat = {
             "candles": 0,  # generated candlesticks count
             "precision": 2,  # generated candlesticks count
@@ -269,9 +316,11 @@ class PriceGenerator:
             },
             "cumSumVolumes": 0  # cumulative sum of volumes
         }
+        """Some statistics available after candles loaded or generated."""
 
     @property
     def upCandlesProb(self):
+        """Probability that next candle is up. Default: `0.5` (means 50% of probability)."""
         return self._upCandlesProb
 
     @upCandlesProb.setter
@@ -287,6 +336,7 @@ class PriceGenerator:
 
     @property
     def outliersProb(self):
+        """Outlier probability (price tails). Default: `0.03` (means 3% of probability)."""
         return self._outliersProb
 
     @outliersProb.setter
@@ -302,6 +352,7 @@ class PriceGenerator:
 
     @property
     def trendDeviation(self):
+        """Relative deviation for trend detection. "NO trend" if `(1st_close - last_close) / 1st_close <= self.trendDeviation`. Default: `0.005` (means ±0.5% of price deviation)."""
         return self._trendDeviation
 
     @trendDeviation.setter
@@ -317,6 +368,7 @@ class PriceGenerator:
 
     @property
     def maxVolume(self):
+        """Maximum of generated trade volumes. Default: random in interval `(0, 100000)`."""
         return self._maxVolume
 
     @maxVolume.setter
@@ -329,10 +381,12 @@ class PriceGenerator:
 
     @property
     def stat(self) -> dict:
+        """Some statistics available after candles loaded or generated."""
         return self._stat
 
     @property
     def precision(self):
+        """Signs after comma."""
         return self._precision
 
     @precision.setter
@@ -347,6 +401,7 @@ class PriceGenerator:
 
     @property
     def zigZagDeviation(self):
+        """Relative deviation to detection next points used by Zig-Zag indicator. Default: 0.03 (means 3% of price deviation)."""
         return self._zigZagDeviation
 
     @zigZagDeviation.setter
@@ -361,9 +416,13 @@ class PriceGenerator:
             self._zigZagDeviation = value
 
     @staticmethod
-    def FormattedDelta(tDelta, fmt):
+    def FormattedDelta(tDelta: timedelta, fmt: str) -> str:
         """
-        Return timedelta formatted as string, e.g. FormattedDelta(delta_obj, "{days} days {hours}:{minutes}:{seconds}")
+        Pretty format for timedelta objects.
+
+        Example: `FormattedDelta(timedelta(days=2, hours=3, minutes=15, seconds=35), "{days} days {hours}:{minutes}:{seconds}") -> "2 days 3:15:35"`.
+
+        :return: timedelta object formatted as a string.
         """
         d = {"days": tDelta.days}
         d["hours"], rem = divmod(tDelta.seconds, 3600)
@@ -371,32 +430,38 @@ class PriceGenerator:
 
         return fmt.format(**d)
 
-    def DetectPrecision(self, examples):
+    def DetectPrecision(self, examples: Union[np.ndarray, pd.Series, list]) -> int:
         """
-        Auto-detect precision from example values. E.g. 0.123 => 3, 0.12345 => 5 and so on.
-        This method set `self.precision` variable after detect precision.
+        Auto-detect precision from example values. E.g. `0.123 -> 3`, `0.12345 -> 5` and so on.
+        This method change `precision` variable after detect precision.
 
         See also about statistics.mode: https://docs.python.org/3.9/library/statistics.html#statistics.mode
         Changed in Python version >= 3.8: Now mode() method handles multimodal datasets by returning the first mode encountered.
         Previously, it raised StatisticsError when more than one mode was found.
 
-        :param examples: numpy.ndarray with examples of float values.
+        :param examples: chain with examples of float values.
         """
         uLogger.debug("Detecting precision of data values...")
+        precision = 0
         try:
-            self.precision = mode(list(map(lambda x: len(str(x).split('.')[-1]) if len(str(x).split('.')) > 1 else 0, examples))) if self.precision >= 0 else 0
+            precision = mode(list(map(lambda x: len(str(x).split('.')[-1]) if len(str(x).split('.')) > 1 else 0, examples))) if self.precision >= 0 else 0
 
         except StatisticsError as e:
             uLogger.debug("Statistic mode() method return an error! Precision is set to 2 (default). StatisticsError: '{}'".format(e))
-            self.precision = 2
+            precision = 2
 
         finally:
-            uLogger.debug("Auto-detected precision: {}".format(self._precision))
+            uLogger.debug("Auto-detected precision: {}".format(precision))
+
+        self.precision = precision
+
+        return precision
 
     def DetectTimeframe(self) -> timedelta:
         """
         Auto-detect time delta between last two neighbour candles.
-        :return: timedelta object to `self.timeframe`.
+
+        :return: timedelta object, also saved to `timeframe`.
         """
         self.timeframe = min(
             self.prices.iloc[-1].datetime - self.prices.iloc[-2].datetime,
@@ -406,10 +471,12 @@ class PriceGenerator:
 
         return self.timeframe
 
-    def LoadFromFile(self, fileName):
+    def LoadFromFile(self, fileName: str) -> pd.DataFrame:
         """
-        Load Pandas OHLCV model from csv-file.
-        :param fileName: path to csv-file with OHLCV columns.
+        Create Pandas OHLCV-model from CSV-file.
+        Default columns in CSV-file are `["date", "time", "open", "high", "low", "close", "volume"]`.
+
+        :param fileName: path to CSV-file with OHLCV columns.
         :return: Pandas DataFrame.
         """
         uLogger.info("Loading, parse and preparing input data from [{}]...".format(os.path.abspath(fileName)))
@@ -433,10 +500,11 @@ class PriceGenerator:
 
         return self.prices
 
-    def SaveToFile(self, fileName):
+    def SaveToFile(self, fileName: str) -> None:
         """
-        Save Pandas OHLCV model to csv-file.
-        :param fileName: path to csv-file.
+        Save Pandas OHLCV model to CSV-file.
+
+        :param fileName: path to CSV-file.
         """
         if self.prices is not None and not self.prices.empty:
             uLogger.info("Saving [{}] rows of Pandas DataFrame with columns: {}...".format(len(self.prices), self.csvHeaders))
@@ -447,19 +515,20 @@ class PriceGenerator:
             del dataReplacedDateTime["datetime"]
             dataReplacedDateTime = dataReplacedDateTime[self.csvHeaders]
             dataReplacedDateTime.to_csv(fileName, sep=self.sep, index=False, header=False)
-            uLogger.info("Pandas DataFrame saved to .csv-file [{}]".format(os.path.abspath(fileName)))
+            uLogger.info("Pandas DataFrame saved to .CSV-file [{}]".format(os.path.abspath(fileName)))
 
         else:
             raise Exception("Empty price data! Generate or load prices before saving!")
 
     @staticmethod
-    def GetTrend(firstClose, lastClose, trendDeviation=0.005):
+    def GetTrend(firstClose: float, lastClose: float, trendDeviation: float = 0.005) -> str:
         """
-        Get string with trend: "UP trend", "DOWN trend" or "NO trend".
+        Get string with trend: `"UP trend"`, `"DOWN trend"` or `"NO trend"`.
+
         :param firstClose: close of first candle.
         :param lastClose: close of last candle.
         :param trendDeviation: relative deviation for trend detection, 0.005 mean ±0.5% by default.
-        :return: string
+        :return: string with trend direction `"NO trend"`, `"UP trend"` or `"DOWN trend"`.
         """
         if abs(firstClose - lastClose) / firstClose <= trendDeviation:
             trend = "NO trend"
@@ -470,14 +539,15 @@ class PriceGenerator:
         return trend
 
     @staticmethod
-    def ZigZagFilter(datetimes: pd.Series, values: pd.Series, deviation: float) -> dict:
+    def ZigZagFilter(datetimes: pd.Series, values: Union[pd.Series, list], deviation: float) -> dict:
         """
         This method filter input data as Zig-Zag indicator: when input value of candlestick price (e.g. close price)
         is difference with next values with define percent then this point is a point of Zig-Zag indicator.
-        :param datetimes: input pandas Series with datetime values.
-        :param values: input pandas Series or list, e.g. list of closes values of candlesticks.
-        :param deviation: [0, 1] float number is a relative difference between `i` and `i + 1` values to set as Zig-Zag point.
-        :return: dict with pandas Series filtered data: {"datetimes": filtered_datetimes, "filtered": filtered_values}
+
+        :param datetimes: input Pandas Series with datetime values.
+        :param values: input Pandas Series or list, e.g. list of closes values of candlesticks.
+        :param deviation: float number in `[0, 1]` interval is a relative difference between `i` and `i + 1` values to set as Zig-Zag point.
+        :return: dict with Pandas Series filtered data `{"datetimes": filtered_datetimes, "filtered": filtered_values}`.
         """
         filteredPoints = [True]
         prev = values[0]
@@ -492,10 +562,11 @@ class PriceGenerator:
 
         return {"datetimes": datetimes[filteredPoints], "filtered": values[filteredPoints]}
 
-    def GetStatistics(self):
+    def GetStatistics(self) -> list[str]:
         """
         Calculates statistics of candles chain.
-        :return: text in markdown with statistics.
+
+        :return: list with text in Markdown format with statistics.
         """
         uLogger.debug("Calculating column with deltas between high and low values...")
         self.prices["delta"] = self.prices.high.values - self.prices.low.values
@@ -607,11 +678,12 @@ class PriceGenerator:
 
         return summary
 
-    def _GenNextCandle(self, lastClose):
+    def _GenNextCandle(self, lastClose) -> dict:
         """
         Generator for creating 1 next candle based on global probability parameters.
+
         :param lastClose: value of last close price.
-        :return: OHLCV-candle as dict.
+        :return: one OHLCV-candle as dict.
         """
         candle = {
             "open": lastClose,
@@ -649,10 +721,11 @@ class PriceGenerator:
 
         return candle
 
-    def Generate(self):
+    def Generate(self) -> pd.DataFrame:
         """
-        Main method to generate prices.
-        :return Pandas object with OHLCV-candlestick in every line and also saving it to the self.prices.
+        Main method to generating prices.
+
+        :return Pandas DataFrame object with OHLCV-candlestick in every row and also saving it to the `prices`.
         """
         if self.horizon is None or self.horizon < 5:
             self.horizon = 5
@@ -1294,7 +1367,7 @@ class PriceGenerator:
                 show(unionChart, notebook_handle=True)
 
             else:
-                # preparing html-file chart and statistics in markdown:
+                # preparing HTML-file chart and statistics in markdown:
                 if fileName:
                     try:
                         output_file(fileName, title=title, mode="cdn")
@@ -1304,7 +1377,7 @@ class PriceGenerator:
                         uLogger.warning("Can't render HTML! Error message: {}".format(e))
 
                     else:
-                        uLogger.info("Pandas DataFrame saved as html-file [{}]".format(os.path.abspath(fileName)))
+                        uLogger.info("Pandas DataFrame saved as HTML-file [{}]".format(os.path.abspath(fileName)))
 
                     if showStatOnChart:
                         mdFile = "{}.md".format(fileName)
@@ -1318,14 +1391,14 @@ class PriceGenerator:
 
             return unionChart
 
-    def RenderGoogle(self, fileName: str = "index.html", viewInBrowser: bool = False, title: Optional[str] = None):
+    def RenderGoogle(self, fileName: str = "index.html", viewInBrowser: bool = False, title: Optional[str] = None) -> None:
         """
-        Rendering prices from Pandas DataFrame to not interactive Google Candlestick chart and save to html-file.
+        Rendering prices from Pandas DataFrame as non-interactive Google Candlestick chart and save it to HTML-file.
 
         See also: https://developers.google.com/chart/interactive/docs/gallery/candlestickchart
 
-        :param fileName: html-file path to save Google Candlestick chart.
-        :param viewInBrowser: If True, then immediately opens html in browser after rendering.
+        :param fileName: HTML-file path to save Google Candlestick chart.
+        :param viewInBrowser: If `True`, then immediately opens html in browser after rendering.
         :param title: specific chart title. If `None`, then used auto-generated title. `None` by default.
         """
         if self.prices is None or self.prices.empty:
@@ -1349,7 +1422,7 @@ class PriceGenerator:
             else:
                 uLogger.debug("Using custom chart model")
 
-            # --- Rendering and saving chart as html-file and markdown-file with statistics:
+            # --- Rendering and saving chart as HTML-file and markdown-file with statistics:
             if os.path.exists(self.j2template):
                 renderedTemplate = jinja2.Template(open(self.j2template, "r", encoding="UTF-8").read())
 
@@ -1366,46 +1439,44 @@ class PriceGenerator:
             if viewInBrowser:
                 os.system(os.path.abspath(fileName))  # view forecast chart in default browser immediately
 
-            uLogger.info("Pandas DataFrame rendered as html-file [{}]".format(os.path.abspath(fileName)))
+            uLogger.info("Pandas DataFrame rendered as HTML-file [{}]".format(os.path.abspath(fileName)))
 
 
 def ParseArgs():
-    """
-    Function get and parse command line keys.
-    """
+    """This function get and parse command line keys."""
     parser = ArgumentParser()  # command-line string parser
 
-    parser.description = "Forex and stocks price generator. Generates chain of candlesticks with predefined statistical parameters, return Pandas DataFrame or saving as .csv-file with OHLCV-candlestick in every strings. See examples: https://tim55667757.github.io/PriceGenerator"
-    parser.usage = "python PriceGenerator.py [some options] [one or more commands]"
+    parser.description = "PriceGenerator is the platform for generating prices similar to real stock prices, but you can control the statistics of their distribution. Generates chain of candlesticks with predefined statistical parameters, return Pandas DataFrame or saving as .CSV-file with OHLCV-candlestick in every string. Use PriceGenerator to generate synthetic data to test your trading strategy. See examples: https://tim55667757.github.io/PriceGenerator"
+    parser.usage = "\n/as module/ python PriceGenerator.py [some options] [one command]\n/as CLI tool/ pricegenerator [some options] [one command]"
 
     # options:
     parser.add_argument("--ticker", type=str, default="TEST", help="Option: some fake ticker name, 'TEST' by default.")
     parser.add_argument("--precision", type=int, default=2, help="Option: precision is count of digits after comma, 2 by default.")
     parser.add_argument("--timeframe", type=int, default=60, help="Option: time delta between two neighbour candles in minutes, 60 (1 hour) by default.")
     parser.add_argument("--start", type=str, help="Option: start time of 1st candle as string with format 'year-month-day hour:min', e.g. '2021-01-02 12:00'.")
-    parser.add_argument("--horizon", type=int, help="Option: candlesticks count.")
-    parser.add_argument("--split-trend", type=str, default="", help=r"Option: set difference periods, e.g. --split-trend=/\- means that generated candles has up trend at first part, next down trend and then no trend. Used with --split-count key.")
-    parser.add_argument("--split-count", type=int, nargs="+", help="Option: set count of candles of difference periods, e.g. --split-count 5 10 15 means that generated candles has 3 trends with 5, 10 and 15 candles in chain, with sum equal to --horizon. Used with --split-count and --horizon keys.")
+    parser.add_argument("--horizon", type=int, default=30, help="Option: candlesticks count. Default: 30.")
+    parser.add_argument("--split-trend", type=str, default="", help=r"Option: set different trends, e.g. `--split-trend=/\-` means that generated candles has uptrend at first part, next downtrend and then no trend. Used only together with `--split-count` key. Default: empty string (mean that will be used random trend directions).")
+    parser.add_argument("--split-count", type=int, nargs="+", help="Option: set candles count in different trends, e.g. `splitCount=[5, 10, 15]` means that generated candles has 3 trends with 5, 10 and 15 candles in chain, with sum must be equal to `--horizon` value. Used only together with `--split-trend` key. Default: [], empty list mean that will be used random candles count in trends.")
     parser.add_argument("--max-close", type=float, help="Option: maximum of all close prices.")
     parser.add_argument("--min-close", type=float, help="Option: minimum of all close prices.")
-    parser.add_argument("--init-close", type=float, help="Option: generator started 1st open price of chain from this 'last' close price.")
-    parser.add_argument("--max-outlier", type=float, help="Option: maximum of outlier size of candle tails, by default used (max-close - min-close) / 10.")
+    parser.add_argument("--init-close", type=float, help="Option: generator started 1st open price equal to this last close price.")
+    parser.add_argument("--max-outlier", type=float, help="Option: maximum of outlier size of candle tails, by default used (max_close - min_close) / 10.")
     parser.add_argument("--max-body", type=float, help="Option: maximum of candle body sizes: abs(open - close), by default used max-outlier * 0.9.")
     parser.add_argument("--max-volume", type=int, help="Option: maximum of trade volumes.")
     parser.add_argument("--up-candles-prob", type=float, default=0.5, help="Option: float number in [0; 1] is a probability that next candle is up, 0.5 by default.")
-    parser.add_argument("--outliers-prob", type=float, default=0.03, help="Option: float number in [0; 1] is a statistical outliers probability (price 'tails'), 0.03 by default.")
-    parser.add_argument("--trend-deviation", type=float, default=0.005, help="Option: relative deviation for trend detection, 0.005 mean ±0.005 by default. 'NO trend' if (1st_close - last_close) / 1st_close <= trend-deviation.")
+    parser.add_argument("--outliers-prob", type=float, default=0.03, help="Option: float number in [0; 1] is an outliers probability (price tails), 0.03 by default.")
+    parser.add_argument("--trend-deviation", type=float, default=0.005, help="Option: relative deviation for trend detection, 0.005 mean ±0.005 by default. No trend if (1st_close - last_close) / 1st_close <= trend_deviation.")
     parser.add_argument("--zigzag", type=float, default=0.03, help="Option: relative deviation to detection points of ZigZag indicator, 0.03 by default.")
-    parser.add_argument("--sep", type=str, default=None, help="Option: separator in csv-file, if None then auto-detecting enable.")
+    parser.add_argument("--sep", type=str, default=None, help="Option: separator in CSV-file, if None then auto-detecting enable.")
     parser.add_argument("--dark", action="store_true", default=False, help="Option: if key present, then will be used dark theme for the `--render-bokeh` key. `False` by default for light theme.")
     parser.add_argument("--debug-level", type=int, default=20, help="Option: showing STDOUT messages of minimal debug level, e.g., 10 = DEBUG, 20 = INFO, 30 = WARNING, 40 = ERROR, 50 = CRITICAL.")
 
     # commands:
-    parser.add_argument("--load-from", type=str, help="Command: Load .cvs-file to Pandas DataFrame. You can draw chart in additional with --render-bokeh key.")
-    parser.add_argument("--generate", action="store_true", help="Command: Generates chain of candlesticks with predefined statistical parameters and save stock history as Pandas DataFrame or .csv-file if --save-to key is defined. You can draw chart in additional with --render-bokeh key.")
-    parser.add_argument("--save-to", type=str, help="Command: Save generated or loaded dataframe to .csv-file. You can draw chart in additional with --render-bokeh key.")
-    parser.add_argument("--render-bokeh", type=str, help="Command: Show chain of candlesticks as interactive Bokeh chart. See: https://docs.bokeh.org/en/latest/docs/gallery/candlestick.html. Before using this key you must define --load-from or --generate keys.")
-    parser.add_argument("--render-google", type=str, help="Command: Show chain of candlesticks as not interactive Google Candlestick chart. See: https://developers.google.com/chart/interactive/docs/gallery/candlestickchart. Before using this key you must define --load-from or --generate keys.")
+    parser.add_argument("--load-from", type=str, help="Command: Load .cvs-file to Pandas DataFrame. You can draw chart in additional with `--render-bokeh` key.")
+    parser.add_argument("--generate", action="store_true", help="Command: Generates chain of candlesticks with predefined statistical parameters and save stock history as Pandas DataFrame or .CSV-file if `--save-to` key is defined. You can draw chart in additional with `--render-bokeh` key.")
+    parser.add_argument("--save-to", type=str, help="Command: Save generated or loaded dataframe to .CSV-file. You can draw chart in additional with `--render-bokeh` key.")
+    parser.add_argument("--render-bokeh", type=str, help="Command: Show chain of candlesticks as interactive Bokeh chart. Used only together with `--load-from` or `--generate` keys.")
+    parser.add_argument("--render-google", type=str, help="Command: Show chain of candlesticks as non-interactive Google Candlestick chart. Used only together with `--load-from` or `--generate` keys.")
 
     cmdArgs = parser.parse_args()
     return cmdArgs
@@ -1413,7 +1484,11 @@ def ParseArgs():
 
 def Main():
     """
-    Main function to work from CLI, generate Pandas DataFrame, show charts and save to file.
+    Main function for work with PriceGenerator in the console.
+
+    See examples:
+    - in english: https://github.com/Tim55667757/PriceGenerator/blob/master/README.md
+    - in russian: https://github.com/Tim55667757/PriceGenerator/blob/master/README_RU.md
     """
     args = ParseArgs()  # get and parse command-line parameters
     exitCode = 0
@@ -1433,7 +1508,7 @@ def Main():
         # --- set options:
 
         if args.sep:
-            priceModel.sep = args.sep  # separator in .csv-file
+            priceModel.sep = args.sep  # separator in .CSV-file
 
         if args.ticker:
             priceModel.ticker = args.ticker  # some fake ticker name, "TEST" by default
