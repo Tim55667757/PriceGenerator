@@ -97,93 +97,95 @@ pricegenerator --help
 
 Output:
 ```text
-usage: python PriceGenerator.py [some options] [one or more commands]
+usage: 
+/as module/ python PriceGenerator.py [some options] [one command]
+/as CLI tool/ pricegenerator [some options] [one command]
 
-Forex and stocks price generator. Generates chain of candlesticks with
-predefined statistical parameters, return Pandas DataFrame or saving as .csv-
-file with OHLCV-candlestick in every strings. See examples:
-https://tim55667757.github.io/PriceGenerator
+PriceGenerator is the platform for generating prices similar to real stock
+prices, but you can control the statistics of their distribution. Generates
+chain of candlesticks with predefined statistical parameters, return Pandas
+DataFrame or saving as .CSV-file with OHLCV-candlestick in every string. Use
+PriceGenerator to generate synthetic data to test your trading strategy. See
+examples: https://tim55667757.github.io/PriceGenerator
 
 optional arguments:
   -h, --help            show this help message and exit
   --ticker TICKER       Option: some fake ticker name, 'TEST' by default.
   --precision PRECISION
-                        Option: precision is count of digits after comma, 2 by
-                        default.
+                        Option: precision is count of digits after comma, 2 by default.
   --timeframe TIMEFRAME
                         Option: time delta between two neighbour candles in
                         minutes, 60 (1 hour) by default.
   --start START         Option: start time of 1st candle as string with format
                         'year-month-day hour:min', e.g. '2021-01-02 12:00'.
-  --horizon HORIZON     Option: candlesticks count.
+  --horizon HORIZON     Option: candlesticks count. Default: 30.
   --split-trend SPLIT_TREND
-                        Option: set difference periods, e.g. --split-trend=/\-
-                        means that generated candles has up trend at first
-                        part, next down trend and then no trend. Used with
-                        --split-count key.
+                        Option: set different trends, e.g. `--split-trend=/\-`
+                        means that generated candles has uptrend at first
+                        part, next downtrend and then no trend. Used only
+                        together with `--split-count` key. Default: empty
+                        string (mean that will be used random trend directions).
   --split-count SPLIT_COUNT [SPLIT_COUNT ...]
-                        Option: set count of candles of difference periods,
-                        e.g. --split-count 5 10 15 means that generated
-                        candles has 3 trends with 5, 10 and 15 candles in
-                        chain, with sum equal to --horizon. Used with --split-
-                        count and --horizon keys.
+                        Option: set candles count in different trends, e.g.
+                        `--split-count 5 10 15` means that generated candles
+                        has 3 trends with 5, 10 and 15 candles in chain, with
+                        sum must be equal to `--horizon` value. Used only
+                        together with `--split-trend` key. Default: [], empty
+                        list mean that will be used random candles count in trends.
   --max-close MAX_CLOSE
                         Option: maximum of all close prices.
   --min-close MIN_CLOSE
                         Option: minimum of all close prices.
   --init-close INIT_CLOSE
-                        Option: generator started 1st open price of chain from
-                        this 'last' close price.
+                        Option: generator started 1st open price equal to this
+                        last close price.
   --max-outlier MAX_OUTLIER
                         Option: maximum of outlier size of candle tails, by
-                        default used (max-close - min-close) / 10.
-  --max-body MAX_BODY   Option: maximum of candle body sizes: abs(open -
-                        close), by default used max-outlier * 0.9.
+                        default used (max_close - min_close) / 10.
+  --max-body MAX_BODY   Option: maximum of candle body sizes:
+                        abs(open - close), by default used max_outlier * 0.9.
   --max-volume MAX_VOLUME
                         Option: maximum of trade volumes.
   --up-candles-prob UP_CANDLES_PROB
                         Option: float number in [0; 1] is a probability that
                         next candle is up, 0.5 by default.
   --outliers-prob OUTLIERS_PROB
-                        Option: float number in [0; 1] is a statistical
-                        outliers probability (price 'tails'), 0.03 by default.
+                        Option: float number in [0; 1] is an outliers
+                        probability (price tails), 0.03 by default.
   --trend-deviation TREND_DEVIATION
                         Option: relative deviation for trend detection, 0.005
-                        mean ±0.005 by default. 'NO trend' if (1st_close -
-                        last_close) / 1st_close <= trend-deviation.
+                        mean ±0.005 by default. No trend if
+                        (1st_close - last_close) / 1st_close <= trend_deviation.
   --zigzag ZIGZAG       Option: relative deviation to detection points of
-                        ZigZag indicator, 0.03 by default.
-  --sep SEP             Option: separator in csv-file, if None then auto-
+                        Zig-Zag indicator, 0.03 by default.
+  --sep SEP             Option: separator in CSV-file, if None then auto-
                         detecting enable.
-  --dark DARK           Option: if key present, then will be used dark theme
+  --dark                Option: if key present, then will be used dark theme
                         for the `--render-bokeh` key. `False` by default for
                         light theme.
   --debug-level DEBUG_LEVEL
-                        Option: showing STDOUT messages of minimal debug
-                        level, e.g., 10 = DEBUG, 20 = INFO, 30 = WARNING, 40 =
-                        ERROR, 50 = CRITICAL.
+                        Option: showing STDOUT messages of minimal debug level,
+                        e.g., 10 = DEBUG, 20 = INFO, 30 = WARNING, 40 = ERROR,
+                        50 = CRITICAL.
   --load-from LOAD_FROM
-                        Command: Load .cvs-file to Pandas DataFrame. You can
-                        draw chart in additional with --render-bokeh key.
-  --generate            Command: Generates chain of candlesticks with
+                        Command: load .cvs-file to Pandas DataFrame. You can
+                        draw chart in additional with `--render-bokeh` or
+                        `--render-google` key.
+  --generate            Command: generates chain of candlesticks with
                         predefined statistical parameters and save stock
-                        history as Pandas DataFrame or .csv-file if --save-to
-                        key is defined. You can draw chart in additional with
-                        --render-bokeh key.
-  --save-to SAVE_TO     Command: Save generated or loaded dataframe to .csv-
-                        file. You can draw chart in additional with --render-
-                        bokeh key.
+                        history as Pandas DataFrame or .CSV-file if `--save-
+                        to` key is defined. You can draw chart in additional
+                        with `--render-bokeh` or `--render-google` keys.
+  --save-to SAVE_TO     Command: save generated or loaded dataframe to .CSV-
+                        file. You can draw chart in additional with `--render-bokeh`
+                        or `--render-google` keys.
   --render-bokeh RENDER_BOKEH
-                        Command: Show chain of candlesticks as interactive
-                        Bokeh chart. See: https://docs.bokeh.org/en/latest/doc
-                        s/gallery/candlestick.html. Before using this key you
-                        must define --load-from or --generate keys.
+                        Command: show chain of candlesticks as interactive
+                        Bokeh chart. Used only together with `--load-from` or `--generate` keys.
   --render-google RENDER_GOOGLE
-                        Command: Show chain of candlesticks as not interactive
-                        Google Candlestick chart. See: https://developers.goog
-                        le.com/chart/interactive/docs/gallery/candlestickchart
-                        . Before using this key you must define --load-from or
-                        --generate keys.
+                        Command: show chain of candlesticks as non-interactive
+                        Google Candlestick chart. Used only together with
+                        `--load-from` or `--generate` keys.
 ```
 
 #### Generating prices with default parameters
