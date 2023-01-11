@@ -4,7 +4,7 @@
 
 * 🇷🇺 [Релиз-ноты на русском (see release notes in russian here)](https://github.com/Tim55667757/PriceGenerator/blob/develop/CHANGELOG_RU.md)
 * 📚 [Documentation for the PriceGenerator module and examples of working with CLI](https://github.com/Tim55667757/PriceGenerator/blob/master/README.md)
-* 🎁 Support the project with a donation to our yoomoney-wallet: [410015019068268](https://yoomoney.ru/quickpay/shop-widget?writer=seller&targets=Donat%20(gift)%20for%20the%20authors%20of%20the%20PriceGenerator%20project&default-sum=999&button-text=13&payment-type-choice=on&successURL=https%3A%2F%2Ftim55667757.github.io%2FPriceGenerator%2F&quickpay=shop&account=410015019068268)
+* 🎁 Support the project with a donation to our yoomoney-wallet: [410015019068268](https://yoomoney.ru/fundraise/BxB9DQNvJnk.230111)
 
 
 ### [1.3.81 (2023-01-05)](https://github.com/Tim55667757/PriceGenerator/releases/tag/1.3.81) — released
@@ -104,4 +104,4 @@ The first version of PriceGenerator library allows you to:
   * draw a chart of generated or loaded real prices and save it in html-format (example: `./media/index.html`);
   * generate prices, a chart and some data on price behavior can be saved as a regular png-image (example: `./media/index.html.png`).
 
-[![gift](https://badgen.net/badge/gift/donate/green)](https://yoomoney.ru/quickpay/shop-widget?writer=seller&targets=Donat%20(gift)%20for%20the%20authors%20of%20the%20PriceGenerator%20project&default-sum=999&button-text=13&payment-type-choice=on&successURL=https%3A%2F%2Ftim55667757.github.io%2FPriceGenerator%2F&quickpay=shop&account=410015019068268)
+[![gift](https://badgen.net/badge/gift/donate/green)](https://yoomoney.ru/fundraise/BxB9DQNvJnk.230111)

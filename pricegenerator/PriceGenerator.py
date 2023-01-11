@@ -9,6 +9,8 @@ In additional you can view some statistical and probability parameters of genera
 Sample example:
 
 <a href="https://github.com/Tim55667757/PriceGenerator"><img src="https://github.com/Tim55667757/PriceGenerator/blob/master/media/index_google.html.png?raw=true" alt="Chart" width="780" target="_blank" /></a>
+
+[![gift](https://badgen.net/badge/gift/donate/green)](https://yoomoney.ru/fundraise/BxB9DQNvJnk.230111)
 """
 
 # Copyright (c) 2022 Gilmillin Timur Mansurovich
@@ -1513,6 +1515,8 @@ def Main():
     See examples:
     - in english: https://github.com/Tim55667757/PriceGenerator/blob/master/README.md
     - in russian: https://github.com/Tim55667757/PriceGenerator/blob/master/README_RU.md
+
+    [![gift](https://badgen.net/badge/gift/donate/green)](https://yoomoney.ru/fundraise/BxB9DQNvJnk.230111)
     """
     args = ParseArgs()  # get and parse command-line parameters
     exitCode = 0
