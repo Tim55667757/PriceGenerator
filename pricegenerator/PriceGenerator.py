@@ -859,8 +859,8 @@ class PriceGenerator:
                             self.precision,
                         )
 
-                candles[-1]["high"] = max(candles[-1]["open"], candles[-1]["close"]) + highDelta  # fixing higher shadow
-                candles[-1]["low"] = min(candles[-1]["open"], candles[-1]["close"]) - lowDelta  # fixing lower shadow
+                candles[-1]["high"] = round(max(candles[-1]["open"], candles[-1]["close"]) + highDelta, self.precision)  # fixing higher shadow
+                candles[-1]["low"] = round(min(candles[-1]["open"], candles[-1]["close"]) - lowDelta, self.precision)  # fixing lower shadow
 
             self.upCandlesProb = userProb
             self.horizon = userHorizon
