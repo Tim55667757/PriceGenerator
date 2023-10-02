@@ -697,30 +697,38 @@ class PriceGenerator:
         }
 
         if random.random() <= self.upCandlesProb:
-            maxBody = min(self.maxClose, candle["open"] + self.maxCandleBody)
-            candle["close"] = round(random.uniform(a=candle["open"], b=maxBody), self.precision)  # up candle
+            bodyUp = min(self.maxClose, candle["open"] + self.maxCandleBody)
+            candle["close"] = round(random.uniform(a=candle["open"], b=bodyUp), self.precision)  # up candle
+            halfBody = round(abs(candle["close"] - candle["open"]) / 2, self.precision)
 
             if random.random() <= self.outliersProb:
-                candle["high"] = round(random.uniform(a=candle["close"], b=candle["close"] + self.maxOutlier), self.precision)  # with outlier price "tails"
-                candle["low"] = round(random.uniform(a=candle["open"] - self.maxOutlier, b=candle["open"]), self.precision)
+                candle["high"] = round(random.uniform(a=candle["close"], b=candle["close"] + self.maxOutlier), self.precision)  # with outlier high price
 
             else:
-                halfBody = (candle["close"] - candle["open"]) / 2
-                candle["high"] = round(random.uniform(a=candle["close"], b=candle["close"] + halfBody), self.precision)  # without outlier price "tails"
-                candle["low"] = round(random.uniform(a=candle["open"] - halfBody, b=candle["open"]), self.precision)
+                candle["high"] = round(random.uniform(a=candle["close"], b=candle["close"] + halfBody), self.precision)  # without outlier
+
+            if random.random() <= self.outliersProb:
+                candle["low"] = round(random.uniform(a=candle["open"] - self.maxOutlier, b=candle["open"]), self.precision)  # with outlier low price
+
+            else:
+                candle["low"] = round(random.uniform(a=candle["open"] - halfBody, b=candle["open"]), self.precision)  # without outlier
 
         else:
-            minBody = max(self.minClose, candle["open"] - self.maxCandleBody)
-            candle["close"] = round(random.uniform(a=minBody, b=candle["open"]), self.precision)  # down candle
+            bodyDown = max(self.minClose, candle["open"] - self.maxCandleBody)
+            candle["close"] = round(random.uniform(a=bodyDown, b=candle["open"]), self.precision)  # down candle
+            halfBody = round(abs(candle["open"] - candle["close"]) / 2, self.precision)
 
             if random.random() <= self.outliersProb:
-                candle["high"] = round(random.uniform(a=candle["open"], b=candle["open"] + self.maxOutlier), self.precision)  # with outlier price "tails"
-                candle["low"] = round(random.uniform(a=candle["close"] - self.maxOutlier, b=candle["close"]), self.precision)
+                candle["high"] = round(random.uniform(a=candle["open"], b=candle["open"] + self.maxOutlier), self.precision)  # with outlier high price
 
             else:
-                halfBody = (candle["open"] - candle["close"]) / 2
-                candle["high"] = round(random.uniform(a=candle["open"], b=candle["open"] + halfBody), self.precision)  # without outlier price "tails"
-                candle["low"] = round(random.uniform(a=candle["close"] - halfBody, b=candle["close"]), self.precision)
+                candle["high"] = round(random.uniform(a=candle["open"], b=candle["open"] + halfBody), self.precision)  # without outlier
+
+            if random.random() <= self.outliersProb:
+                candle["low"] = round(random.uniform(a=candle["close"] - self.maxOutlier, b=candle["close"]), self.precision)  # with outlier high price
+
+            else:
+                candle["low"] = round(random.uniform(a=candle["close"] - halfBody, b=candle["close"]), self.precision)  # without outlier
 
         return candle
 
@@ -775,7 +783,7 @@ class PriceGenerator:
 
         # maximum of candle sizes: (high - low), if None then used (maxClose - minClose) / 10
         if self.maxOutlier is None:
-            self.maxOutlier = (self.maxClose - self.minClose) / 10
+            self.maxOutlier = abs(self.maxClose - self.minClose) / 10
 
         # maximum of candle body sizes: abs(open - close), if None then used maxOutlier * 90%
         if self.maxCandleBody is None:
@@ -1558,6 +1566,9 @@ def Main():
 
         if args.split_count:
             priceModel.splitCount = args.split_count  # candles in every period
+
+        if args.max_close:
+            priceModel.maxClose = args.max_close  # maximum of all close prices
 
         if args.min_close:
             priceModel.minClose = args.min_close  # minimum of all close prices
