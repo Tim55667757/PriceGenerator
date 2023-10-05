@@ -613,8 +613,8 @@ class PriceGenerator:
         self._stat["precision"] = self.precision
         self._stat["closeFirst"] = self.prices.close.values[0]
         self._stat["closeLast"] = self.prices.close.values[-1]
-        self._stat["closeMax"] = pd.DataFrame.max(self.prices.close)
-        self._stat["closeMin"] = pd.DataFrame.min(self.prices.close)
+        self._stat["closeMax"] = max(self.prices.close)
+        self._stat["closeMin"] = min(self.prices.close)
         self._stat["diapason"] = self._stat["closeMax"] - self._stat["closeMin"]
         self._stat["trend"] = self.GetTrend(firstClose=self._stat["closeFirst"], lastClose=self._stat["closeLast"], trendDeviation=self.trendDeviation)
 
@@ -628,8 +628,8 @@ class PriceGenerator:
         self._stat["downCount"] = len(self.prices.up[self.prices.up == False])
         self._stat["upCountChainMax"] = max(upChainsLengths) if upChainsLengths else 1
         self._stat["downCountChainMax"] = max(downChainsLengths) if downChainsLengths else 1
-        self._stat["deltas"]["max"] = pd.DataFrame.max(self.prices.delta)
-        self._stat["deltas"]["min"] = pd.DataFrame.min(self.prices.delta)
+        self._stat["deltas"]["max"] = max(self.prices.delta)
+        self._stat["deltas"]["min"] = min(self.prices.delta)
         self._stat["deltas"]["stDev"] = round(pstdev(self.prices.delta), self._precision)
         self._stat["deltas"]["q99"] = round(max(pd.DataFrame(self.prices.delta).quantile(q=0.99, interpolation='linear')), self._precision)
         self._stat["deltas"]["q95"] = round(max(pd.DataFrame(self.prices.delta).quantile(q=0.95, interpolation='linear')), self._precision)
