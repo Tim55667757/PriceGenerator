@@ -376,8 +376,8 @@ class PriceGenerator:
 
     @maxVolume.setter
     def maxVolume(self, value):
-        if value is None or value < 0:
-            self._maxVolume = 0
+        if value is None or value < 1:
+            self._maxVolume = 1
 
         else:
             self._maxVolume = value
@@ -681,20 +681,21 @@ class PriceGenerator:
 
         return summary
 
-    def _GenNextCandle(self, lastClose) -> dict:
+    def _GenNextCandle(self, lastClose, lastVolume=0) -> dict:
         """
         Generator for creating 1 next candle based on global probability parameters.
 
-        :param lastClose: value of last close price.
-        :return: one OHLCV-candle as dict.
+        :param lastClose: value of the last close price.
+        :param lastVolume: value of the last volume.
+        :return: one OHLCV-candle as dict: {"open": lastClose, "high": newHigh, "low": newLow, "close": newClose, "volume": newVolume}.
         """
-        candle = {
-            "open": lastClose,
-            "high": 0,
-            "low": 0,
-            "close": 0,
-            "volume": random.randint(a=0, b=self.maxVolume)
-        }
+        candle = dict(open=lastClose, high=0., low=0., close=0., volume=0)  # init candle's object
+
+        # Generating volume depends on the last value and outliers probability:
+        volDelta = int(lastVolume * self.outliersProb)
+        volA = lastVolume - volDelta if lastVolume > volDelta else 1
+        volB = lastVolume + volDelta if 1 < lastVolume + volDelta <= self.maxVolume else self.maxVolume
+        candle["volume"] = random.randint(a=volA, b=volB)
 
         if random.random() <= self.upCandlesProb:
             bodyUp = min(self.maxClose, candle["open"] + self.maxCandleBody)
@@ -843,7 +844,7 @@ class PriceGenerator:
                 candles.append(firstCandle)
 
                 for _ in range(1, self.horizon):
-                    candles.append(self._GenNextCandle(candles[-1]["close"]))
+                    candles.append(self._GenNextCandle(candles[-1]["close"], candles[-1]["volume"]))
 
                 highDelta = abs(candles[-1]["high"] - max(candles[-1]["open"], candles[-1]["close"]))  # save higher shadow
                 lowDelta = abs(min(candles[-1]["open"], candles[-1]["close"]) - candles[-1]["low"])  # save lower shadow
@@ -877,7 +878,7 @@ class PriceGenerator:
         else:
             candles = [self._GenNextCandle(round(self.initClose, self.precision))]  # first candle in chain
             for _ in range(1, self.horizon):
-                candles.append(self._GenNextCandle(candles[-1]["close"]))
+                candles.append(self._GenNextCandle(candles[-1]["close"], candles[-1]["volume"]))
 
         # prepare Dataframe from generated prices:
         indx = pd.date_range(
