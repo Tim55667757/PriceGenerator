@@ -693,8 +693,9 @@ class PriceGenerator:
 
         # Generating volume depends on the last value and outliers probability:
         volDelta = int(lastVolume * self.outliersProb)
-        volA = lastVolume - volDelta if lastVolume > volDelta else 1
-        volB = lastVolume + volDelta if 1 < lastVolume + volDelta <= self.maxVolume else self.maxVolume
+        weight = abs(self.maxVolume - lastVolume) // self.maxVolume
+        volA = lastVolume - volDelta * (1 + weight) if lastVolume > volDelta else 1
+        volB = lastVolume + volDelta * (1 - weight) if 1 < lastVolume + volDelta <= self.maxVolume else self.maxVolume
         candle["volume"] = random.randint(a=volA, b=volB)
 
         if random.random() <= self.upCandlesProb:
