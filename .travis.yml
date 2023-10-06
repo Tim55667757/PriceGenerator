@@ -16,6 +16,7 @@ jobs:
         - echo "---> Running PRE-BUILDING stage..."
         - python -m pip install --upgrade pip --force-reinstall
         - pip install setuptools==59.5.0 --force-reinstall
+        - pip install urllib3==1.26.6 --force-reinstall
         - pip install -r requirements.txt
       before_script:
         - export PYTHONPATH=$PYTHONPATH:$PWD:$PWD/pricegenerator:$PWD/tests
