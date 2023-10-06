@@ -18,7 +18,7 @@ jobs:
         - pip install setuptools==59.5.0 --force-reinstall
         - pip install -r requirements.txt
       before_script:
-        - export PYTHONPATH=$PYTHONPATH:$PWD:$PWD/tksbrokerapi:$PWD/tests
+        - export PYTHONPATH=$PYTHONPATH:$PWD:$PWD/pricegenerator:$PWD/tests
       script:
         - echo "---> Running TESTING stage..."
         - pytest tests -v --disable-pytest-warnings
