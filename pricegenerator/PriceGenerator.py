@@ -692,10 +692,12 @@ class PriceGenerator:
         candle = dict(open=lastClose, high=0., low=0., close=0., volume=0)  # init candle's object
 
         # Generating volume depends on the last value and outliers probability:
-        volDelta = int(lastVolume * self.outliersProb)
-        weight = abs(self.maxVolume - lastVolume) // self.maxVolume
-        volA = lastVolume - volDelta * (1 + weight) if lastVolume > volDelta else 1
-        volB = lastVolume + volDelta * (1 - weight) if 1 < lastVolume + volDelta <= self.maxVolume else self.maxVolume
+        volDelta = int(self.maxVolume * self.outliersProb)
+        weight = lastVolume / self.maxVolume  # if w > 0.5 then more close to maxVolume, but else if w <= 0.5 then more close to 0
+        volA = int(lastVolume - volDelta * (1 + weight))
+        volB = int(lastVolume + volDelta * (1 + weight))
+        volB = volB if 1 < volB <= self.maxVolume and volA > 0 else self.maxVolume
+        volA = volA if volA > 0 else 1
         candle["volume"] = random.randint(a=volA, b=volB)
 
         if random.random() <= self.upCandlesProb:
@@ -841,7 +843,7 @@ class PriceGenerator:
 
                     raise Exception("Unknown direction")
 
-                firstCandle = self._GenNextCandle(round(self.initClose, self.precision))  # first candle in next trend
+                firstCandle = self._GenNextCandle(round(self.initClose, self.precision), candles[-1]["volume"] if len(candles) > 0 else 0)  # first candle in next trend
                 candles.append(firstCandle)
 
                 for _ in range(1, self.horizon):
