@@ -5,25 +5,38 @@ branches:
   - master
   - develop
 
-install:
-  - echo "---> Running PRE-BUILDING stage..."
-  - python -m pip install --upgrade pip --force-reinstall
-  - pip install setuptools==59.5.0
-  - pip install -r requirements.txt
+stages:
+  - env-test-build-publish
 
-script:
-  - echo "---> Running TESTING stage..."
-  - python -m pytest tests -v --disable-pytest-warnings
-
-deploy:
-  provider: pypi
-  username: __token__
-  password:
-    secure: R+BV7e3ClVkhJz5tQcDLewazEC7E1BbVpRXrCPi9ENhvMeU9ZKjlE4gLd7TCYwBXa44SNvZyrX0BlXWzoea+I/MeiG7Q6tP7LnMlJzFukkMGWaIgWjUpp9oBNg+HBbVET4Alnr2m3lvJeVVdziwsL6zNBg+n7a35WFJgYN/x3DDkFKV7wXSh4jw5cyFBqqCSyVl7GXQpBMIk3vHKEL5H9W1YfnGArOkluiiliFprUtmmI9kKd03VdFqOS5NRk+bpDwFikGPeilV8PWZ6KAtvzvpBQsL5395ns0zQIkeRxhW4/yJN/M4eHtWgIxNM+ZfbgEBP1wkh9HdVTqOsMipqwCjOwFoslO9+aArLcmTnExCr92X42uZxuhSNFeZ+u6NlVreOcxindCKH5GtTXnANQ4lTYaSMaVEYDLBYB4vMPC4jmtlwpZKkKST1hKVG2zzUwKSc0braW/gcXgBWYBwfUrqtxKK6bmmHPsbncJRuDZy24jFS86Sqa+SzlxMwiRVXGlfZt2RZX8zxn1MS2hnPuGvKysL4wvb8a/7hybHK8YRTnF52YcOfUenDMDPT4+2TqBCbm/rCl9YJ3XVlqbqlYrXb6Pm+VANiS4rrJ+erifJxalJtSqXKc5v2/oqE7Q2tvGmqzIuC0Fg/Vdka7qUspqbOgFi1MLo3mTbufGOzZPs=
-  distributions: sdist bdist_wheel
-  on:
-    all_branches: true
-  skip_cleanup: true
-
-after_script:
-  - echo "All PyPI operations done."
+jobs:
+  include:
+    - stage: env-test-build-publish
+      name: "Stages: PRE-BUILDING -> TESTING -> BUILDING -> PUBLISHING to PyPI"
+      install:
+        - echo "---> Running PRE-BUILDING stage..."
+        - python -m pip install --upgrade pip --force-reinstall
+        - pip install setuptools==59.5.0 --force-reinstall
+        - pip install -r requirements.txt
+      before_script:
+        - export PYTHONPATH=$PYTHONPATH:$PWD:$PWD/tksbrokerapi:$PWD/tests
+      script:
+        - echo "---> Running TESTING stage..."
+        - pytest tests -v --disable-pytest-warnings
+        - echo "---> Running BUILDING stage..."
+        - python setup.py sdist bdist_wheel
+        - |
+          if [ $TRAVIS_PULL_REQUEST == false ]; then
+            echo "---> Running PUBLISHING to PyPI stage...";
+            python -m twine upload --verbose dist/* --skip-existing;
+          else
+            echo "---> SKIPPING PUBLISHING to PyPI stage, because this is Pull Request build";
+          fi
+      after_failure:
+        - echo "Some issues occurred. See full logs."
+      after_success:
+        - |
+          if [ $TRAVIS_PULL_REQUEST == false ]; then
+            echo "All stages PRE-BUILDING -> TESTING -> BUILDING -> PUBLISHING to PyPI - done";
+          else
+            echo "All PR stages PRE-BUILDING -> TESTING -> BUILDING -> [PUBLISHING to PyPI][SKIPPED] - done";
+          fi
