@@ -276,8 +276,8 @@ class PriceGenerator:
         self.maxCandleBody = None
         """Maximum of candle body sizes: `abs(open - close)`. If `None` then used value `maxOutlier * 90%`. Default: `None`."""
 
-        self._maxVolume = random.randint(0, 100000)
-        """Maximum of generated trade volumes. Default: random in interval `(0, 100000)`."""
+        self._maxVolume = random.randint(1, 100000)
+        """Maximum of generated trade volumes. Default: random in interval `[1, 100000]`."""
 
         self._upCandlesProb = 0.5
         """Probability that next candle is up. Default: `0.5` (means 50% of probability)."""
@@ -371,7 +371,7 @@ class PriceGenerator:
 
     @property
     def maxVolume(self):
-        """Maximum of generated trade volumes. Default: random in interval `(0, 100000)`."""
+        """Maximum of generated trade volumes. Default: random in interval `[1, 100000]`."""
         return self._maxVolume
 
     @maxVolume.setter
