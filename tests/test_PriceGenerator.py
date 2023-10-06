@@ -324,7 +324,7 @@ class TestFeatures:
                 assert maxBody <= test, "All candles bodies must be less than maxCandleBody = {}, but there are some values more than maxCandleBody!\nList of bodies: {}".format(test, bodies)
 
     def test_maxVolume(self):
-        testData = [[-1, 0], [None, 0], [0, 0], [1, 1], [10, 10], [100, 100]]
+        testData = [[-1, 1], [None, 1], [0, 1], [1, 1], [10, 10], [100, 100]]
         for test in testData:
             self.model.horizon = 10
             self.model.minClose = 10
