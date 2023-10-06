@@ -690,6 +690,7 @@ class PriceGenerator:
         :return: one OHLCV-candle as dict: {"open": lastClose, "high": newHigh, "low": newLow, "close": newClose, "volume": newVolume}.
         """
         candle = dict(open=lastClose, high=0., low=0., close=0., volume=0)  # init candle's object
+        lastVolume = lastVolume if lastVolume > 0 else self.maxVolume // 2
 
         # Generating volume depends on the last value and outliers probability:
         volDelta = int(self.maxVolume * self.outliersProb)
