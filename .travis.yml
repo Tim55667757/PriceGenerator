@@ -3,7 +3,7 @@ python: "3.9"
 branches:
   only:
   - master
-  - develop
+#  - develop
 
 stages:
   - env-test-build-publish
