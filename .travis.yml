@@ -13,7 +13,7 @@ install:
 
 script:
   - echo "---> Running TESTING stage..."
-  - pytest tests -v --disable-pytest-warnings
+  - python -m pytest tests -v --disable-pytest-warnings
 
 deploy:
   provider: pypi

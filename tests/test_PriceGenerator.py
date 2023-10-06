@@ -8,17 +8,17 @@ from datetime import datetime, timedelta
 from dateutil.tz import tzlocal
 import random
 
-from pricegenerator import PriceGenerator as Gen
+from pricegenerator import PriceGenerator
 
 
 class TestFeatures:
 
     @pytest.fixture(scope='function', autouse=True)
     def init(self):
-        Gen.uLogger.level = 50  # Disable debug logging while test, logger CRITICAL = 50
-        Gen.uLogger.handlers[0].level = 50  # Disable debug logging for STDOUT
+        PriceGenerator.uLogger.level = 50  # Disable debug logging while test, logger CRITICAL = 50
+        PriceGenerator.uLogger.handlers[0].level = 50  # Disable debug logging for STDOUT
 
-        self.model = Gen.PriceGenerator()  # init generator for the next tests
+        self.model = PriceGenerator.PriceGenerator()  # init generator for the next tests
 
     def test_Generate(self):
         self.model.Generate()
