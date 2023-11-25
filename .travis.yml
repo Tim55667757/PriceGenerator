@@ -3,7 +3,7 @@ python: "3.9"
 branches:
   only:
   - /^release-.*$/
-  - master
+#  - master
 #  - develop
 
 stages:
