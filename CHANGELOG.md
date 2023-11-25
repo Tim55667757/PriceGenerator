@@ -4,6 +4,7 @@
 
 * 🇷🇺 [Релиз-ноты на русском (see release notes in russian here)](https://github.com/Tim55667757/PriceGenerator/blob/develop/CHANGELOG_RU.md)
 * 📚 [Documentation for the PriceGenerator module and examples of working with CLI](https://github.com/Tim55667757/PriceGenerator/blob/master/README.md)
+* ⚙️ [PriceGenerator API-documentation](https://tim55667757.github.io/PriceGenerator/docs/pricegenerator/PriceGenerator.html)
 * 🎁 Support the project with a donation to our yoomoney-wallet: [410015019068268](https://yoomoney.ru/fundraise/BxB9DQNvJnk.230111)
 
 

@@ -4,6 +4,7 @@
 
 * 🇺🇸 [See release notes in english here (актуальные релиз-ноты на английском)](https://github.com/Tim55667757/PriceGenerator/blob/develop/CHANGELOG.md)
 * 📚 [Документация на модуль PriceGenerator и примеры работы в консоли](https://github.com/Tim55667757/PriceGenerator/blob/master/README_RU.md)
+* ⚙️ [PriceGenerator API-документация](https://tim55667757.github.io/PriceGenerator/docs/pricegenerator/PriceGenerator.html)
 * 🎁 Поддержать проект донатом на ЮМани-кошелёк: [410015019068268](https://yoomoney.ru/fundraise/BxB9DQNvJnk.230111)
 
 
