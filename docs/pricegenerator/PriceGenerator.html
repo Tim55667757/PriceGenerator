@@ -712,7 +712,7 @@ Default columns in CSV-file are <code>["date", "time", "open", "high", "low", "c
                     <div class="decorator">@staticmethod</div>
 
         <span class="def">def</span>
-        <span class="name">ZigZagFilter</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">datetimes</span><span class="p">:</span> <span class="n">pandas</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">series</span><span class="o">.</span><span class="n">Series</span>,</span><span class="param">	<span class="n">values</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">pandas</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">series</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="nb">list</span><span class="p">]</span>,</span><span class="param">	<span class="n">deviation</span><span class="p">:</span> <span class="nb">float</span></span><span class="return-annotation">) -> <span class="nb">dict</span>:</span></span>
+        <span class="name">ZigZagFilter</span><span class="signature pdoc-code multiline">(<span class="param">	<span class="n">datetimes</span><span class="p">:</span> <span class="n">pandas</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">series</span><span class="o">.</span><span class="n">Series</span>,</span><span class="param">	<span class="n">values</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">pandas</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">series</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span> <span class="nb">list</span><span class="p">]</span>,</span><span class="param">	<span class="n">deviation</span><span class="p">:</span> <span class="nb">float</span></span><span class="return-annotation">) -> <span class="n">pandas</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">frame</span><span class="o">.</span><span class="n">DataFrame</span>:</span></span>
 
         
     </div>
@@ -732,7 +732,7 @@ is difference with next values with define percent then this point is a point of
 <h6 id="returns">Returns</h6>
 
 <blockquote>
-  <p>dict with Pandas Series filtered data <code>{"datetimes": filtered_datetimes, "filtered": filtered_values}</code>.</p>
+  <p>Pandas DataFrame with two Series of filtered data <code>"datetimes": filtered_datetimes</code> and <code>"filtered": filtered_values</code>.</p>
 </blockquote>
 </div>
 

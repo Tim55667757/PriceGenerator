@@ -10,7 +10,8 @@
 [![api-doc](https://badgen.net/badge/api-doc/PriceGenerator/blue)](https://tim55667757.github.io/PriceGenerator/docs/pricegenerator/PriceGenerator.html)
 [![gift](https://badgen.net/badge/gift/donate/green)](https://yoomoney.ru/fundraise/BxB9DQNvJnk.230111)
 
-* 🇷🇺 [Документация на русском (see documentation in russian here)](https://github.com/Tim55667757/PriceGenerator/blob/master/README_RU.md)
+* 🇷🇺 [Документация и примеры на русском (see documentation in russian here)](https://github.com/Tim55667757/PriceGenerator/blob/master/README_RU.md)
+* ⚙️ [PriceGenerator API-documentation](https://tim55667757.github.io/PriceGenerator/docs/pricegenerator/PriceGenerator.html)
 * 📚 [Release notes](https://github.com/Tim55667757/PriceGenerator/blob/develop/CHANGELOG.md)
 * 🎁 Support the project with a donation to our yoomoney-wallet: [410015019068268](https://yoomoney.ru/fundraise/BxB9DQNvJnk.230111)
 
