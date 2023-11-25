@@ -36,7 +36,7 @@ setup(
 
     description="PriceGenerator is the platform for generating prices similar to real stock prices, but you can control the statistics of their distribution. Generates chain of candlesticks with predefined statistical parameters, return Pandas DataFrame or saving as .CSV-file with OHLCV-candlestick in every string. Use PriceGenerator to generate synthetic data to test your trading strategy.",
 
-    long_description="See full documentation with examples: https://github.com/Tim55667757/PriceGenerator/blob/master/README.md\n\nTKSBrokerAPI module documentation: https://tim55667757.github.io/PriceGenerator/docs/pricegenerator/PriceGenerator.html\n\nПодробная документация на русском с примерами: https://github.com/Tim55667757/PriceGenerator/blob/master/README_RU.md\n\nДокументация на модуль PriceGenerator: https://tim55667757.github.io/PriceGenerator/docs/pricegenerator/PriceGenerator.html",
+    long_description="See full documentation with examples: https://github.com/Tim55667757/PriceGenerator/blob/master/README.md\n\nPriceGenerator module documentation: https://tim55667757.github.io/PriceGenerator/docs/pricegenerator/PriceGenerator.html\n\nПодробная документация на русском с примерами: https://github.com/Tim55667757/PriceGenerator/blob/master/README_RU.md\n\nДокументация на модуль PriceGenerator: https://tim55667757.github.io/PriceGenerator/docs/pricegenerator/PriceGenerator.html",
 
     license="Apache-2.0",
 

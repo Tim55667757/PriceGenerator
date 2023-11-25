@@ -7,7 +7,7 @@
 * 🎁 Поддержать проект донатом на ЮМани-кошелёк: [410015019068268](https://yoomoney.ru/fundraise/BxB9DQNvJnk.230111)
 
 
-### [1.4.* (2023-11-25)](https://github.com/Tim55667757/PriceGenerator/releases/) — released
+### [1.4.93 (2023-11-25)](https://github.com/Tim55667757/PriceGenerator/releases/tag/v1.4.93) — опубликована
 
 ##### Дайджест
 
