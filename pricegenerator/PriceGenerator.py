@@ -542,7 +542,7 @@ class PriceGenerator:
         return trend
 
     @staticmethod
-    def ZigZagFilter(datetimes: pd.Series, values: Union[pd.Series, list], deviation: float) -> dict:
+    def ZigZagFilter(datetimes: pd.Series, values: Union[pd.Series, list], deviation: float) -> pd.DataFrame:
         """
         This method filter input data as Zig-Zag indicator: when input value of candlestick price (e.g. close price)
         is difference with next values with define percent then this point is a point of Zig-Zag indicator.
@@ -550,7 +550,7 @@ class PriceGenerator:
         :param datetimes: input Pandas Series with datetime values.
         :param values: input Pandas Series or list, e.g. list of closes values of candlesticks.
         :param deviation: float number in `[0, 1]` interval is a relative difference between `i` and `i + 1` values to set as Zig-Zag point.
-        :return: dict with Pandas Series filtered data `{"datetimes": filtered_datetimes, "filtered": filtered_values}`.
+        :return: Pandas DataFrame with two Series of filtered data `"datetimes": filtered_datetimes` and `"filtered": filtered_values`.
         """
         filteredPoints = [True]
         prev = values[0]
@@ -563,7 +563,7 @@ class PriceGenerator:
             else:
                 filteredPoints.append(False)
 
-        return {"datetimes": datetimes[filteredPoints], "filtered": values[filteredPoints]}
+        return pd.DataFrame(data={"datetimes": datetimes[filteredPoints], "filtered": values[filteredPoints]}, columns=["datetimes", "filtered"])
 
     def GetStatistics(self) -> list[str]:
         """
