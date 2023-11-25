@@ -7,6 +7,30 @@
 * 🎁 Support the project with a donation to our yoomoney-wallet: [410015019068268](https://yoomoney.ru/fundraise/BxB9DQNvJnk.230111)
 
 
+### [1.4.* (2023-11-25)](https://github.com/Tim55667757/PriceGenerator/releases/) — released
+
+##### Digest
+
+Now the volume values depends on the previous value and outliers probability and looks more realistic. The generator algorithm creates a series of candles better for difficult trends, include differ outliers for upper and lower shadows of candles and its bodies. Also, bugs with negative numbers in series should no longer appear.
+
+Example of the long-time series with realistic dispersion of volume values and differ trends:
+
+![image](https://raw.githubusercontent.com/Tim55667757/PriceGenerator/develop/media/long-series-example-with-realistic-volumes.png)
+
+##### New features
+
+* The generator algorithm mow creates a series of candles better for difficult trends, include differ outliers for upper and lower shadows of candles.
+
+##### Improvements
+
+* [#22](https://github.com/Tim55667757/PriceGenerator/issues/22) Type of `ZigZagFilter()` was changed to Pandas Dataframe instead of dict.
+* [#25](https://github.com/Tim55667757/PriceGenerator/issues/25) Volume values now depend on the previous value and outliers probability.
+
+##### Bug fixes
+
+* [#24](https://github.com/Tim55667757/PriceGenerator/issues/24) Bug fix with negative numbers in series.
+
+
 ### [1.3.81 (2023-01-05)](https://github.com/Tim55667757/PriceGenerator/releases/tag/1.3.81) — released
 
 ##### Digest
