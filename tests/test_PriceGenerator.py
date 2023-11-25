@@ -216,9 +216,9 @@ class TestFeatures:
         ]
         for test in testData:
             actual = self.model.ZigZagFilter(datetimes=test["dates"], values=test["closes"], deviation=test["deviation"])
-            assert isinstance(actual, dict), "Expected dictionary result!"
-            assert "datetimes" in actual.keys(), "Expected 'datetimes' key in ZigZagFilter() is present in result!"
-            assert "filtered" in actual.keys(), "Expected 'filtered' key in ZigZagFilter() is present in result!"
+            assert isinstance(actual, pd.DataFrame), "Expected Pandas Dataframe result!"
+            assert "datetimes" in actual.columns, "Expected 'datetimes' column in ZigZagFilter() is present in result!"
+            assert "filtered" in actual.columns, "Expected 'filtered' column in ZigZagFilter() is present in result!"
             assert list(test["expected"]) == list(actual["filtered"]), "Expected filtered data: {}\nInput parameters:\n- deviation: {}\n- dates: {}\n- closes: {}".format(test["expected"], test["deviation"], test["dates"], test["closes"])
 
     def test_timeframe(self):
