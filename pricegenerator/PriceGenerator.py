@@ -276,8 +276,8 @@ class PriceGenerator:
         self.maxCandleBody = None
         """Maximum of candle body sizes: `abs(open - close)`. If `None` then used value `maxOutlier * 90%`. Default: `None`."""
 
-        self._maxVolume = random.randint(0, 100000)
-        """Maximum of generated trade volumes. Default: random in interval `(0, 100000)`."""
+        self._maxVolume = random.randint(1, 100000)
+        """Maximum of generated trade volumes. Default: random in interval `[1, 100000]`."""
 
         self._upCandlesProb = 0.5
         """Probability that next candle is up. Default: `0.5` (means 50% of probability)."""
@@ -371,13 +371,13 @@ class PriceGenerator:
 
     @property
     def maxVolume(self):
-        """Maximum of generated trade volumes. Default: random in interval `(0, 100000)`."""
+        """Maximum of generated trade volumes. Default: random in interval `[1, 100000]`."""
         return self._maxVolume
 
     @maxVolume.setter
     def maxVolume(self, value):
-        if value is None or value < 0:
-            self._maxVolume = 0
+        if value is None or value < 1:
+            self._maxVolume = 1
 
         else:
             self._maxVolume = value
@@ -542,7 +542,7 @@ class PriceGenerator:
         return trend
 
     @staticmethod
-    def ZigZagFilter(datetimes: pd.Series, values: Union[pd.Series, list], deviation: float) -> dict:
+    def ZigZagFilter(datetimes: pd.Series, values: Union[pd.Series, list], deviation: float) -> pd.DataFrame:
         """
         This method filter input data as Zig-Zag indicator: when input value of candlestick price (e.g. close price)
         is difference with next values with define percent then this point is a point of Zig-Zag indicator.
@@ -550,7 +550,7 @@ class PriceGenerator:
         :param datetimes: input Pandas Series with datetime values.
         :param values: input Pandas Series or list, e.g. list of closes values of candlesticks.
         :param deviation: float number in `[0, 1]` interval is a relative difference between `i` and `i + 1` values to set as Zig-Zag point.
-        :return: dict with Pandas Series filtered data `{"datetimes": filtered_datetimes, "filtered": filtered_values}`.
+        :return: Pandas DataFrame with two Series of filtered data `"datetimes": filtered_datetimes` and `"filtered": filtered_values`.
         """
         filteredPoints = [True]
         prev = values[0]
@@ -563,7 +563,7 @@ class PriceGenerator:
             else:
                 filteredPoints.append(False)
 
-        return {"datetimes": datetimes[filteredPoints], "filtered": values[filteredPoints]}
+        return pd.DataFrame(data={"datetimes": datetimes[filteredPoints], "filtered": values[filteredPoints]}, columns=["datetimes", "filtered"])
 
     def GetStatistics(self) -> list[str]:
         """
@@ -613,8 +613,8 @@ class PriceGenerator:
         self._stat["precision"] = self.precision
         self._stat["closeFirst"] = self.prices.close.values[0]
         self._stat["closeLast"] = self.prices.close.values[-1]
-        self._stat["closeMax"] = pd.DataFrame.max(self.prices.close)
-        self._stat["closeMin"] = pd.DataFrame.min(self.prices.close)
+        self._stat["closeMax"] = max(self.prices.close)
+        self._stat["closeMin"] = min(self.prices.close)
         self._stat["diapason"] = self._stat["closeMax"] - self._stat["closeMin"]
         self._stat["trend"] = self.GetTrend(firstClose=self._stat["closeFirst"], lastClose=self._stat["closeLast"], trendDeviation=self.trendDeviation)
 
@@ -628,8 +628,8 @@ class PriceGenerator:
         self._stat["downCount"] = len(self.prices.up[self.prices.up == False])
         self._stat["upCountChainMax"] = max(upChainsLengths) if upChainsLengths else 1
         self._stat["downCountChainMax"] = max(downChainsLengths) if downChainsLengths else 1
-        self._stat["deltas"]["max"] = pd.DataFrame.max(self.prices.delta)
-        self._stat["deltas"]["min"] = pd.DataFrame.min(self.prices.delta)
+        self._stat["deltas"]["max"] = max(self.prices.delta)
+        self._stat["deltas"]["min"] = min(self.prices.delta)
         self._stat["deltas"]["stDev"] = round(pstdev(self.prices.delta), self._precision)
         self._stat["deltas"]["q99"] = round(max(pd.DataFrame(self.prices.delta).quantile(q=0.99, interpolation='linear')), self._precision)
         self._stat["deltas"]["q95"] = round(max(pd.DataFrame(self.prices.delta).quantile(q=0.95, interpolation='linear')), self._precision)
@@ -681,46 +681,59 @@ class PriceGenerator:
 
         return summary
 
-    def _GenNextCandle(self, lastClose) -> dict:
+    def _GenNextCandle(self, lastClose, lastVolume=0) -> dict:
         """
         Generator for creating 1 next candle based on global probability parameters.
 
-        :param lastClose: value of last close price.
-        :return: one OHLCV-candle as dict.
+        :param lastClose: value of the last close price.
+        :param lastVolume: value of the last volume.
+        :return: one OHLCV-candle as dict: {"open": lastClose, "high": newHigh, "low": newLow, "close": newClose, "volume": newVolume}.
         """
-        candle = {
-            "open": lastClose,
-            "high": 0,
-            "low": 0,
-            "close": 0,
-            "volume": random.randint(a=0, b=self.maxVolume)
-        }
+        candle = dict(open=lastClose, high=0., low=0., close=0., volume=0)  # init candle's object
+        lastVolume = lastVolume if lastVolume > 0 else self.maxVolume // 2
+
+        # Generating volume depends on the last value and outliers probability:
+        volDelta = int(self.maxVolume * self.outliersProb)
+        weight = lastVolume / self.maxVolume  # if w > 0.5 then more close to maxVolume, but else if w <= 0.5 then more close to 0
+        volA = int(lastVolume - volDelta * (1 + weight))
+        volB = int(lastVolume + volDelta * (1 + weight))
+        volB = volB if 1 < volB <= self.maxVolume and volA > 0 else self.maxVolume
+        volA = volA if volA > 0 else 1
+        candle["volume"] = random.randint(a=volA, b=volB)
 
         if random.random() <= self.upCandlesProb:
-            maxBody = min(self.maxClose, candle["open"] + self.maxCandleBody)
-            candle["close"] = round(random.uniform(a=candle["open"], b=maxBody), self.precision)  # up candle
+            bodyUp = min(self.maxClose, candle["open"] + self.maxCandleBody)
+            candle["close"] = round(random.uniform(a=candle["open"], b=bodyUp), self.precision)  # up candle
+            halfBody = round(abs(candle["close"] - candle["open"]) / 2, self.precision)
 
             if random.random() <= self.outliersProb:
-                candle["high"] = round(random.uniform(a=candle["close"], b=candle["close"] + self.maxOutlier), self.precision)  # with outlier price "tails"
-                candle["low"] = round(random.uniform(a=candle["open"] - self.maxOutlier, b=candle["open"]), self.precision)
+                candle["high"] = round(random.uniform(a=candle["close"], b=candle["close"] + self.maxOutlier), self.precision)  # with outlier high price
 
             else:
-                halfBody = (candle["close"] - candle["open"]) / 2
-                candle["high"] = round(random.uniform(a=candle["close"], b=candle["close"] + halfBody), self.precision)  # without outlier price "tails"
-                candle["low"] = round(random.uniform(a=candle["open"] - halfBody, b=candle["open"]), self.precision)
+                candle["high"] = round(random.uniform(a=candle["close"], b=candle["close"] + halfBody), self.precision)  # without outlier
+
+            if random.random() <= self.outliersProb:
+                candle["low"] = round(random.uniform(a=candle["open"] - self.maxOutlier, b=candle["open"]), self.precision)  # with outlier low price
+
+            else:
+                candle["low"] = round(random.uniform(a=candle["open"] - halfBody, b=candle["open"]), self.precision)  # without outlier
 
         else:
-            minBody = max(self.minClose, candle["open"] - self.maxCandleBody)
-            candle["close"] = round(random.uniform(a=minBody, b=candle["open"]), self.precision)  # down candle
+            bodyDown = max(self.minClose, candle["open"] - self.maxCandleBody)
+            candle["close"] = round(random.uniform(a=bodyDown, b=candle["open"]), self.precision)  # down candle
+            halfBody = round(abs(candle["open"] - candle["close"]) / 2, self.precision)
 
             if random.random() <= self.outliersProb:
-                candle["high"] = round(random.uniform(a=candle["open"], b=candle["open"] + self.maxOutlier), self.precision)  # with outlier price "tails"
-                candle["low"] = round(random.uniform(a=candle["close"] - self.maxOutlier, b=candle["close"]), self.precision)
+                candle["high"] = round(random.uniform(a=candle["open"], b=candle["open"] + self.maxOutlier), self.precision)  # with outlier high price
 
             else:
-                halfBody = (candle["open"] - candle["close"]) / 2
-                candle["high"] = round(random.uniform(a=candle["open"], b=candle["open"] + halfBody), self.precision)  # without outlier price "tails"
-                candle["low"] = round(random.uniform(a=candle["close"] - halfBody, b=candle["close"]), self.precision)
+                candle["high"] = round(random.uniform(a=candle["open"], b=candle["open"] + halfBody), self.precision)  # without outlier
+
+            if random.random() <= self.outliersProb:
+                candle["low"] = round(random.uniform(a=candle["close"] - self.maxOutlier, b=candle["close"]), self.precision)  # with outlier high price
+
+            else:
+                candle["low"] = round(random.uniform(a=candle["close"] - halfBody, b=candle["close"]), self.precision)  # without outlier
 
         return candle
 
@@ -775,7 +788,7 @@ class PriceGenerator:
 
         # maximum of candle sizes: (high - low), if None then used (maxClose - minClose) / 10
         if self.maxOutlier is None:
-            self.maxOutlier = (self.maxClose - self.minClose) / 10
+            self.maxOutlier = abs(self.maxClose - self.minClose) / 10
 
         # maximum of candle body sizes: abs(open - close), if None then used maxOutlier * 90%
         if self.maxCandleBody is None:
@@ -831,11 +844,11 @@ class PriceGenerator:
 
                     raise Exception("Unknown direction")
 
-                firstCandle = self._GenNextCandle(round(self.initClose, self.precision))  # first candle in next trend
+                firstCandle = self._GenNextCandle(round(self.initClose, self.precision), candles[-1]["volume"] if len(candles) > 0 else 0)  # first candle in next trend
                 candles.append(firstCandle)
 
                 for _ in range(1, self.horizon):
-                    candles.append(self._GenNextCandle(candles[-1]["close"]))
+                    candles.append(self._GenNextCandle(candles[-1]["close"], candles[-1]["volume"]))
 
                 highDelta = abs(candles[-1]["high"] - max(candles[-1]["open"], candles[-1]["close"]))  # save higher shadow
                 lowDelta = abs(min(candles[-1]["open"], candles[-1]["close"]) - candles[-1]["low"])  # save lower shadow
@@ -859,8 +872,8 @@ class PriceGenerator:
                             self.precision,
                         )
 
-                candles[-1]["high"] = max(candles[-1]["open"], candles[-1]["close"]) + highDelta  # fixing higher shadow
-                candles[-1]["low"] = min(candles[-1]["open"], candles[-1]["close"]) - lowDelta  # fixing lower shadow
+                candles[-1]["high"] = round(max(candles[-1]["open"], candles[-1]["close"]) + highDelta, self.precision)  # fixing higher shadow
+                candles[-1]["low"] = round(min(candles[-1]["open"], candles[-1]["close"]) - lowDelta, self.precision)  # fixing lower shadow
 
             self.upCandlesProb = userProb
             self.horizon = userHorizon
@@ -869,7 +882,7 @@ class PriceGenerator:
         else:
             candles = [self._GenNextCandle(round(self.initClose, self.precision))]  # first candle in chain
             for _ in range(1, self.horizon):
-                candles.append(self._GenNextCandle(candles[-1]["close"]))
+                candles.append(self._GenNextCandle(candles[-1]["close"], candles[-1]["volume"]))
 
         # prepare Dataframe from generated prices:
         indx = pd.date_range(
@@ -1558,6 +1571,9 @@ def Main():
 
         if args.split_count:
             priceModel.splitCount = args.split_count  # candles in every period
+
+        if args.max_close:
+            priceModel.maxClose = args.max_close  # maximum of all close prices
 
         if args.min_close:
             priceModel.minClose = args.min_close  # minimum of all close prices

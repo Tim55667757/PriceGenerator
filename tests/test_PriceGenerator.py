@@ -8,17 +8,17 @@ from datetime import datetime, timedelta
 from dateutil.tz import tzlocal
 import random
 
-from pricegenerator import PriceGenerator as Gen
+from pricegenerator import PriceGenerator
 
 
 class TestFeatures:
 
     @pytest.fixture(scope='function', autouse=True)
     def init(self):
-        Gen.uLogger.level = 50  # Disable debug logging while test, logger CRITICAL = 50
-        Gen.uLogger.handlers[0].level = 50  # Disable debug logging for STDOUT
+        PriceGenerator.uLogger.level = 50  # Disable debug logging while test, logger CRITICAL = 50
+        PriceGenerator.uLogger.handlers[0].level = 50  # Disable debug logging for STDOUT
 
-        self.model = Gen.PriceGenerator()  # init generator for the next tests
+        self.model = PriceGenerator.PriceGenerator()  # init generator for the next tests
 
     def test_Generate(self):
         self.model.Generate()
@@ -216,9 +216,9 @@ class TestFeatures:
         ]
         for test in testData:
             actual = self.model.ZigZagFilter(datetimes=test["dates"], values=test["closes"], deviation=test["deviation"])
-            assert isinstance(actual, dict), "Expected dictionary result!"
-            assert "datetimes" in actual.keys(), "Expected 'datetimes' key in ZigZagFilter() is present in result!"
-            assert "filtered" in actual.keys(), "Expected 'filtered' key in ZigZagFilter() is present in result!"
+            assert isinstance(actual, pd.DataFrame), "Expected Pandas Dataframe result!"
+            assert "datetimes" in actual.columns, "Expected 'datetimes' column in ZigZagFilter() is present in result!"
+            assert "filtered" in actual.columns, "Expected 'filtered' column in ZigZagFilter() is present in result!"
             assert list(test["expected"]) == list(actual["filtered"]), "Expected filtered data: {}\nInput parameters:\n- deviation: {}\n- dates: {}\n- closes: {}".format(test["expected"], test["deviation"], test["dates"], test["closes"])
 
     def test_timeframe(self):
@@ -324,7 +324,7 @@ class TestFeatures:
                 assert maxBody <= test, "All candles bodies must be less than maxCandleBody = {}, but there are some values more than maxCandleBody!\nList of bodies: {}".format(test, bodies)
 
     def test_maxVolume(self):
-        testData = [[-1, 0], [None, 0], [0, 0], [1, 1], [10, 10], [100, 100]]
+        testData = [[-1, 1], [None, 1], [0, 1], [1, 1], [10, 10], [100, 100]]
         for test in testData:
             self.model.horizon = 10
             self.model.minClose = 10

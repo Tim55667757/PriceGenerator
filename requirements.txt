@@ -2,10 +2,11 @@
 # Changing the order has an impact on the overall integration  process, which may cause troubles later.
 
 # Build requirements:
-pytest >= 6.2.2  # MIT License
+twine == 4.0.1  # MIT License
+pytest >= 7.1.2  # MIT License
 
 # Documentation requirements:
-pdoc >= 12.3.0  # MIT License
+pdoc >= 12.3.1  # MIT License
 
 # Packet PriceGenerator requirements:
 requests >= 2.25.1  # Apache-2.0 license
